@@ -2,11 +2,71 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Send } from 'lucide-react';
-import { footerColumns } from '@/data/landing';
+import { Logo } from '@/components/brand/Logo';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function Footer() {
+  const { isAr, t } = useLanguage();
+
+  const footerColumns = isAr
+    ? [
+        {
+          title: "المنصة",
+          links: [
+            { label: "الوظائف والفرص", href: "#features" },
+            { label: "مؤشرات السوق", href: "#insights" },
+            { label: "صانع السيرة الذاتية", href: "#how-it-works" },
+            { label: "قصص النجاح", href: "#testimonials" }
+          ]
+        },
+        {
+          title: "عن المنصة",
+          links: [
+            { label: "من نحن", href: "#" },
+            { label: "المنهجية ومصادر البيانات", href: "#" },
+            { label: "فريق العمل", href: "#" },
+            { label: "تواصل معنا", href: "#" }
+          ]
+        },
+        {
+          title: "الشروط والخصوصية",
+          links: [
+            { label: "سياسة الخصوصية", href: "#" },
+            { label: "شروط الاستخدام", href: "#" },
+            { label: "أمان البيانات", href: "#" }
+          ]
+        }
+      ]
+    : [
+        {
+          title: "Platform",
+          links: [
+            { label: "Jobs & Matching", href: "#features" },
+            { label: "Market Insights", href: "#insights" },
+            { label: "CV Builder", href: "#how-it-works" },
+            { label: "Success Stories", href: "#testimonials" }
+          ]
+        },
+        {
+          title: "Company",
+          links: [
+            { label: "About Us", href: "#" },
+            { label: "Data Methodology", href: "#" },
+            { label: "Careers", href: "#" },
+            { label: "Contact", href: "#" }
+          ]
+        },
+        {
+          title: "Legal",
+          links: [
+            { label: "Privacy Policy", href: "#" },
+            { label: "Terms of Service", href: "#" },
+            { label: "Data Security", href: "#" }
+          ]
+        }
+      ];
+
   return (
     <footer className="w-full bg-white dark:bg-[#070B14] border-t border-slate-100/80 dark:border-white/5 pt-10 pb-6 px-6 sm:px-10 lg:px-16 text-slate-600 dark:text-slate-400 transition-colors duration-300">
       <div className="max-w-[1400px] mx-auto">
@@ -15,28 +75,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-6 items-start">
           
           {/* 1. Brand Info Column */}
-          <div className="lg:col-span-2 space-y-3 lg:pr-8 lg:border-r lg:border-slate-100 dark:lg:border-white/5">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="relative w-7 h-7 flex-shrink-0">
-                <Image 
-                  src="/images/logo.png" 
-                  alt="MAJRA Logo" 
-                  fill 
-                  className="object-contain"
-                />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[20px] font-black tracking-tight text-[#1E293B] dark:text-white leading-none">
-                  MAJRA
-                </span>
-                <span className="text-[9.5px] font-medium text-slate-400 dark:text-slate-500 tracking-normal mt-0.5">
-                  Career Intelligence
-                </span>
-              </div>
+          <div className="lg:col-span-2 space-y-3 lg:ltr:pr-8 lg:rtl:pl-8 lg:ltr:border-r lg:rtl:border-l lg:border-slate-100 dark:lg:border-white/5">
+            <Link href="/" className="inline-block transition-transform hover:scale-105">
+              <Logo size="md" />
             </Link>
 
             <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed max-w-[280px]">
-              Egypt&apos;s leading career intelligence platform that helps you make smarter career decisions with real data and AI.
+              {isAr 
+                ? "منصة استخبارات سوق العمل والتطوير المهني الأولى في مصر، مبنية على لغة الأرقام والذكاء الاصطناعي."
+                : "Egypt's leading career intelligence platform helping you make smarter career decisions with real data and AI."}
             </p>
           </div>
 
@@ -46,12 +93,12 @@ export function Footer() {
               <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white">{col.title}</h4>
               <ul className="space-y-2">
                 {col.links.map((link) => (
-                  <li key={link}>
+                  <li key={link.label}>
                     <a
-                      href={`#${link.toLowerCase().replace(/\s+/g, '-')}`}
-                      className="text-[12.5px] text-slate-500 dark:text-slate-400 hover:text-[#4338CA] dark:hover:text-[#818CF8] transition-colors"
+                      href={link.href}
+                      className="text-[12.5px] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
-                      {link}
+                      {link.label}
                     </a>
                   </li>
                 ))}
@@ -61,30 +108,31 @@ export function Footer() {
 
           {/* 3. Stay Updated Column */}
           <div className="space-y-3">
-            <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Stay Updated</h4>
+            <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white">
+              {isAr ? "ابقَ على اطلاع" : "Stay Updated"}
+            </h4>
             <p className="text-[12px] text-slate-500 dark:text-slate-400 leading-snug">
-              Get the latest career insights and Egyptian job market trends.
+              {isAr ? "احصل على أحدث تقارير ومؤشرات سوق العمل المصري أسبوعياً." : "Get the latest career insights and Egyptian job market trends."}
             </p>
             
             {/* Email Input + Blue Send Button */}
             <form onSubmit={(e) => e.preventDefault()} className="flex items-center gap-1.5 pt-0.5">
               <input
                 type="email"
-                placeholder="Enter your email"
-                className="w-full h-9 px-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0D1322] text-[12px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-[#0052FF] focus:outline-none transition-colors"
+                placeholder={isAr ? "أدخل بريدك الإلكتروني" : "Enter your email"}
+                className="w-full h-9 px-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0D1322] text-[12px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-600 focus:outline-none transition-colors"
               />
               <button
                 type="submit"
                 aria-label="Submit email"
-                className="h-9 w-9 shrink-0 rounded-xl bg-[#0052FF] text-white flex items-center justify-center hover:bg-[#0045D8] transition-colors shadow-sm shadow-blue-600/20"
+                className="h-9 w-9 shrink-0 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors shadow-sm shadow-blue-600/20 cursor-pointer"
               >
-                <Send className="w-3.5 h-3.5" />
+                <Send className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
               </button>
             </form>
 
-            {/* Social Icons with Official Brand Hover Colors */}
+            {/* Social Icons */}
             <div className="flex items-center gap-2 pt-1 text-slate-400">
-              
               {/* LinkedIn */}
               <a 
                 href="https://linkedin.com" 
@@ -126,21 +174,6 @@ export function Footer() {
                   <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                 </svg>
               </a>
-
-              {/* YouTube */}
-              <a 
-                href="https://youtube.com" 
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-                title="YouTube"
-                className="flex items-center justify-center h-8 w-8 rounded-xl border border-slate-100 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 hover:text-[#CC0000] hover:bg-[#CC0000]/10 hover:border-[#CC0000]/30 hover:scale-110 transition-all duration-200 shadow-sm"
-              >
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-              </a>
-
             </div>
           </div>
 
@@ -148,7 +181,7 @@ export function Footer() {
 
         {/* Bottom Copyright */}
         <div className="mt-8 pt-4 border-t border-slate-100/90 dark:border-white/5 text-center text-[12px] text-slate-400 dark:text-slate-500 font-medium">
-          &copy; 2026 MAJRA. All rights reserved.
+          {t('footerRights')}
         </div>
 
       </div>

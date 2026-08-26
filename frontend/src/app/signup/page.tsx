@@ -16,21 +16,33 @@ import { SocialAuthButtons } from '@/components/Form/SocialAuthButtons';
 import { SubmitButton } from '@/components/Form/SubmitButton';
 import { TextField } from '@/components/Form/TextField';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { passwordRules, signUpFeatures } from '@/data/features';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { isAr, t } = useLanguage();
   const [fullName, setFullName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [agreed, setAgreed] = React.useState(true);
 
+  const arabicPasswordRules = [
+    "8 أحرف على الأقل",
+    "حرف كبير واحد على الأقل",
+    "رقم أو رمز خاص"
+  ];
+
+  const activePasswordRules = isAr ? arabicPasswordRules : passwordRules;
+
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[#F8FAFC] dark:bg-[#060913] text-[#1E293B] dark:text-[#F8FAFC] flex flex-col justify-between">
       <Decor />
 
-      {/* Floating Theme Toggle in Top Right */}
-      <div className="absolute top-6 right-6 lg:top-8 lg:right-10 z-30 flex items-center gap-3">
+      {/* Floating Language & Theme Toggles in Top Corner */}
+      <div className="absolute top-6 ltr:right-6 rtl:left-6 lg:top-8 lg:ltr:right-10 lg:rtl:left-10 z-30 flex items-center gap-2.5">
+        <LanguageToggle />
         <ThemeToggle />
       </div>
 
@@ -39,30 +51,46 @@ export default function SignUpPage() {
         {/* Left Column: Brand & Features */}
         <section className="flex flex-col">
           <Link href="/" className="inline-block w-fit transition-transform hover:scale-105">
-            <Logo tagline="Career Intelligence" size="md" />
+            <Logo size="md" />
           </Link>
 
           <div className="mt-8">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#EEF2FF] dark:bg-indigo-950/70 border border-indigo-100 dark:border-indigo-500/30 px-3.5 py-1.5 shadow-sm">
-              <Sparkle className="h-4 w-4 text-[#4F46E5] dark:text-indigo-400" />
-              <span className="text-[12.5px] font-bold text-[#4F46E5] dark:text-indigo-300">
-                AI-Powered Career Intelligence
+            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-blue-50 dark:bg-blue-950/70 border border-blue-100 dark:border-blue-500/30 px-3.5 py-1.5 shadow-sm">
+              <Sparkle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-[12.5px] font-bold text-blue-700 dark:text-blue-300">
+                {isAr ? "ذكاء اصطناعي لتوجيه المسار المهني" : "AI-Powered Career Intelligence"}
               </span>
             </span>
           </div>
 
-          <h1 className="mt-5 text-[34px] sm:text-[42px] font-black leading-[1.12] tracking-[-0.035em] text-[#0B132B] dark:text-white">
-            Create Your Account,
-            <br />
-            Unlock{' '}
-            <span className="relative inline-block text-[#2563EB] dark:text-[#60A5FA]">
-              Your Future
-              <Underline className="absolute -bottom-2 left-0 h-[11px] w-full" />
-            </span>
+          <h1 className="mt-5 text-[34px] sm:text-[42px] font-black leading-[1.15] tracking-tight text-[#0B132B] dark:text-white">
+            {isAr ? (
+              <>
+                أنشئ حسابك الجديد،
+                <br />
+                وانطلق نحو{' '}
+                <span className="relative inline-block bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">
+                  مستقبلك المهني
+                  <Underline className="absolute -bottom-2 left-0 h-[11px] w-full" />
+                </span>
+              </>
+            ) : (
+              <>
+                Create Your Account,
+                <br />
+                Unlock{' '}
+                <span className="relative inline-block bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">
+                  Your Future
+                  <Underline className="absolute -bottom-2 left-0 h-[11px] w-full" />
+                </span>
+              </>
+            )}
           </h1>
 
           <p className="mt-4 max-w-[26rem] text-[15px] font-normal leading-[1.65] text-[#5B6579] dark:text-slate-300">
-            Join thousands of professionals using AI to discover insights, build skills, and grow their careers with confidence.
+            {isAr
+              ? "انضم لآلاف المتخصصين والخريجين في مصر الذين يبنون مساراتهم المهنية بالبيانات والتوجيه الذكي."
+              : "Join thousands of professionals using AI to discover insights, build skills, and grow their careers with confidence."}
           </p>
 
           <div className="mt-8">
@@ -76,7 +104,7 @@ export default function SignUpPage() {
           <div className="mt-6 border-t border-slate-200/70 dark:border-white/10 pt-4">
             <SecurityNote
               align="left"
-              subtext="We never share your information with third parties."
+              subtext={isAr ? "بياناتك مشفرة ومحمية تماماً ولا نشاركها مع أي طرف ثالث." : "We never share your information with third parties."}
             />
           </div>
         </section>
@@ -85,23 +113,23 @@ export default function SignUpPage() {
         <section className="w-full flex justify-center lg:justify-end">
           <div className="w-full max-w-[540px] rounded-[28px] border border-slate-100 dark:border-white/10 bg-white dark:bg-[#0D1527] p-7 sm:p-10 shadow-[0_20px_50px_rgba(27,45,105,0.08)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_20px_rgba(99,102,241,0.06)]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20">
-                <Sparkle className="h-5 w-5 text-[#4F46E5] dark:text-indigo-400" />
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/80 flex items-center justify-center border border-blue-100 dark:border-blue-500/20">
+                <Sparkle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h2 className="text-[26px] font-black leading-tight tracking-[-0.025em] text-[#0B132B] dark:text-white">
-                  Create Your Account
+                <h2 className="text-[26px] font-black leading-tight tracking-tight text-[#0B132B] dark:text-white">
+                  {isAr ? "إنشاء حساب جديد" : "Create Your Account"}
                 </h2>
                 <p className="mt-0.5 text-[13.5px] font-normal text-[#5B6579] dark:text-slate-400">
-                  Sign up to start your journey with MAJRA
+                  {isAr ? "سجّل للبدء في رحلتك مع منصة عواطلي" : "Sign up to start your journey with 3WATLY"}
                 </p>
               </div>
             </div>
 
             <div className="mt-7">
               <SocialAuthButtons
-                googleLabel="Sign up with Google"
-                linkedinLabel="Sign up with LinkedIn"
+                googleLabel={isAr ? "التسجيل عبر Google" : "Sign up with Google"}
+                linkedinLabel={isAr ? "التسجيل عبر LinkedIn" : "Sign up with LinkedIn"}
               />
             </div>
 
@@ -118,8 +146,8 @@ export default function SignUpPage() {
             >
               <TextField
                 id="fullName"
-                label="Full Name"
-                placeholder="Enter your full name"
+                label={isAr ? "الاسم بالكامل" : "Full Name"}
+                placeholder={isAr ? "أدخل اسمك بالكامل" : "Enter your full name"}
                 icon="user"
                 autoComplete="name"
                 value={fullName}
@@ -128,8 +156,8 @@ export default function SignUpPage() {
 
               <TextField
                 id="email"
-                label="Email Address"
-                placeholder="Enter your email address"
+                label={isAr ? "البريد الإلكتروني" : "Email Address"}
+                placeholder={isAr ? "أدخل بريدك الإلكتروني" : "Enter your email address"}
                 icon="mail"
                 type="email"
                 autoComplete="email"
@@ -140,8 +168,8 @@ export default function SignUpPage() {
               <div>
                 <TextField
                   id="password"
-                  label="Password"
-                  placeholder="Create a strong password"
+                  label={isAr ? "كلمة المرور" : "Password"}
+                  placeholder={isAr ? "أنشئ كلمة مرور قوية" : "Create a strong password"}
                   icon="lock"
                   type="password"
                   autoComplete="new-password"
@@ -150,7 +178,7 @@ export default function SignUpPage() {
                 />
 
                 <ul className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5">
-                  {passwordRules.map((rule) => (
+                  {activePasswordRules.map((rule) => (
                     <li key={rule} className="flex items-center gap-1.5">
                       <span className="h-[6px] w-[6px] rounded-full bg-[#10B981]" />
                       <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">{rule}</span>
@@ -161,35 +189,44 @@ export default function SignUpPage() {
 
               <div className="pt-1">
                 <Checkbox id="terms" checked={agreed} onChange={setAgreed}>
-                  I agree to the{' '}
-                  <a
-                    href="#"
-                    className="font-semibold text-[#2563EB] dark:text-[#818CF8] hover:underline"
-                  >
-                    Terms of Service
-                  </a>{' '}
-                  and{' '}
-                  <a
-                    href="#"
-                    className="font-semibold text-[#2563EB] dark:text-[#818CF8] hover:underline"
-                  >
-                    Privacy Policy
-                  </a>
+                  {isAr ? (
+                    <>
+                      أوافق على{' '}
+                      <a href="#" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                        شروط الاستخدام
+                      </a>{' '}
+                      و{' '}
+                      <a href="#" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                        سياسة الخصوصية
+                      </a>
+                    </>
+                  ) : (
+                    <>
+                      I agree to the{' '}
+                      <a href="#" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                        Terms of Service
+                      </a>{' '}
+                      and{' '}
+                      <a href="#" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                        Privacy Policy
+                      </a>
+                    </>
+                  )}
                 </Checkbox>
               </div>
 
               <div className="pt-2">
-                <SubmitButton label="Create Account" />
+                <SubmitButton label={isAr ? "إنشاء الحساب" : "Create Account"} />
               </div>
             </form>
 
             <p className="mt-6 text-center text-[14px] font-normal text-[#5B6579] dark:text-slate-400">
-              Already have an account?{' '}
+              {isAr ? "لديك حساب بالفعل؟ " : "Already have an account? "}
               <Link
                 href="/login"
-                className="font-bold text-[#2563EB] dark:text-[#818CF8] hover:underline"
+                className="font-bold text-blue-600 dark:text-blue-400 hover:underline"
               >
-                Log in
+                {isAr ? "تسجيل الدخول" : "Log in"}
               </Link>
             </p>
           </div>
@@ -197,7 +234,7 @@ export default function SignUpPage() {
       </main>
 
       <footer className="relative z-10 py-4 text-center text-[12px] text-slate-400 dark:text-slate-500">
-        © 2026 MAJRA. All rights reserved.
+        {t('footerRights')}
       </footer>
     </div>
   );

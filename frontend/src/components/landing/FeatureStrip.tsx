@@ -2,35 +2,65 @@
 
 import React from 'react';
 import { CalendarSearch, BarChart3, Flame, FileText } from 'lucide-react';
-
-const stripItems = [
-  {
-    title: 'AI-Powered Career Matching',
-    description: 'Find jobs that truly fit you',
-    icon: <CalendarSearch className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />,
-    badgeBg: 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-100 dark:border-indigo-500/20'
-  },
-  {
-    title: 'Real-time Egyptian Market Insights',
-    description: 'Data you can trust',
-    icon: <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />,
-    badgeBg: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20'
-  },
-  {
-    title: 'Personalized Skill Gap Analysis',
-    description: 'Know what to learn next',
-    icon: <Flame className="h-5 w-5 text-amber-500 dark:text-amber-400" />,
-    badgeBg: 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20'
-  },
-  {
-    title: 'Smart CV Builder',
-    description: 'Create a CV that gets you noticed',
-    icon: <FileText className="h-5 w-5 text-blue-500 dark:text-blue-400" />,
-    badgeBg: 'bg-blue-50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20'
-  }
-];
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function FeatureStrip() {
+  const { isAr } = useLanguage();
+
+  const stripItems = isAr
+    ? [
+        {
+          title: 'مطابقة وظيفية ذكية',
+          description: 'وظائف تناسب مهاراتك الفعلية',
+          icon: <CalendarSearch className="h-5 w-5 text-blue-600 dark:text-blue-400" />,
+          badgeBg: 'bg-blue-50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20'
+        },
+        {
+          title: 'بيانات حية لسوق العمل المصري',
+          description: 'أرقام وإحصائيات دقيقة وموثوقة',
+          icon: <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />,
+          badgeBg: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20'
+        },
+        {
+          title: 'تحليل فجوات المهارات',
+          description: 'اعرف ايه اللي ناقصك بالظبط لتترقى',
+          icon: <Flame className="h-5 w-5 text-amber-500 dark:text-amber-400" />,
+          badgeBg: 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20'
+        },
+        {
+          title: 'صانع سيرة ذاتية ذكي',
+          description: 'نماذج متوافقة 100% مع أنظمة ATS',
+          icon: <FileText className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />,
+          badgeBg: 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-100 dark:border-indigo-500/20'
+        }
+      ]
+    : [
+        {
+          title: 'AI-Powered Career Matching',
+          description: 'Find jobs that truly fit your skills',
+          icon: <CalendarSearch className="h-5 w-5 text-blue-600 dark:text-blue-400" />,
+          badgeBg: 'bg-blue-50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20'
+        },
+        {
+          title: 'Real-time Egypt Market Insights',
+          description: 'Real data you can rely on',
+          icon: <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />,
+          badgeBg: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20'
+        },
+        {
+          title: 'Skill Gap Diagnostics',
+          description: 'Know exactly what skills to learn next',
+          icon: <Flame className="h-5 w-5 text-amber-500 dark:text-amber-400" />,
+          badgeBg: 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20'
+        },
+        {
+          title: 'Smart ATS CV Builder',
+          description: 'Create resumes that pass ATS scans',
+          icon: <FileText className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />,
+          badgeBg: 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-100 dark:border-indigo-500/20'
+        }
+      ];
+
   return (
     <div className="w-full">
       <div className="mx-auto max-w-[1440px]">

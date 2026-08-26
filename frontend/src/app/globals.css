@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900;1000&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -37,7 +37,18 @@ html {
   scroll-padding-top: 90px;
 }
 
-* {
+/* Arabic typography - uses Cairo with perfect line heights */
+html[dir="rtl"], 
+html[lang="ar"],
+html[dir="rtl"] body {
+  font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: normal !important;
+}
+
+/* English typography - uses Inter */
+html[dir="ltr"],
+html[lang="en"],
+html[dir="ltr"] body {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -53,12 +64,22 @@ html.dark body {
   color: #F8FAFC;
 }
 
+/* Professional Arabic Heading Enhancement */
+html[dir="rtl"] h1,
+html[dir="rtl"] h2,
+html[dir="rtl"] h3,
+html[dir="rtl"] h4 {
+  font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+  letter-spacing: 0 !important;
+  line-height: 1.25;
+}
+
 .dot-grid {
   background-image: radial-gradient(#c9d2ec 1.2px, transparent 1.2px);
   background-size: 14px 14px;
 }
 
-/* Beautiful Brand Blue / Indigo Scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -72,16 +93,16 @@ html.dark ::-webkit-scrollbar-track {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #4338CA 0%, #0052FF 100%);
+  background: linear-gradient(180deg, #1B57E0 0%, #10B981 100%);
   border-radius: 9999px;
   border: 1.5px solid #F8FAFC;
 }
 
 html.dark ::-webkit-scrollbar-thumb {
   border: 1.5px solid #060913;
-  background: linear-gradient(180deg, #6366F1 0%, #0052FF 100%);
+  background: linear-gradient(180deg, #3B82F6 0%, #10B981 100%);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #3730A3 0%, #0045D8 100%);
+  background: linear-gradient(180deg, #1442BC 0%, #059669 100%);
 }

@@ -1,39 +1,53 @@
+"use client";
+
 import React from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LogoProps {
-  /** Pass null to render the wordmark on its own. */
+  /** Pass null to render the wordmark on its own, or a custom string. */
   tagline?: string | null;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  forceLang?: 'ar' | 'en';
 }
 
 const sizes = {
-  sm: { mark: 'h-7 w-7', word: 'text-[18px]', tag: 'text-[10px]' },
-  md: { mark: 'h-9 w-9', word: 'text-[22px]', tag: 'text-[11px]' },
-  lg: { mark: 'h-11 w-11', word: 'text-[26px]', tag: 'text-[12px]' },
-  xl: { mark: 'h-14 w-14', word: 'text-[32px]', tag: 'text-[13.5px]' }
+  sm: { mark: 'h-7 w-7', word: 'text-[20px]', tag: 'text-[10px]' },
+  md: { mark: 'h-9 w-9', word: 'text-[24px]', tag: 'text-[11px]' },
+  lg: { mark: 'h-11 w-11', word: 'text-[28px]', tag: 'text-[12px]' },
+  xl: { mark: 'h-14 w-14', word: 'text-[34px]', tag: 'text-[13.5px]' }
 } as const;
 
-export function Logo({ tagline = 'Career Intelligence Platform', size = 'md' }: LogoProps) {
+export function Logo({ tagline = 'منصة استخبارات سوق العمل', size = 'md', forceLang }: LogoProps) {
+  const { isAr } = useLanguage();
+  const activeIsAr = forceLang ? forceLang === 'ar' : isAr;
   const { mark, word, tag } = sizes[size];
+
+  const brandTitle = activeIsAr ? 'عواطلي' : '3WATLY';
+  const defaultTagline = activeIsAr 
+    ? 'استخبارات سوق العمل والتطوير المهني'
+    : 'Egyptian Career Intelligence Platform';
+
+  const finalTagline = tagline === null ? null : (tagline || defaultTagline);
 
   return (
     <div className="flex items-center gap-3 select-none">
-      {/* Official MAJRA M-Arrow Mark with Gradient */}
+      {/* Official 3D 3WATLY / عواطلي Logo */}
       <div className={`${mark} relative flex-shrink-0 flex items-center justify-center`}>
         <img 
-          src="/images/logo.png" 
-          alt="MAJRA" 
-          className="w-full h-full object-contain"
+          src="/logo.png" 
+          alt={brandTitle}
+          className="w-full h-full object-contain drop-shadow-md transition-transform duration-200 hover:scale-105"
         />
       </div>
       
       <div className="flex flex-col justify-center leading-tight">
-        <span className={`${word} font-black tracking-[-0.03em] text-[#0B132B] dark:text-white transition-colors duration-200`}>
-          MAJRA
+        {/* Brand Name with Official Blue-to-Green Gradient from Reference Photo */}
+        <span className={`${word} font-black tracking-tight bg-gradient-to-r from-[#1B57E0] via-[#0284C7] to-[#10B981] dark:from-[#3B82F6] dark:via-[#38BDF8] dark:to-[#34D399] bg-clip-text text-transparent drop-shadow-sm`}>
+          {brandTitle}
         </span>
-        {tagline && (
-          <span className={`mt-0.5 ${tag} font-medium tracking-tight text-[#64748B] dark:text-slate-400`}>
-            {tagline}
+        {finalTagline && (
+          <span className={`mt-0.5 ${tag} font-medium tracking-tight text-slate-500 dark:text-slate-400 line-clamp-1`}>
+            {finalTagline}
           </span>
         )}
       </div>

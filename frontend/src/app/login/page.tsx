@@ -16,10 +16,13 @@ import { SocialAuthButtons } from '@/components/Form/SocialAuthButtons';
 import { SubmitButton } from '@/components/Form/SubmitButton';
 import { TextField } from '@/components/Form/TextField';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { loginFeatures } from '@/data/features';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { isAr, t } = useLanguage();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [remember, setRemember] = React.useState(true);
@@ -28,8 +31,9 @@ export default function LoginPage() {
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[#F8FAFC] dark:bg-[#060913] text-[#1E293B] dark:text-[#F8FAFC] flex flex-col justify-between">
       <Decor />
 
-      {/* Floating Theme Toggle in Top Right */}
-      <div className="absolute top-6 right-6 lg:top-8 lg:right-10 z-30 flex items-center gap-3">
+      {/* Floating Language & Theme Toggles in Top Corner */}
+      <div className="absolute top-6 ltr:right-6 rtl:left-6 lg:top-8 lg:ltr:right-10 lg:rtl:left-10 z-30 flex items-center gap-2.5">
+        <LanguageToggle />
         <ThemeToggle />
       </div>
 
@@ -38,21 +42,37 @@ export default function LoginPage() {
         {/* Left Column: Brand & Features */}
         <section className="flex flex-col">
           <Link href="/" className="inline-block w-fit transition-transform hover:scale-105">
-            <Logo tagline="Career Intelligence" size="md" />
+            <Logo size="md" />
           </Link>
 
-          <h1 className="mt-8 text-[34px] sm:text-[44px] font-black leading-[1.12] tracking-[-0.035em] text-[#0B132B] dark:text-white">
-            Smarter Career
-            <br />
-            Decisions Start{' '}
-            <span className="relative inline-block text-[#2563EB] dark:text-[#60A5FA]">
-              Here
-              <Underline className="absolute -bottom-2 left-0 h-[11px] w-full" />
-            </span>
+          <h1 className="mt-8 text-[34px] sm:text-[44px] font-black leading-[1.15] tracking-tight text-[#0B132B] dark:text-white">
+            {isAr ? (
+              <>
+                قرارات مهنية أذكى
+                <br />
+                تبدأ من{' '}
+                <span className="relative inline-block bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">
+                  هنا
+                  <Underline className="absolute -bottom-2 left-0 h-[11px] w-full" />
+                </span>
+              </>
+            ) : (
+              <>
+                Smarter Career
+                <br />
+                Decisions Start{' '}
+                <span className="relative inline-block bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">
+                  Here
+                  <Underline className="absolute -bottom-2 left-0 h-[11px] w-full" />
+                </span>
+              </>
+            )}
           </h1>
 
-          <p className="mt-4 max-w-[24rem] text-[15px] font-normal leading-[1.65] text-[#5B6579] dark:text-slate-300">
-            Log in to your account and continue building a career you’re proud of.
+          <p className="mt-4 max-w-[26rem] text-[15px] font-normal leading-[1.65] text-[#5B6579] dark:text-slate-300">
+            {isAr 
+              ? "سجّل دخولك لمتابعة خطتك المهنية وسد فجوات مهاراتك والوصول لأحدث وظائف السوق المصري."
+              : "Log in to your account and continue building a career you’re proud of."}
           </p>
 
           <div className="mt-8">
@@ -66,7 +86,7 @@ export default function LoginPage() {
           <div className="mt-6 border-t border-slate-200/70 dark:border-white/10 pt-4">
             <SecurityNote
               align="left"
-              subtext="We never share your information with third parties."
+              subtext={isAr ? "بياناتك مشفرة ومحمية تماماً ولا نشاركها مع أي طرف ثالث." : "We never share your information with third parties."}
             />
           </div>
         </section>
@@ -75,21 +95,21 @@ export default function LoginPage() {
         <section className="w-full flex justify-center lg:justify-end">
           <div className="w-full max-w-[540px] rounded-[28px] border border-slate-100 dark:border-white/10 bg-white dark:bg-[#0D1527] p-7 sm:p-10 shadow-[0_20px_50px_rgba(27,45,105,0.08)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_20px_rgba(99,102,241,0.06)]">
             <div className="flex flex-col items-center text-center">
-              <div className="w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20">
-                <Sparkle className="h-6 w-6 text-[#4F46E5] dark:text-indigo-400" />
+              <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-950/80 flex items-center justify-center border border-blue-100 dark:border-blue-500/20">
+                <Sparkle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
-              <h2 className="mt-3 text-[26px] font-black leading-tight tracking-[-0.025em] text-[#0B132B] dark:text-white">
-                Welcome Back
+              <h2 className="mt-3 text-[26px] font-black leading-tight tracking-tight text-[#0B132B] dark:text-white">
+                {isAr ? "مرحباً بعودتك" : "Welcome Back"}
               </h2>
               <p className="mt-1 text-[13.5px] font-normal text-[#5B6579] dark:text-slate-400">
-                Log in to your account to continue
+                {isAr ? "سجّل دخولك لحسابك للمتابعة" : "Log in to your account to continue"}
               </p>
             </div>
 
             <div className="mt-7">
               <SocialAuthButtons
-                googleLabel="Continue with Google"
-                linkedinLabel="Continue with LinkedIn"
+                googleLabel={isAr ? "المتابعة عبر Google" : "Continue with Google"}
+                linkedinLabel={isAr ? "المتابعة عبر LinkedIn" : "Continue with LinkedIn"}
               />
             </div>
 
@@ -106,8 +126,8 @@ export default function LoginPage() {
             >
               <TextField
                 id="email"
-                label="Email Address"
-                placeholder="Enter your email address"
+                label={isAr ? "البريد الإلكتروني" : "Email Address"}
+                placeholder={isAr ? "أدخل بريدك الإلكتروني" : "Enter your email address"}
                 icon="mail"
                 type="email"
                 autoComplete="email"
@@ -117,8 +137,8 @@ export default function LoginPage() {
 
               <TextField
                 id="password"
-                label="Password"
-                placeholder="Enter your password"
+                label={isAr ? "كلمة المرور" : "Password"}
+                placeholder={isAr ? "أدخل كلمة المرور" : "Enter your password"}
                 icon="lock"
                 type="password"
                 autoComplete="current-password"
@@ -128,28 +148,28 @@ export default function LoginPage() {
 
               <div className="flex items-center justify-between pt-1">
                 <Checkbox id="remember" checked={remember} onChange={setRemember}>
-                  Remember me
+                  {isAr ? "تذكر بياناتي" : "Remember me"}
                 </Checkbox>
                 <a
                   href="#"
-                  className="text-[13px] font-semibold text-[#2563EB] dark:text-[#818CF8] hover:underline"
+                  className="text-[13px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  Forgot password?
+                  {isAr ? "نسيت كلمة المرور؟" : "Forgot password?"}
                 </a>
               </div>
 
               <div className="pt-2">
-                <SubmitButton label="Log In" />
+                <SubmitButton label={isAr ? "تسجيل الدخول" : "Log In"} />
               </div>
             </form>
 
             <p className="mt-6 text-center text-[14px] font-normal text-[#5B6579] dark:text-slate-400">
-              Don’t have an account?{' '}
+              {isAr ? "ليس لديك حساب؟ " : "Don’t have an account? "}
               <Link
                 href="/signup"
-                className="font-bold text-[#2563EB] dark:text-[#818CF8] hover:underline"
+                className="font-bold text-blue-600 dark:text-blue-400 hover:underline"
               >
-                Sign up
+                {isAr ? "أنشئ حساباً جديداً" : "Sign up"}
               </Link>
             </p>
           </div>
@@ -157,7 +177,7 @@ export default function LoginPage() {
       </main>
 
       <footer className="relative z-10 py-4 text-center text-[12px] text-slate-400 dark:text-slate-500">
-        © 2026 MAJRA. All rights reserved.
+        {t('footerRights')}
       </footer>
     </div>
   );
