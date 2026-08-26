@@ -1,0 +1,636 @@
+{
+  "version": "2.0",
+  "description": "MAJRA Master Skill Ontology & Taxonomy for Egyptian & Regional Tech Labor Market",
+  "categories": [
+    {
+      "id": "cat_languages",
+      "name": "Programming & Query Languages",
+      "skills": [
+        {
+          "id": "skill_python",
+          "name": "Python",
+          "aliases": ["python", "python3", "py", "python programming"],
+          "related_skills": ["Django", "FastAPI", "Pandas", "Flask", "PyTorch"]
+        },
+        {
+          "id": "skill_javascript",
+          "name": "JavaScript",
+          "aliases": ["javascript", "js", "ecmascript", "es6", "vanilla js", "modern javascript"],
+          "related_skills": ["TypeScript", "React", "Node.js", "Vue", "Next.js"]
+        },
+        {
+          "id": "skill_typescript",
+          "name": "TypeScript",
+          "aliases": ["typescript", "ts"],
+          "related_skills": ["JavaScript", "React", "Next.js", "Angular", "Node.js"]
+        },
+        {
+          "id": "skill_sql",
+          "name": "SQL",
+          "aliases": ["sql", "structured query language", "t-sql", "pl/sql", "ansi sql", "sql queries"],
+          "related_skills": ["PostgreSQL", "MySQL", "Database Design", "ETL", "Data Modeling"]
+        },
+        {
+          "id": "skill_java",
+          "name": "Java",
+          "aliases": ["java", "core java", "java 8", "java 11", "java 17", "java 21", "j2ee"],
+          "related_skills": ["Spring Boot", "Spring Framework", "Hibernate", "Kotlin", "Maven"]
+        },
+        {
+          "id": "skill_csharp",
+          "name": "C#",
+          "aliases": ["c#", "csharp", "c sharp", ".net c#"],
+          "related_skills": [".NET", ".NET Core", "ASP.NET", "Entity Framework", "LINQ"]
+        },
+        {
+          "id": "skill_cpp",
+          "name": "C++",
+          "aliases": ["c++", "cpp", "modern c++"],
+          "related_skills": ["C", "Object-Oriented Programming", "Embedded Systems", "Data Structures"]
+        },
+        {
+          "id": "skill_c",
+          "name": "C",
+          "aliases": ["c language", "c programming", "embedded c"],
+          "related_skills": ["C++", "Embedded Systems", "Linux", "Microcontrollers"]
+        },
+        {
+          "id": "skill_golang",
+          "name": "Go",
+          "aliases": ["golang", "go language", "go lang"],
+          "related_skills": ["Docker", "Kubernetes", "Microservices", "gRPC", "Backend"]
+        },
+        {
+          "id": "skill_php",
+          "name": "PHP",
+          "aliases": ["php", "php8", "php7", "php programming"],
+          "related_skills": ["Laravel", "Symfony", "WordPress", "MySQL"]
+        },
+        {
+          "id": "skill_rust",
+          "name": "Rust",
+          "aliases": ["rust", "rustlang", "rust programming"],
+          "related_skills": ["WebAssembly", "Systems Programming", "Concurrency"]
+        },
+        {
+          "id": "skill_ruby",
+          "name": "Ruby",
+          "aliases": ["ruby", "ruby programming"],
+          "related_skills": ["Ruby on Rails", "PostgreSQL", "Backend"]
+        },
+        {
+          "id": "skill_kotlin",
+          "name": "Kotlin",
+          "aliases": ["kotlin", "kotlin android"],
+          "related_skills": ["Android", "Java", "Jetpack Compose", "Mobile Development"]
+        },
+        {
+          "id": "skill_swift",
+          "name": "Swift",
+          "aliases": ["swift", "swiftui", "swift programming"],
+          "related_skills": ["iOS", "Xcode", "Mobile Development", "CocoaPods"]
+        },
+        {
+          "id": "skill_dart",
+          "name": "Dart",
+          "aliases": ["dart", "dart language"],
+          "related_skills": ["Flutter", "Cross-Platform", "Mobile Development"]
+        },
+        {
+          "id": "skill_r",
+          "name": "R",
+          "aliases": ["r language", "r programming", "rstudio"],
+          "related_skills": ["Statistics", "Data Science", "ggplot2", "Data Analysis"]
+        },
+        {
+          "id": "skill_scala",
+          "name": "Scala",
+          "aliases": ["scala", "scala language"],
+          "related_skills": ["Apache Spark", "Big Data", "Java", "Functional Programming"]
+        },
+        {
+          "id": "skill_bash",
+          "name": "Bash & Shell Scripting",
+          "aliases": ["bash", "shell", "shell scripting", "bash scripting", "zsh", "sh"],
+          "related_skills": ["Linux", "DevOps", "Automation", "CI/CD"]
+        }
+      ]
+    },
+    {
+      "id": "cat_databases",
+      "name": "Databases & Storage Engines",
+      "skills": [
+        {
+          "id": "skill_postgresql",
+          "name": "PostgreSQL",
+          "aliases": ["postgresql", "postgres", "psql", "postgre sql", "pgadmin"],
+          "related_skills": ["SQL", "Relational Databases", "pgvector", "Database Optimization"]
+        },
+        {
+          "id": "skill_mysql",
+          "name": "MySQL",
+          "aliases": ["mysql", "my sql", "mysql workbench"],
+          "related_skills": ["SQL", "Relational Databases", "MariaDB"]
+        },
+        {
+          "id": "skill_mongodb",
+          "name": "MongoDB",
+          "aliases": ["mongodb", "mongo", "mongo db", "nosql mongodb", "mongoose"],
+          "related_skills": ["NoSQL", "Document Databases", "Node.js", "JSON"]
+        },
+        {
+          "id": "skill_redis",
+          "name": "Redis",
+          "aliases": ["redis", "redis cache", "redis key-value", "in-memory cache"],
+          "related_skills": ["Caching", "Message Queues", "Celery", "Performance Optimization"]
+        },
+        {
+          "id": "skill_oracle",
+          "name": "Oracle Database",
+          "aliases": ["oracle", "oracle db", "oracle sql", "plsql", "pl-sql"],
+          "related_skills": ["SQL", "Enterprise DB", "Database Administration"]
+        },
+        {
+          "id": "skill_sqlserver",
+          "name": "SQL Server",
+          "aliases": ["sql server", "microsoft sql server", "mssql", "t-sql", "ssms"],
+          "related_skills": ["SQL", ".NET", "SSIS", "SSAS", "Data Warehousing"]
+        },
+        {
+          "id": "skill_elasticsearch",
+          "name": "Elasticsearch",
+          "aliases": ["elasticsearch", "elastic search", "elk", "elk stack", "opensearch"],
+          "related_skills": ["Search Engines", "Logstash", "Kibana", "Full-Text Search"]
+        },
+        {
+          "id": "skill_cassandra",
+          "name": "Cassandra",
+          "aliases": ["cassandra", "apache cassandra"],
+          "related_skills": ["NoSQL", "Big Data", "Distributed Databases"]
+        },
+        {
+          "id": "skill_dynamodb",
+          "name": "DynamoDB",
+          "aliases": ["dynamodb", "aws dynamodb", "amazon dynamodb"],
+          "related_skills": ["AWS", "NoSQL", "Serverless"]
+        },
+        {
+          "id": "skill_snowflake",
+          "name": "Snowflake",
+          "aliases": ["snowflake", "snowflake dw", "snowflake data cloud"],
+          "related_skills": ["Data Warehousing", "SQL", "Cloud Analytics", "ETL"]
+        },
+        {
+          "id": "skill_bigquery",
+          "name": "BigQuery",
+          "aliases": ["bigquery", "google bigquery", "gcp bigquery"],
+          "related_skills": ["Google Cloud", "SQL", "Data Warehousing", "Data Analytics"]
+        },
+        {
+          "id": "skill_firebase",
+          "name": "Firebase",
+          "aliases": ["firebase", "firestore", "firebase realtime database", "google firebase"],
+          "related_skills": ["Mobile Backend", "NoSQL", "Authentication", "GCP"]
+        },
+        {
+          "id": "skill_supabase",
+          "name": "Supabase",
+          "aliases": ["supabase"],
+          "related_skills": ["PostgreSQL", "Backend-as-a-Service", "Authentication"]
+        },
+        {
+          "id": "skill_sqlite",
+          "name": "SQLite",
+          "aliases": ["sqlite", "sqlite3"],
+          "related_skills": ["Embedded DB", "Mobile Development", "Python"]
+        }
+      ]
+    },
+    {
+      "id": "cat_data_bi",
+      "name": "Data Engineering, Analytics & BI",
+      "skills": [
+        {
+          "id": "skill_powerbi",
+          "name": "Power BI",
+          "aliases": ["power bi", "powerbi", "power-bi", "ms power bi", "dax", "power query"],
+          "related_skills": ["Data Visualization", "SQL", "Excel", "Data Modeling", "Business Intelligence"]
+        },
+        {
+          "id": "skill_tableau",
+          "name": "Tableau",
+          "aliases": ["tableau", "tableau desktop", "tableau server", "tableau prep"],
+          "related_skills": ["Data Visualization", "SQL", "Business Intelligence", "Analytics"]
+        },
+        {
+          "id": "skill_excel",
+          "name": "Excel",
+          "aliases": ["excel", "ms excel", "microsoft excel", "advanced excel", "vlookup", "pivot tables", "excel macros", "vba"],
+          "related_skills": ["Power BI", "Data Analysis", "Spreadsheets", "Financial Modeling"]
+        },
+        {
+          "id": "skill_pandas",
+          "name": "Pandas",
+          "aliases": ["pandas", "pandas dataframe", "python pandas"],
+          "related_skills": ["Python", "NumPy", "Data Cleaning", "Data Analysis", "EDA"]
+        },
+        {
+          "id": "skill_numpy",
+          "name": "NumPy",
+          "aliases": ["numpy", "python numpy"],
+          "related_skills": ["Python", "Pandas", "Scientific Computing", "Machine Learning"]
+        },
+        {
+          "id": "skill_etl",
+          "name": "ETL",
+          "aliases": ["etl", "extract transform load", "data pipeline", "data pipelines", "elt", "data integration"],
+          "related_skills": ["SQL", "Airflow", "dbt", "Data Engineering", "Data Warehousing"]
+        },
+        {
+          "id": "skill_dbt",
+          "name": "dbt",
+          "aliases": ["dbt", "data build tool", "dbt core", "dbt cloud"],
+          "related_skills": ["SQL", "Data Modeling", "Data Engineering", "Snowflake", "BigQuery"]
+        },
+        {
+          "id": "skill_airflow",
+          "name": "Apache Airflow",
+          "aliases": ["airflow", "apache airflow"],
+          "related_skills": ["ETL", "Data Pipelines", "Python", "Workflow Orchestration"]
+        },
+        {
+          "id": "skill_spark",
+          "name": "Apache Spark",
+          "aliases": ["spark", "apache spark", "pyspark", "spark sql", "spark streaming"],
+          "related_skills": ["Big Data", "Data Engineering", "Hadoop", "Scala", "Python"]
+        },
+        {
+          "id": "skill_kafka",
+          "name": "Apache Kafka",
+          "aliases": ["kafka", "apache kafka", "event streaming", "kafka streams"],
+          "related_skills": ["Distributed Systems", "Microservices", "Event-Driven", "Big Data"]
+        },
+        {
+          "id": "skill_data_modeling",
+          "name": "Data Modeling",
+          "aliases": ["data modeling", "dimensional modeling", "star schema", "snowflake schema", "erd"],
+          "related_skills": ["SQL", "Data Warehousing", "Power BI", "Database Design"]
+        },
+        {
+          "id": "skill_data_warehousing",
+          "name": "Data Warehousing",
+          "aliases": ["data warehouse", "data warehousing", "dwh", "enterprise dwh"],
+          "related_skills": ["Snowflake", "BigQuery", "Redshift", "SQL", "ETL"]
+        },
+        {
+          "id": "skill_statistics",
+          "name": "Statistics & Probability",
+          "aliases": ["statistics", "statistical analysis", "hypothesis testing", "probability", "a/b testing"],
+          "related_skills": ["Data Science", "Python", "R", "Machine Learning"]
+        },
+        {
+          "id": "skill_looker",
+          "name": "Looker",
+          "aliases": ["looker", "looker studio", "google data studio", "lookml"],
+          "related_skills": ["Business Intelligence", "Google Cloud", "Data Visualization", "SQL"]
+        },
+        {
+          "id": "skill_ssis",
+          "name": "SSIS",
+          "aliases": ["ssis", "sql server integration services"],
+          "related_skills": ["SQL Server", "ETL", "Data Warehousing"]
+        }
+      ]
+    },
+    {
+      "id": "cat_web_frameworks",
+      "name": "Web, Frontend & Backend Frameworks",
+      "skills": [
+        {
+          "id": "skill_react",
+          "name": "React",
+          "aliases": ["react", "react.js", "reactjs", "react js"],
+          "related_skills": ["JavaScript", "TypeScript", "Next.js", "Redux", "Tailwind CSS"]
+        },
+        {
+          "id": "skill_nextjs",
+          "name": "Next.js",
+          "aliases": ["next.js", "nextjs", "next js", "next 14", "next 13"],
+          "related_skills": ["React", "TypeScript", "SSR", "Tailwind CSS", "Full Stack"]
+        },
+        {
+          "id": "skill_angular",
+          "name": "Angular",
+          "aliases": ["angular", "angularjs", "angular 2+", "angular framework"],
+          "related_skills": ["TypeScript", "RxJS", "Frontend", "HTML", "CSS"]
+        },
+        {
+          "id": "skill_vue",
+          "name": "Vue.js",
+          "aliases": ["vue", "vue.js", "vuejs", "vue 3", "vue 2"],
+          "related_skills": ["JavaScript", "TypeScript", "Nuxt.js", "Frontend"]
+        },
+        {
+          "id": "skill_nodejs",
+          "name": "Node.js",
+          "aliases": ["node.js", "nodejs", "node js", "node"],
+          "related_skills": ["Express", "JavaScript", "TypeScript", "REST APIs", "Backend"]
+        },
+        {
+          "id": "skill_express",
+          "name": "Express.js",
+          "aliases": ["express", "express.js", "expressjs"],
+          "related_skills": ["Node.js", "JavaScript", "REST APIs", "Backend"]
+        },
+        {
+          "id": "skill_nestjs",
+          "name": "NestJS",
+          "aliases": ["nestjs", "nest.js", "nest js"],
+          "related_skills": ["Node.js", "TypeScript", "Microservices", "REST APIs"]
+        },
+        {
+          "id": "skill_fastapi",
+          "name": "FastAPI",
+          "aliases": ["fastapi", "fast api"],
+          "related_skills": ["Python", "Pydantic", "REST APIs", "Swagger", "Asyncio"]
+        },
+        {
+          "id": "skill_django",
+          "name": "Django",
+          "aliases": ["django", "django rest framework", "drf", "django orm"],
+          "related_skills": ["Python", "PostgreSQL", "REST APIs", "Backend"]
+        },
+        {
+          "id": "skill_flask",
+          "name": "Flask",
+          "aliases": ["flask", "flask python"],
+          "related_skills": ["Python", "REST APIs", "Microservices"]
+        },
+        {
+          "id": "skill_springboot",
+          "name": "Spring Boot",
+          "aliases": ["spring boot", "springboot", "spring framework", "spring", "spring mvc", "spring cloud"],
+          "related_skills": ["Java", "Microservices", "Hibernate", "REST APIs", "Maven"]
+        },
+        {
+          "id": "skill_dotnet",
+          "name": ".NET / ASP.NET",
+          "aliases": [".net", ".net core", "asp.net", "dotnet", "asp.net core", ".net 6", ".net 7", ".net 8", "c# .net"],
+          "related_skills": ["C#", "SQL Server", "Entity Framework", "Web API", "Microservices"]
+        },
+        {
+          "id": "skill_laravel",
+          "name": "Laravel",
+          "aliases": ["laravel", "laravel framework", "eloquent orm"],
+          "related_skills": ["PHP", "MySQL", "REST APIs", "MVC"]
+        },
+        {
+          "id": "skill_flutter",
+          "name": "Flutter",
+          "aliases": ["flutter", "flutter framework", "dart flutter"],
+          "related_skills": ["Dart", "Mobile Development", "Cross-Platform", "iOS", "Android"]
+        },
+        {
+          "id": "skill_react_native",
+          "name": "React Native",
+          "aliases": ["react native", "react-native", "rn"],
+          "related_skills": ["React", "JavaScript", "TypeScript", "Mobile Development"]
+        },
+        {
+          "id": "skill_android_native",
+          "name": "Android Native",
+          "aliases": ["android development", "android sdk", "jetpack compose", "android studio"],
+          "related_skills": ["Kotlin", "Java", "Mobile Development"]
+        },
+        {
+          "id": "skill_ios_native",
+          "name": "iOS Native",
+          "aliases": ["ios development", "ios sdk", "swiftui", "uikit", "xcode"],
+          "related_skills": ["Swift", "Objective-C", "Mobile Development"]
+        },
+        {
+          "id": "skill_html_css",
+          "name": "HTML & CSS",
+          "aliases": ["html", "html5", "css", "css3", "semantic html"],
+          "related_skills": ["Tailwind CSS", "Bootstrap", "Responsive Design", "Frontend"]
+        },
+        {
+          "id": "skill_tailwind",
+          "name": "Tailwind CSS",
+          "aliases": ["tailwind", "tailwindcss", "tailwind css"],
+          "related_skills": ["CSS", "React", "Next.js", "Responsive Design"]
+        },
+        {
+          "id": "skill_bootstrap",
+          "name": "Bootstrap",
+          "aliases": ["bootstrap", "bootstrap 5", "bootstrap 4"],
+          "related_skills": ["HTML", "CSS", "Responsive Design"]
+        }
+      ]
+    },
+    {
+      "id": "cat_cloud_devops",
+      "name": "Cloud, DevOps, Containers & Infrastructure",
+      "skills": [
+        {
+          "id": "skill_docker",
+          "name": "Docker",
+          "aliases": ["docker", "containerization", "docker-compose", "containers", "dockerfile"],
+          "related_skills": ["Kubernetes", "CI/CD", "DevOps", "Linux", "Microservices"]
+        },
+        {
+          "id": "skill_kubernetes",
+          "name": "Kubernetes",
+          "aliases": ["kubernetes", "k8s", "kubectl", "helm"],
+          "related_skills": ["Docker", "Cloud", "DevOps", "Container Orchestration"]
+        },
+        {
+          "id": "skill_aws",
+          "name": "AWS",
+          "aliases": ["aws", "amazon web services", "aws cloud", "ec2", "s3", "lambda", "ecs", "eks", "rds"],
+          "related_skills": ["Cloud Computing", "Docker", "DevOps", "Terraform"]
+        },
+        {
+          "id": "skill_azure",
+          "name": "Azure",
+          "aliases": ["azure", "microsoft azure", "azure cloud", "azure devops", "azure app services"],
+          "related_skills": ["Cloud Computing", ".NET", "DevOps", "Kubernetes"]
+        },
+        {
+          "id": "skill_gcp",
+          "name": "Google Cloud (GCP)",
+          "aliases": ["gcp", "google cloud", "google cloud platform", "gke", "cloud run"],
+          "related_skills": ["Cloud Computing", "BigQuery", "Kubernetes", "DevOps"]
+        },
+        {
+          "id": "skill_cicd",
+          "name": "CI/CD",
+          "aliases": ["ci/cd", "ci cd", "continuous integration", "continuous deployment", "github actions", "gitlab ci", "jenkins", "azure pipelines"],
+          "related_skills": ["Git", "Docker", "DevOps", "Automation", "Testing"]
+        },
+        {
+          "id": "skill_jenkins",
+          "name": "Jenkins",
+          "aliases": ["jenkins", "jenkins pipeline"],
+          "related_skills": ["CI/CD", "DevOps", "Automation", "Docker"]
+        },
+        {
+          "id": "skill_github_actions",
+          "name": "GitHub Actions",
+          "aliases": ["github actions", "github ci", "gha"],
+          "related_skills": ["CI/CD", "Git", "GitHub", "DevOps"]
+        },
+        {
+          "id": "skill_terraform",
+          "name": "Terraform",
+          "aliases": ["terraform", "iac", "infrastructure as code", "hcl"],
+          "related_skills": ["AWS", "Azure", "Cloud", "DevOps", "Ansible"]
+        },
+        {
+          "id": "skill_ansible",
+          "name": "Ansible",
+          "aliases": ["ansible", "configuration management"],
+          "related_skills": ["Linux", "DevOps", "Automation", "Terraform"]
+        },
+        {
+          "id": "skill_git",
+          "name": "Git & GitHub",
+          "aliases": ["git", "github", "gitlab", "version control", "bitbucket", "git flow"],
+          "related_skills": ["CI/CD", "Software Development", "Team Collaboration"]
+        },
+        {
+          "id": "skill_linux",
+          "name": "Linux / Unix",
+          "aliases": ["linux", "ubuntu", "debian", "centos", "redhat", "unix", "sysadmin", "server administration"],
+          "related_skills": ["Bash & Shell Scripting", "DevOps", "Docker", "Servers"]
+        },
+        {
+          "id": "skill_nginx",
+          "name": "Nginx",
+          "aliases": ["nginx", "reverse proxy", "load balancing", "apache web server"],
+          "related_skills": ["Web Servers", "DevOps", "Microservices", "SSL"]
+        },
+        {
+          "id": "skill_monitoring",
+          "name": "Monitoring & Observability",
+          "aliases": ["prometheus", "grafana", "datadog", "new relic", "monitoring", "observability", "sentry"],
+          "related_skills": ["DevOps", "Kubernetes", "Site Reliability Engineering"]
+        }
+      ]
+    },
+    {
+      "id": "cat_ai_ml",
+      "name": "Artificial Intelligence, Data Science & ML",
+      "skills": [
+        {
+          "id": "skill_ml",
+          "name": "Machine Learning",
+          "aliases": ["machine learning", "ml", "supervised learning", "unsupervised learning", "regression", "classification", "clustering"],
+          "related_skills": ["Python", "Scikit-Learn", "Data Science", "Statistics"]
+        },
+        {
+          "id": "skill_deep_learning",
+          "name": "Deep Learning",
+          "aliases": ["deep learning", "neural networks", "dl", "ann", "cnn", "rnn", "transformers"],
+          "related_skills": ["PyTorch", "TensorFlow", "Computer Vision", "NLP"]
+        },
+        {
+          "id": "skill_scikit_learn",
+          "name": "Scikit-Learn",
+          "aliases": ["scikit-learn", "sklearn", "scikit learn"],
+          "related_skills": ["Machine Learning", "Python", "Data Science"]
+        },
+        {
+          "id": "skill_pytorch",
+          "name": "PyTorch",
+          "aliases": ["pytorch", "torch"],
+          "related_skills": ["Deep Learning", "Python", "TensorFlow", "NLP", "Computer Vision"]
+        },
+        {
+          "id": "skill_tensorflow",
+          "name": "TensorFlow",
+          "aliases": ["tensorflow", "tf", "keras"],
+          "related_skills": ["Deep Learning", "Python", "PyTorch"]
+        },
+        {
+          "id": "skill_nlp",
+          "name": "NLP & Text Processing",
+          "aliases": ["nlp", "natural language processing", "text mining", "spacy", "nltk", "transformers", "bert", "tokenization"],
+          "related_skills": ["Python", "Deep Learning", "HuggingFace", "LLMs"]
+        },
+        {
+          "id": "skill_llms",
+          "name": "LLMs & Generative AI",
+          "aliases": ["llm", "large language models", "generative ai", "gen ai", "langchain", "llamaindex", "rag", "retrieval augmented generation", "prompt engineering", "openai api", "gemini api"],
+          "related_skills": ["Python", "NLP", "Vector Databases", "Embeddings"]
+        },
+        {
+          "id": "skill_computer_vision",
+          "name": "Computer Vision",
+          "aliases": ["computer vision", "cv", "opencv", "image processing", "yolo", "object detection"],
+          "related_skills": ["Deep Learning", "PyTorch", "Python"]
+        },
+        {
+          "id": "skill_mlops",
+          "name": "MLOps",
+          "aliases": ["mlops", "mlflow", "kubeflow", "model deployment", "model monitoring"],
+          "related_skills": ["Machine Learning", "Docker", "DevOps", "Python"]
+        }
+      ]
+    },
+    {
+      "id": "cat_engineering_arch",
+      "name": "Software Architecture, APIs, Testing & Agile",
+      "skills": [
+        {
+          "id": "skill_rest_api",
+          "name": "RESTful APIs",
+          "aliases": ["rest", "rest api", "restful", "restful apis", "restful services", "web apis", "api design"],
+          "related_skills": ["Backend", "JSON", "Postman", "Swagger", "Microservices"]
+        },
+        {
+          "id": "skill_graphql",
+          "name": "GraphQL",
+          "aliases": ["graphql", "graph ql", "apollo graphql"],
+          "related_skills": ["REST APIs", "Node.js", "React", "API Design"]
+        },
+        {
+          "id": "skill_microservices",
+          "name": "Microservices Architecture",
+          "aliases": ["microservices", "microservice architecture", "distributed systems", "service oriented architecture", "soa"],
+          "related_skills": ["Docker", "Kubernetes", "REST APIs", "RabbitMQ", "Kafka"]
+        },
+        {
+          "id": "skill_oop",
+          "name": "OOP & Design Patterns",
+          "aliases": ["oop", "object oriented programming", "object-oriented", "design patterns", "solid principles", "clean code", "clean architecture"],
+          "related_skills": ["Software Engineering", "Java", "C#", "C++", "Python"]
+        },
+        {
+          "id": "skill_system_design",
+          "name": "System Design & High Availability",
+          "aliases": ["system design", "high availability", "scalability", "load balancing", "caching architecture"],
+          "related_skills": ["Microservices", "Cloud", "Distributed Systems", "Databases"]
+        },
+        {
+          "id": "skill_testing",
+          "name": "Unit Testing & QA Automation",
+          "aliases": ["unit testing", "testing", "qa", "pytest", "jest", "junit", "selenium", "cypress", "playwright testing", "automated testing", "tdd", "test driven development"],
+          "related_skills": ["Software Quality", "CI/CD", "Python", "JavaScript"]
+        },
+        {
+          "id": "skill_agile",
+          "name": "Agile & Scrum Methodologies",
+          "aliases": ["agile", "scrum", "kanban", "sprints", "jira", "confluence", "agile methodology"],
+          "related_skills": ["Project Management", "Teamwork", "Productivity"]
+        },
+        {
+          "id": "skill_cybersecurity",
+          "name": "Cybersecurity & Web Security",
+          "aliases": ["cybersecurity", "security", "owasp", "web security", "jwt", "oauth", "encryption", "penetration testing"],
+          "related_skills": ["Authentication", "Backend", "Networking", "DevOps"]
+        }
+      ]
+    }
+  ]
+}

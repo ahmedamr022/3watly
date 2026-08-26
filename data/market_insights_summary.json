@@ -1,0 +1,110 @@
+{
+  "total_active_jobs_analyzed": 44,
+  "platforms_breakdown": {
+    "wuzzuf": 26,
+    "remotive": 18
+  },
+  "remote_ratio": "47.7%",
+  "top_20_in_demand_skills": [
+    {
+      "skill": "JavaScript",
+      "job_count": 11,
+      "demand_percentage": "25.0%"
+    },
+    {
+      "skill": "Machine Learning",
+      "job_count": 9,
+      "demand_percentage": "20.5%"
+    },
+    {
+      "skill": "Unit Testing & QA Automation",
+      "job_count": 9,
+      "demand_percentage": "20.5%"
+    },
+    {
+      "skill": "React",
+      "job_count": 8,
+      "demand_percentage": "18.2%"
+    },
+    {
+      "skill": "SQL",
+      "job_count": 7,
+      "demand_percentage": "15.9%"
+    },
+    {
+      "skill": "Python",
+      "job_count": 6,
+      "demand_percentage": "13.6%"
+    },
+    {
+      "skill": "HTML & CSS",
+      "job_count": 6,
+      "demand_percentage": "13.6%"
+    },
+    {
+      "skill": "Go",
+      "job_count": 6,
+      "demand_percentage": "13.6%"
+    },
+    {
+      "skill": "Power BI",
+      "job_count": 5,
+      "demand_percentage": "11.4%"
+    },
+    {
+      "skill": "Angular",
+      "job_count": 5,
+      "demand_percentage": "11.4%"
+    },
+    {
+      "skill": "TypeScript",
+      "job_count": 5,
+      "demand_percentage": "11.4%"
+    },
+    {
+      "skill": "Git & GitHub",
+      "job_count": 5,
+      "demand_percentage": "11.4%"
+    },
+    {
+      "skill": "LLMs & Generative AI",
+      "job_count": 5,
+      "demand_percentage": "11.4%"
+    },
+    {
+      "skill": "Excel",
+      "job_count": 4,
+      "demand_percentage": "9.1%"
+    },
+    {
+      "skill": ".NET / ASP.NET",
+      "job_count": 4,
+      "demand_percentage": "9.1%"
+    },
+    {
+      "skill": "Node.js",
+      "job_count": 4,
+      "demand_percentage": "9.1%"
+    },
+    {
+      "skill": "Laravel",
+      "job_count": 4,
+      "demand_percentage": "9.1%"
+    },
+    {
+      "skill": "Java",
+      "job_count": 4,
+      "demand_percentage": "9.1%"
+    },
+    {
+      "skill": "PHP",
+      "job_count": 4,
+      "demand_percentage": "9.1%"
+    },
+    {
+      "skill": "C",
+      "job_count": 4,
+      "demand_percentage": "9.1%"
+    }
+  ]
+}
