@@ -2,17 +2,14 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   ArrowRight, 
   Sparkles, 
   Play, 
   Check, 
   ShieldCheck,
-  Layers,
-  Sparkle,
   TrendingUp,
-  MessageSquare
 } from "lucide-react";
 import { HeroBackdrop } from "@/components/landing/HeroBackdrop";
 import { HeroVisual } from "@/components/landing/HeroVisual";
@@ -50,7 +47,7 @@ export default function LandingPage() {
         { label: "Success Stories", href: "#testimonials", id: "testimonials" }
       ];
 
-  // Scroll detection & Accurate Section Tracking
+  // Scroll detection & Section Tracking
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 20) {
@@ -96,7 +93,7 @@ export default function LandingPage() {
 
   return (
     <div className="relative min-h-screen w-full bg-white dark:bg-[#060913] text-[#1E293B] dark:text-[#F8FAFC] flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-300">
-      {/* Absolute top anchor for fail-safe smooth scroll target */}
+      {/* Absolute top anchor */}
       <div id="page-top" className="absolute top-0 left-0 h-0 w-0 pointer-events-none" />
 
       {/* ========================================================================= */}
@@ -154,14 +151,14 @@ export default function LandingPage() {
               href="/login" 
               className="text-[14px] font-bold text-[#1E293B] dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 px-2 py-1.5 transition-colors"
             >
-              {t('navLogin')}
+              {isAr ? "تسجيل الدخول" : "Log In"}
             </Link>
 
             <Link 
               href="/signup" 
               className="px-4 sm:px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13.5px] font-bold shadow-md shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all duration-200"
             >
-              {t('navSignUp')}
+              {isAr ? "أنشئ حسابك مجاناً" : "Sign Up Free"}
             </Link>
           </div>
 
@@ -194,7 +191,7 @@ export default function LandingPage() {
               >
                 <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                 <span className="text-[12.5px] font-bold text-blue-700 dark:text-blue-300">
-                  {t('heroBadge')}
+                  {isAr ? "ذكاء اصطناعي لتوجيه وتطوير المسار المهني" : "AI-Powered Career Intelligence"}
                 </span>
               </motion.div>
 
@@ -203,13 +200,20 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-[36px] sm:text-[46px] lg:text-[52px] font-black leading-[1.12] tracking-tight text-[#0F172A] dark:text-white"
+                className="text-[36px] sm:text-[46px] lg:text-[52px] font-black leading-[1.15] tracking-tight text-[#0F172A] dark:text-white"
               >
-                {t('heroTitle1')}{" "}
-                <br className="hidden sm:inline" />
-                <span className="bg-gradient-to-r from-[#1B57E0] via-[#0284C7] to-[#10B981] dark:from-[#3B82F6] dark:via-[#38BDF8] dark:to-[#34D399] bg-clip-text text-transparent drop-shadow-sm">
-                  {t('heroTitle2')}
-                </span>
+                {isAr ? (
+                  <>
+                    ابني <span className="bg-gradient-to-r from-[#1B57E0] via-[#0284C7] to-[#10B981] dark:from-[#3B82F6] dark:via-[#38BDF8] dark:to-[#34D399] bg-clip-text text-transparent">مسارك المهني</span>،
+                    <br />
+                    مش مجرد سيرة ذاتية
+                  </>
+                ) : (
+                  <>
+                    Build a <span className="bg-gradient-to-r from-[#1B57E0] via-[#0284C7] to-[#10B981] dark:from-[#3B82F6] dark:via-[#38BDF8] dark:to-[#34D399] bg-clip-text text-transparent">Career</span>,<br />
+                    Not Just a Resume
+                  </>
+                )}
               </motion.h1>
 
               {/* Sub-headline */}
@@ -219,7 +223,9 @@ export default function LandingPage() {
                 transition={{ delay: 0.2 }}
                 className="text-[15px] sm:text-[17px] text-slate-600 dark:text-slate-300 leading-relaxed max-w-[540px] font-normal"
               >
-                {t('heroDesc')}
+                {isAr
+                  ? "عواطلي بيحلل سوق العمل المصري، يحدد فجوات مهاراتك بدقة، ويطابق خبرتك مع أفضل الفرص المناسبة عشان تطور مسارك المهني بثقة."
+                  : "3WATLY analyzes the Egyptian job market, identifies your skill gaps, and matches you with high-fit opportunities so you can grow with confidence."}
               </motion.p>
 
               {/* CTA Buttons Row */}
@@ -233,32 +239,65 @@ export default function LandingPage() {
                   href="/signup"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-[15px] shadow-lg shadow-blue-600/30 hover:shadow-blue-600/45 hover:-translate-y-0.5 transition-all duration-200 group"
                 >
-                  <span>{t('heroCtaPrimary')}</span>
+                  <span>{isAr ? "ابدأ الآن — مجاناً" : "Get Started — It's Free"}</span>
                   <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isAr ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
                 </Link>
 
                 <a
-                  href="#insights"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 font-bold text-[14.5px] transition-all backdrop-blur-sm"
+                  href="#how-it-works"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 font-bold text-[14.5px] transition-all backdrop-blur-sm"
                 >
-                  <TrendingUp className="w-4 h-4 text-emerald-500" />
-                  <span>{t('heroCtaSecondary')}</span>
+                  <div className="w-5 h-5 rounded-full border border-slate-400 dark:border-slate-500 flex items-center justify-center">
+                    <Play className="w-2 h-2 text-slate-700 dark:text-slate-300 fill-slate-700 dark:fill-slate-300 ltr:ml-0.5 rtl:mr-0.5" />
+                  </div>
+                  <span>{isAr ? "شاهد كيف تعمل المنصة" : "See How It Works"}</span>
                 </a>
               </motion.div>
 
-              {/* Trust Badge */}
+              {/* 3 Trust Checkpoints */}
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="flex items-center gap-3 pt-2 text-[12.5px] text-slate-500 dark:text-slate-400 font-medium"
+                className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-4 text-left rtl:text-right border-t border-slate-100 dark:border-white/[0.06] w-full"
               >
-                <div className="flex -space-x-1.5 rtl:space-x-reverse">
-                  <div className="w-7 h-7 rounded-full bg-blue-500 border-2 border-white dark:border-[#060913] flex items-center justify-center text-[10px] text-white font-bold">A</div>
-                  <div className="w-7 h-7 rounded-full bg-emerald-500 border-2 border-white dark:border-[#060913] flex items-center justify-center text-[10px] text-white font-bold">M</div>
-                  <div className="w-7 h-7 rounded-full bg-purple-500 border-2 border-white dark:border-[#060913] flex items-center justify-center text-[10px] text-white font-bold">S</div>
+                <div className="flex items-start gap-2">
+                  <div className="w-4.5 h-4.5 rounded-full border border-slate-400 dark:border-slate-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-2.5 h-2.5 text-slate-600 dark:text-slate-300 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <span className="text-[12.5px] font-bold text-[#1E293B] dark:text-white block leading-tight">
+                      {isAr ? "مجاني 100%" : "100% Free"}
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {isAr ? "بدون أي كارت أو رسوم" : "No credit card required"}
+                    </span>
+                  </div>
                 </div>
-                <span>{t('heroTrust')}</span>
+
+                <div className="flex items-start gap-2">
+                  <ShieldCheck className="w-4.5 h-4.5 text-slate-600 dark:text-slate-400 stroke-[1.75] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-[12.5px] font-bold text-[#1E293B] dark:text-white block leading-tight">
+                      {isAr ? "بياناتك في أمان" : "Your Data is Safe"}
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {isAr ? "لا نشارك معلوماتك أبداً" : "We never share your info"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2">
+                  <Sparkles className="w-4.5 h-4.5 text-slate-600 dark:text-slate-400 stroke-[1.75] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-[12.5px] font-bold text-[#1E293B] dark:text-white block leading-tight">
+                      {isAr ? "مطابقة ذكية" : "AI-Powered Matching"}
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {isAr ? "فرص تناسب خبرتك الفعلية" : "Smarter opportunities"}
+                    </span>
+                  </div>
+                </div>
               </motion.div>
 
             </div>

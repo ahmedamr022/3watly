@@ -5,39 +5,46 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Check, Info, ArrowUpRight } from 'lucide-react';
 import { SalaryTrendChart } from './SalaryTrendChart';
 import { SkillSignalCard } from './SkillSignalCard';
-
-const matchReasons = ['Strong skill alignment', 'High company demand', 'Great growth potential'];
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const RADIUS = 62;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 const SCORE = 84;
 
 export function HeroVisual() {
+  const { isAr } = useLanguage();
+
+  const matchReasons = isAr
+    ? ['توافق عالي في المهارات الأساسية', 'طلب مرتفع لدى الشركات المصرية', 'فرص نمو وترقي واعدة']
+    : ['Strong skill alignment', 'High company demand', 'Great growth potential'];
+
   return (
     <div className="relative mx-auto flex w-full max-w-[620px] items-center justify-center [perspective:1400px] lg:h-[580px] lg:max-w-none">
       
       {/* 3D Isometric Canvas */}
       <div 
-        className="relative w-full max-w-[600px] lg:h-[560px] [transform-style:preserve-3d] [transform:rotateY(-6deg)_rotateX(4deg)_rotateZ(-1deg)] transition-all duration-700 hover:[transform:rotateY(-2deg)_rotateX(1deg)_rotateZ(0deg)]"
+        className={`relative w-full max-w-[600px] lg:h-[560px] [transform-style:preserve-3d] transition-all duration-700 hover:[transform:rotateY(0deg)_rotateX(0deg)] ${
+          isAr 
+            ? '[transform:rotateY(6deg)_rotateX(4deg)_rotateZ(1deg)] hover:[transform:rotateY(2deg)_rotateX(1deg)_rotateZ(0deg)]' 
+            : '[transform:rotateY(-6deg)_rotateX(4deg)_rotateZ(-1deg)] hover:[transform:rotateY(-2deg)_rotateX(1deg)_rotateZ(0deg)]'
+        }`}
       >
         
-        {/* ========================================================================= */}
-        {/* 1. PRIMARY JOB MATCH CARD (3D Layer 1 - Rich Gradient + Neon Rim Glow)    */}
-        {/* ========================================================================= */}
+        {/* 1. PRIMARY JOB MATCH CARD */}
         <motion.article
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-          className="relative z-10 rounded-[32px] border border-slate-200/80 dark:border-indigo-500/30 bg-white/95 dark:bg-gradient-to-b dark:from-[#0F172E]/95 dark:via-[#0A1122]/95 dark:to-[#060B18]/95 backdrop-blur-2xl p-6 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_35px_rgba(99,102,241,0.2),0_25px_60px_-15px_rgba(0,0,0,0.95)] lg:absolute lg:left-0 lg:top-0 lg:w-[325px]"
+          className="relative z-10 rounded-[32px] border border-slate-200/80 dark:border-indigo-500/30 bg-white/95 dark:bg-gradient-to-b dark:from-[#0F172E]/95 dark:via-[#0A1122]/95 dark:to-[#060B18]/95 backdrop-blur-2xl p-6 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_35px_rgba(99,102,241,0.2),0_25px_60px_-15px_rgba(0,0,0,0.95)] lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:top-0 lg:w-[325px]"
           style={{ transform: 'translateZ(10px)' }}
         >
           <header className="flex items-center justify-between gap-3">
             <h3 className="flex items-center gap-1.5 text-[1.1rem] font-bold tracking-tight text-slate-900 dark:text-white">
-              Job Match
+              {isAr ? "مطابقة الوظيفة" : "Job Match"}
               <Info className="h-3.5 w-3.5 text-slate-400 stroke-[2]" />
             </h3>
             <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/70 px-3 py-1 text-[11.5px] font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-200/70 dark:border-emerald-500/40 shadow-sm shadow-emerald-500/20">
-              Excellent Match
+              {isAr ? "توافق ممتاز" : "Excellent Match"}
             </span>
           </header>
 
@@ -66,11 +73,15 @@ export function HeroVisual() {
                   {SCORE}
                   <span className="text-[1.25rem] font-bold tracking-tight">%</span>
                 </p>
-                <p className="mt-0.5 text-[11px] font-semibold text-slate-400">Match Score</p>
+                <p className="mt-0.5 text-[11px] font-semibold text-slate-400">
+                  {isAr ? "مؤشر التوافق" : "Match Score"}
+                </p>
               </div>
             </div>
 
-            <p className="mt-4 text-[11px] font-medium text-slate-400">Matched with</p>
+            <p className="mt-4 text-[11px] font-medium text-slate-400">
+              {isAr ? "مطابقة مع شركة" : "Matched with"}
+            </p>
             
             {/* Vodafone Logo */}
             <div className="mt-1 flex items-center gap-2">
@@ -83,18 +94,18 @@ export function HeroVisual() {
             </div>
 
             <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <span className="rounded-xl bg-indigo-50/90 dark:bg-indigo-950/70 px-3 py-1 text-[11px] font-bold text-indigo-900 dark:text-indigo-200 border border-indigo-100/70 dark:border-indigo-500/30">
-                Software Engineer
+              <span className="rounded-xl bg-blue-50/90 dark:bg-blue-950/70 px-3 py-1 text-[11px] font-bold text-blue-900 dark:text-blue-200 border border-blue-100/70 dark:border-blue-500/30">
+                {isAr ? "مهندس برمجيات" : "Software Engineer"}
               </span>
-              <span className="rounded-xl bg-indigo-50/90 dark:bg-indigo-950/70 px-3 py-1 text-[11px] font-bold text-indigo-900 dark:text-indigo-200 border border-indigo-100/70 dark:border-indigo-500/30">
-                Cairo, Egypt
+              <span className="rounded-xl bg-blue-50/90 dark:bg-blue-950/70 px-3 py-1 text-[11px] font-bold text-blue-900 dark:text-blue-200 border border-blue-100/70 dark:border-blue-500/30">
+                {isAr ? "القاهرة، مصر" : "Cairo, Egypt"}
               </span>
             </div>
           </div>
 
           <div className="mt-5 border-t border-slate-100 dark:border-white/[0.06] pt-4">
             <h4 className="text-[12.5px] font-bold text-slate-900 dark:text-white">
-              Why it&apos;s a great match
+              {isAr ? "أسباب التوافق القوي" : "Why it's a great match"}
             </h4>
             <ul className="mt-2.5 flex flex-col gap-2">
               {matchReasons.map((reason) => (
@@ -111,44 +122,17 @@ export function HeroVisual() {
             </ul>
             <a
               href="#insights"
-              className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#4F46E5] dark:text-indigo-400 hover:text-[#4338CA] dark:hover:text-indigo-300 transition-colors"
+              className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
             >
-              View full analysis
-              <ArrowRight className="h-3.5 w-3.5" />
+              <span>{isAr ? "عرض التحليل الكامل" : "View full analysis"}</span>
+              <ArrowRight className={`h-3.5 w-3.5 ${isAr ? "rotate-180" : ""}`} />
             </a>
           </div>
         </motion.article>
 
-        {/* ========================================================================= */}
-        {/* 2. CONNECTOR LINES SVG                                                    */}
-        {/* ========================================================================= */}
-        <svg
-          className="absolute left-[322px] top-4 z-10 hidden h-[260px] lg:block"
-          style={{ width: 'calc(100% - 322px - 240px)', transform: 'translateZ(15px)' }}
-          viewBox="0 0 60 260"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M2 130 H24 M24 38 V222 M24 38 H58 M24 130 H58 M24 222 H58"
-            fill="none"
-            stroke="#818CF8"
-            strokeWidth="1.8"
-            strokeDasharray="4 4"
-          />
-          {/* Main Node */}
-          <circle cx="2" cy="130" r="4.5" fill="#4F46E5" />
-          <circle cx="24" cy="130" r="3.5" fill="#FFFFFF" stroke="#4F46E5" strokeWidth="2" />
-          {/* Skill Target Nodes */}
-          <circle cx="56" cy="38" r="4" fill="#FFFFFF" stroke="#10B981" strokeWidth="2" />
-          <circle cx="56" cy="130" r="4" fill="#FFFFFF" stroke="#10B981" strokeWidth="2" />
-          <circle cx="56" cy="222" r="4" fill="#FFFFFF" stroke="#10B981" strokeWidth="2" />
-        </svg>
-
-        {/* ========================================================================= */}
-        {/* 3. SKILL SIGNAL CARDS (3D Layer 2 - Gradient + Neon Glow)                 */}
-        {/* ========================================================================= */}
+        {/* 2. SKILL SIGNAL CARDS */}
         <div 
-          className="flex flex-col gap-3 sm:grid sm:grid-cols-3 lg:absolute lg:right-0 lg:top-0 lg:z-20 lg:flex lg:w-[245px] lg:flex-col"
+          className="flex flex-col gap-3 sm:grid sm:grid-cols-3 lg:absolute lg:ltr:right-0 lg:rtl:left-0 lg:top-0 lg:z-20 lg:flex lg:w-[245px] lg:flex-col"
           style={{ transform: 'translateZ(30px)' }}
         >
           <SkillSignalCard name="Python" glyph="python" filled={5} delay={0.08} />
@@ -156,21 +140,21 @@ export function HeroVisual() {
           <SkillSignalCard name="Docker" glyph="docker" filled={4} delay={0.16} />
         </div>
 
-        {/* ========================================================================= */}
-        {/* 4. SALARY TREND CARD (3D Layer 3 - Gradient + Neon Glow)                  */}
-        {/* ========================================================================= */}
+        {/* 3. SALARY TREND CARD */}
         <motion.article
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25, ease: [0.23, 1, 0.32, 1] }}
-          className="rounded-[30px] border border-slate-200/80 dark:border-indigo-500/30 bg-white/95 dark:bg-gradient-to-b dark:from-[#0F172E]/95 dark:via-[#0A1122]/95 dark:to-[#060B18]/95 backdrop-blur-2xl p-5 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_35px_rgba(99,102,241,0.2),0_25px_60px_-15px_rgba(0,0,0,0.95)] lg:absolute lg:bottom-0 lg:right-0 lg:z-30 lg:w-[325px]"
+          className="rounded-[30px] border border-slate-200/80 dark:border-indigo-500/30 bg-white/95 dark:bg-gradient-to-b dark:from-[#0F172E]/95 dark:via-[#0A1122]/95 dark:to-[#060B18]/95 backdrop-blur-2xl p-5 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_35px_rgba(99,102,241,0.2),0_25px_60px_-15px_rgba(0,0,0,0.95)] lg:absolute lg:bottom-0 lg:ltr:right-0 lg:rtl:left-0 lg:z-30 lg:w-[325px]"
           style={{ transform: 'translateZ(55px)' }}
         >
           <div className="flex items-start justify-between gap-3">
             <h3 className="text-[1.05rem] font-bold tracking-tight text-slate-900 dark:text-white">
-              Average Salary Trend
+              {isAr ? "مؤشر متوسط الرواتب" : "Average Salary Trend"}
             </h3>
-            <span className="text-[11.5px] font-medium text-slate-400">EGP / month</span>
+            <span className="text-[11.5px] font-medium text-slate-400">
+              {isAr ? "ج.م / شهرياً" : "EGP / month"}
+            </span>
           </div>
           <div className="mt-2 flex items-end gap-2">
             <p className="text-[2.15rem] font-black leading-none tracking-tight text-emerald-500 dark:text-emerald-400">
@@ -181,7 +165,9 @@ export function HeroVisual() {
               <ArrowUpRight className="h-3.5 w-3.5 stroke-[3]" />
             </span>
           </div>
-          <p className="mt-0.5 text-[11px] font-medium text-slate-400">vs last year</p>
+          <p className="mt-0.5 text-[11px] font-medium text-slate-400">
+            {isAr ? "مقارنة بالعام الماضي" : "vs last year"}
+          </p>
           <SalaryTrendChart />
         </motion.article>
 

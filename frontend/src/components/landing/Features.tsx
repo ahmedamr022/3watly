@@ -3,7 +3,7 @@
 import React from 'react';
 import { ArrowRight, CheckCircle2, BarChart3, FileText, Sparkles, LayoutGrid } from 'lucide-react';
 import { CopilotPanel, CvPreviewPanel, SkillGapPanel } from './FeaturePanels';
-import { featureCards } from '@/data/landing';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const panels = [SkillGapPanel, CvPreviewPanel, CopilotPanel];
 
@@ -32,25 +32,117 @@ const tones: Record<string, { tile: string; bullet: string; link: string }> = {
 };
 
 export function Features() {
+  const { isAr } = useLanguage();
+
+  const featureCards = isAr
+    ? [
+        {
+          title: 'تحليل فجوات المهارات الفعلي',
+          description: 'اعرف مهاراتك الحالية، ايه اللي ناقصك بالظبط، وايه المهارات المطلوبة لتترقى.',
+          icon: 'bar',
+          tone: 'success',
+          bullets: [
+            'فحص ذكي لمهاراتك وخبراتك الحالية',
+            'مقارنة حية بمتطلبات الوظائف في مصر',
+            'توصيات مخصصة بمسارات التعلم الأهم'
+          ]
+        },
+        {
+          title: 'صانع سيرة ذاتية متوافق مع ATS',
+          description: 'أنشئ سيرة ذاتية احترافية تجتاز أنظمة الفرز الآلي وتلفت انتباه مسؤولي التوظيف.',
+          icon: 'file',
+          tone: 'primary',
+          bullets: [
+            'مؤشر توافق ATS ونصائح تحسين فورية',
+            'نماذج مخصصة لقطاعات التكنولوجيا',
+            'اقتراحات ذكية للكلمات المفتاحية'
+          ]
+        },
+        {
+          title: 'المساعد المهني الذكي (AI Copilot)',
+          description: 'مستشارك المهني المتاح 24/7 لتقديم النصائح والإجابة على أي استفسار في مسارك.',
+          icon: 'sparkles',
+          tone: 'accent',
+          bullets: [
+            'إرشاد وتوجيه مهني مخصص لخبرتك',
+            'رؤى مبنية على سوق العمل المصري الحقيقي',
+            'دعم ذكي وتفاعلي في أي وقت'
+          ]
+        }
+      ]
+    : [
+        {
+          title: 'Live Skill Gap Analyzer',
+          description: "Know exactly what skills you have, what's missing, and what to learn next.",
+          icon: 'bar',
+          tone: 'success',
+          bullets: [
+            'AI analyzes your current skills',
+            'Compares with target role & market demand',
+            'Personalized learning recommendations'
+          ]
+        },
+        {
+          title: 'ATS-Friendly CV Builder',
+          description: 'Create a professional CV that passes ATS and gets you noticed.',
+          icon: 'file',
+          tone: 'primary',
+          bullets: [
+            'ATS score & optimization tips',
+            'Industry-specific templates',
+            'Keyword & content suggestions'
+          ]
+        },
+        {
+          title: 'AI Career Copilot',
+          description: 'Your personal AI assistant for career advice, insights, and next steps.',
+          icon: 'sparkles',
+          tone: 'accent',
+          bullets: [
+            'Personalized career guidance',
+            'Egyptian market insights',
+            '24/7 AI-powered support'
+          ]
+        }
+      ];
+
   return (
     <section id="features" className="w-full bg-[#F8FAFC]/60 dark:bg-[#060913] py-16 px-6 sm:px-10 lg:px-16 border-t border-slate-100 dark:border-white/5 transition-colors duration-300">
       <div className="max-w-[1400px] mx-auto">
         
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/70 text-[#4F46E5] dark:text-indigo-300 text-[12px] font-bold tracking-wider uppercase border border-indigo-100/80 dark:border-indigo-500/30">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-300 text-[12px] font-bold tracking-wider uppercase border border-blue-100/80 dark:border-blue-500/30">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Powerful Features</span>
+            <span>{isAr ? "أقوى المميزات" : "Powerful Features"}</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-[#0F172A] dark:text-white leading-tight tracking-tight">
-            Everything you need to <br className="hidden sm:inline" />
-            build the <span className="text-[#4338CA] dark:text-[#818CF8]">right career</span>
+            {isAr ? (
+              <>
+                كل الأدوات اللي هتحتاجها <br className="hidden sm:inline" />
+                لبناء <span className="bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">مسار مهني ناجح</span>
+              </>
+            ) : (
+              <>
+                Everything you need to <br className="hidden sm:inline" />
+                build the <span className="bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">right career</span>
+              </>
+            )}
           </h2>
 
-          <p className="text-[15px] text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            MAJRA combines AI technology with real Egyptian market data to give you an{' '}
-            <span className="font-semibold text-[#4338CA] dark:text-[#818CF8]">unfair advantage</span> in your career journey.
+          <p className="text-[15px] text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed font-normal">
+            {isAr ? (
+              <>
+                منصة عواطلي تدمج قوة الذكاء الاصطناعي مع بيانات حقيقية لسوق العمل المصري لتمنحك{' '}
+                <span className="font-semibold text-blue-600 dark:text-blue-400">أفضلية تنافسية حقيقية</span> في رحلتك المهنية.
+              </>
+            ) : (
+              <>
+                3WATLY combines AI technology with real Egyptian market data to give you an{' '}
+                <span className="font-semibold text-blue-600 dark:text-blue-400">unfair advantage</span> in your career journey.
+              </>
+            )}
           </p>
         </div>
 
@@ -75,7 +167,7 @@ export function Features() {
                     <h3 className="text-[17px] font-bold text-slate-900 dark:text-white leading-snug">
                       {card.title}
                     </h3>
-                    <p className="mt-1 text-[12.5px] text-slate-500 dark:text-slate-400 leading-relaxed min-h-[36px]">
+                    <p className="mt-1 text-[12.5px] text-slate-500 dark:text-slate-400 leading-relaxed min-h-[36px] font-normal">
                       {card.description}
                     </p>
                   </div>
@@ -98,11 +190,11 @@ export function Features() {
 
                 {/* Footer Link */}
                 <a
-                  href="#onboarding"
+                  href="#how-it-works"
                   className={`mt-auto inline-flex items-center gap-1.5 pt-5 text-[13.5px] font-bold transition-colors ${tone.link}`}
                 >
-                  <span>Learn more</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <span>{isAr ? "اعرف المزيد" : "Learn more"}</span>
+                  <ArrowRight className={`h-4 w-4 ${isAr ? "rotate-180" : ""}`} />
                 </a>
               </div>
             );
@@ -112,12 +204,12 @@ export function Features() {
         {/* Explore All Features Button */}
         <div className="mt-10 flex justify-center">
           <a
-            href="#features"
+            href="#how-it-works"
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white text-[13.5px] font-bold shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all"
           >
-            <LayoutGrid className="w-4 h-4 text-[#4338CA] dark:text-[#818CF8]" />
-            <span>Explore all features</span>
-            <ArrowRight className="w-4 h-4 text-slate-400" />
+            <LayoutGrid className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <span>{isAr ? "استكشف خطوات العمل" : "Explore how it works"}</span>
+            <ArrowRight className={`w-4 h-4 text-slate-400 ${isAr ? "rotate-180" : ""}`} />
           </a>
         </div>
 
