@@ -16,9 +16,9 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "عواطلي | 3WATLY — منصة استخبارات سوق العمل والمسار المهني في مصر",
+  title: "عواطلي | 3WATLY — منصة تحليلات سوق العمل والمسار المهني في مصر",
   description: "افهم متطلبات سوق العمل المصري، حدد فجوات مهاراتك وسيرتك الذاتية، واكتشف وظائف تناسبك بدقة عبر تحليلات بيانات حقيقية.",
-  keywords: ["عواطلي", "3WATLY", "وظائف مصر", "استخبارات سوق العمل", "سيرة ذاتية ATS", "Egypt Tech Jobs", "Career Intelligence Egypt"],
+  keywords: ["عواطلي", "3WATLY", "وظائف مصر", "تحليلات سوق العمل", "سيرة ذاتية ATS", "Egypt Tech Jobs", "Career Intelligence Egypt"],
   authors: [{ name: "فريق عواطلي | 3WATLY" }],
   icons: {
     icon: "/logo.png",

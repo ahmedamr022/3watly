@@ -27,7 +27,7 @@ export default function RecommendationsPage() {
   const prioritySteps = isAr
     ? [
         {
-          title: "تعزيز مهارات السحابة و SQL",
+          title: "تعزيز مهارات الـ Cloud و SQL",
           desc: "إضافة شهادة أو مشروع عملي يرفع نسبة قبولك بنسبة 25%.",
           tag: "أولوية عالية",
           tagBg: "bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 border border-red-200/60 dark:border-red-500/30"
@@ -173,7 +173,7 @@ export default function RecommendationsPage() {
           <div className="mt-auto pt-8">
             <StepFooter
               onBack={() => router.push('/onboarding/profile-insights')}
-              onNext={() => router.push('/onboarding/complete')}
+              onNext={() => router.push('/dashboard')}
               nextLabel={isAr ? "إتمام التهيئة والدخول للوحة التحكم" : "Complete & Enter Dashboard"}
               variant="finish"
             />

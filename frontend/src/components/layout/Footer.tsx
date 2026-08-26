@@ -82,7 +82,7 @@ export function Footer() {
 
             <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed max-w-[280px]">
               {isAr 
-                ? "منصة استخبارات سوق العمل والتطوير المهني الأولى في مصر، مبنية على لغة الأرقام والذكاء الاصطناعي."
+                ? "منصة تحليلات وتوجيه سوق العمل والتطوير المهني الأولى في مصر، مبنية على لغة الأرقام والذكاء الاصطناعي."
                 : "Egypt's leading career intelligence platform helping you make smarter career decisions with real data and AI."}
             </p>
           </div>

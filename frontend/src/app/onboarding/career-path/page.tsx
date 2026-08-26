@@ -46,36 +46,36 @@ export default function CareerPathPage() {
     ? [
         {
           id: 'data-analyst' as const,
-          title: 'محلل بيانات (Data Analyst)',
-          description: 'تحويل البيانات المعقدة إلى قرارات بيزنس استراتيجية وذكية.',
+          title: 'Data Analyst (محلل بيانات)',
+          description: 'تحويل البيانات والـ KPIs إلى قرارات Business ذكية واستراتيجية.',
           icon: 'analytics' as const,
           tone: 'blue' as const
         },
         {
           id: 'data-engineer' as const,
-          title: 'مهندس بيانات (Data Engineer)',
-          description: 'بناء وإدارة خطوط نقل ومعالجة البيانات الضخمة والبنية التحتية.',
+          title: 'Data Engineer (مهندس بيانات)',
+          description: 'بناء وإدارة ETL pipelines وقواعد البيانات الضخمة والبنية التحتية.',
           icon: 'database' as const,
           tone: 'green' as const
         },
         {
           id: 'software-engineer' as const,
-          title: 'مهندس برمجيات (Software Engineer)',
-          description: 'تصميم وبناء وتطوير تطبيقات برمجية قوية وقابلة للتوسع.',
+          title: 'Software Engineer (مهندس برمجيات)',
+          description: 'تصميم وتطوير أنظمة وتطبيقات برمجية قوية وقابلة للتوسع.',
           icon: 'code' as const,
           tone: 'blue' as const
         },
         {
           id: 'ml-engineer' as const,
-          title: 'مهندس ذكاء اصطناعي (ML Engineer)',
-          description: 'بناء وتدريب نماذج الذكاء الاصطناعي والتنبؤ الآلي.',
+          title: 'Machine Learning & AI Engineer',
+          description: 'بناء وتدريب نماذج الـ ML ونماذج الذكاء الاصطناعي والتنبؤ الآلي.',
           icon: 'network' as const,
           tone: 'violet' as const
         },
         {
           id: 'devops' as const,
-          title: 'أخصائي DevOps وسحابة',
-          description: 'أتمتة ونشر وإدارة الأنظمة والبنية التحتية السحابية الموثوقة.',
+          title: 'DevOps & Cloud Engineer',
+          description: 'أتمتة وإدارة الـ Cloud Infrastructure وخطوط الـ CI/CD والأنظمة الموثوقة.',
           icon: 'cloud' as const,
           tone: 'blue' as const
         }

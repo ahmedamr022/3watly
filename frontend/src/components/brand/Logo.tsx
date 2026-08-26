@@ -24,7 +24,7 @@ export function Logo({ tagline = null, size = 'md', forceLang }: LogoProps) {
 
   const brandTitle = activeIsAr ? 'عواطلي' : '3WATLY';
   const defaultTagline = activeIsAr 
-    ? 'استخبارات سوق العمل والتطوير المهني'
+    ? 'تحليلات سوق العمل والتوجيه المهني'
     : 'Egyptian Career Intelligence Platform';
 
   const finalTagline = tagline === null ? null : (tagline || defaultTagline);

@@ -60,7 +60,7 @@ export function AppHeader() {
           <Logo tagline={null} />
           <span className="hidden h-6 w-px bg-slate-200 dark:bg-white/10 sm:block" aria-hidden="true" />
           <span className="hidden text-[13.5px] font-normal text-slate-500 dark:text-slate-400 sm:block">
-            {isAr ? 'استخبارات سوق العمل والتطوير المهني' : 'Career Intelligence Platform'}
+            {isAr ? 'تحليلات سوق العمل والتوجيه المهني' : 'Career Intelligence Platform'}
           </span>
         </div>
 

@@ -19,8 +19,8 @@ export function SkillGapPanel() {
   ];
 
   const topGaps = isAr 
-    ? ['SQL متقدم', 'تعلم الآلة ML', 'خدمات AWS']
-    : ['Advanced SQL', 'Machine Learning', 'AWS'];
+    ? ['Advanced SQL', 'Machine Learning', 'AWS Cloud']
+    : ['Advanced SQL', 'Machine Learning', 'AWS Cloud'];
 
   return (
     <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-100 dark:border-white/5 bg-[#F8FAFC] dark:bg-[#080D1A] p-4 text-slate-800 dark:text-slate-200">

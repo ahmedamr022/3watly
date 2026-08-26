@@ -70,7 +70,7 @@ const translations: Record<Language, Record<string, string>> = {
   ar: {
     // Brand
     brandName: "عواطلي",
-    brandTagline: "منصة استخبارات سوق العمل والمسار المهني في مصر",
+    brandTagline: "منصة تحليلات سوق العمل والتوجيه المهني في مصر",
     
     // Navbar
     navJobs: "الوظائف والفرص",
@@ -80,7 +80,7 @@ const translations: Record<Language, Record<string, string>> = {
     navSignUp: "أنشئ حسابك مجاناً",
     
     // Hero
-    heroBadge: "المنصة الأولى لاستخبارات سوق العمل في مصر",
+    heroBadge: "المنصة الأولى لتحليلات وتوجيه سوق العمل في مصر",
     heroTitle1: "بلاش تقدّم على عماك.",
     heroTitle2: "افهم سوق العمل المصري ببيانات وتحليلات حقيقية.",
     heroDesc: "اعرف المهارات المطلوبة فعلياً في شركات التكنولوجيا بمصر، سد فجوات سيرتك الذاتية، وطابق خبرتك مع أفضل الفرص المناسبة ليك.",

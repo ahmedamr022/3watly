@@ -40,6 +40,9 @@ desktop.ini
 # Docs folder (design references - not for repo)
 docs/
 
+# edit folder (edit references - not for repo)
+edit/
+
 # Gemini / AI tool artifacts
 .gemini/
 
