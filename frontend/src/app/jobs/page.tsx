@@ -16,10 +16,12 @@ import {
   CheckCircle2, 
   Briefcase,
   DollarSign,
-  Users
+  Users,
+  MoreVertical
 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { mockJobsList, mockDashboardData } from '@/data/jobs';
 
 export default function JobsPage() {
@@ -27,7 +29,6 @@ export default function JobsPage() {
   const [keyword, setKeyword] = useState('Data Analyst');
   const [location, setLocation] = useState('Cairo, Egypt');
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
-  const [activeWorkType, setActiveWorkType] = useState('All');
 
   const { inDemandSkills, marketOverview } = mockDashboardData;
 
@@ -42,19 +43,19 @@ export default function JobsPage() {
       title={isAr ? "الوظائف والفرص المتاحة" : "Jobs"}
       subtitle={isAr ? "استكشف وظائف تكنولوجيا المعلومات والبيانات المطابقة لمهاراتك وخبرتك." : "Discover roles that match your skills and career goals."}
     >
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
         
         {/* ========================================================================= */}
         {/* 1. SEARCH & FILTERS HEADER CARD                                           */}
         {/* ========================================================================= */}
-        <div className="rounded-[26px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="rounded-[24px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-5 sm:p-6 shadow-xs space-y-4">
           
           {/* Main Search Inputs Row */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-12">
             
             {/* Keywords Input */}
             <div className="sm:col-span-5 relative">
-              <label className="block text-[11.5px] font-bold text-slate-400 dark:text-slate-400 mb-1">
+              <label className="block text-[11.5px] font-bold text-slate-500 dark:text-slate-400 mb-1">
                 {isAr ? "المسمى أو المهارات" : "Keywords"}
               </label>
               <div className="relative">
@@ -80,7 +81,7 @@ export default function JobsPage() {
 
             {/* Location Input */}
             <div className="sm:col-span-4 relative">
-              <label className="block text-[11.5px] font-bold text-slate-400 dark:text-slate-400 mb-1">
+              <label className="block text-[11.5px] font-bold text-slate-500 dark:text-slate-400 mb-1">
                 {isAr ? "المحافظة أو النطاق" : "Location"}
               </label>
               <div className="relative">
@@ -108,7 +109,7 @@ export default function JobsPage() {
             <div className="sm:col-span-3 flex items-end">
               <button
                 type="button"
-                className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+                className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white text-[14px] font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
               >
                 <Search className="w-4 h-4" />
                 <span>{isAr ? "بحث عن وظائف" : "Search Jobs"}</span>
@@ -175,115 +176,147 @@ export default function JobsPage() {
               </div>
             </div>
 
-            {/* Job Cards Feed */}
+            {/* Job Cards Feed (Matching media_1787757434528.png Exactly) */}
             {mockJobsList.map((job) => {
               const isSaved = savedJobs.includes(job.id);
               return (
                 <div
                   key={job.id}
-                  className="rounded-[24px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-white/20 transition-all space-y-4"
+                  className="rounded-[22px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-5 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-slate-300 dark:hover:border-white/20 transition-all space-y-4"
                 >
-                  {/* Top Row: Company & Title & Match Radial */}
+                  {/* Top Row: Company Logo + Title + Match Ring + Menu */}
                   <div className="flex items-start justify-between gap-4">
                     
-                    <div className="flex items-start gap-3.5 min-w-0">
-                      {/* Logo Mark */}
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/10 font-black text-slate-800 dark:text-white text-sm">
-                        {job.company.slice(0, 2).toUpperCase()}
-                      </div>
+                    <div className="flex items-start gap-4 min-w-0">
+                      {/* Official Company Logo */}
+                      <CompanyLogo company={job.company} size="lg" className="shrink-0" />
 
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                        {/* Title with blue verified checkmark */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <Link 
                             href={`/jobs/${job.id}`}
-                            className="text-[16.5px] font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors leading-tight"
+                            className="text-[17px] font-bold text-[#0B132B] dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors leading-snug"
                           >
-                            {isAr ? job.titleAr : job.title}
+                            {isAr 
+                              ? `${job.titleAr} في ${job.companyAr}`
+                              : `${job.title} at ${job.company}`}
                           </Link>
-                          <span className="h-4 w-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] shrink-0">
+                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#1B57E0] text-white text-[9px] font-black shrink-0">
                             ✓
                           </span>
                         </div>
 
+                        {/* Location */}
                         <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1">
-                          {isAr ? job.companyAr : job.company} • {isAr ? job.locationAr : job.location} ({isAr ? job.workTypeAr : job.workType})
+                          {isAr ? job.companyAr : job.company} 📍 {isAr ? job.locationAr : job.location} ({isAr ? job.workTypeAr : job.workType})
                         </p>
 
+                        {/* Salary and employment type pill */}
                         <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <span className="text-[12.5px] font-black text-emerald-600 dark:text-emerald-400">
-                            {isAr ? job.salaryRangeAr : job.salaryRange}
+                          <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
+                            {isAr ? job.salaryRangeAr : `${job.salaryRange} / month`}
                           </span>
-                          <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#E8F8F0] dark:bg-emerald-950/60 text-[11.5px] font-bold text-[#12B76A]">
                             {isAr ? job.employmentTypeAr : job.employmentType}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Match Score Indicator */}
-                    <div className="flex flex-col items-center shrink-0">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[14px] font-black">
-                        {job.matchScore}%
+                    {/* Right: Match Donut Ring + Posted Time + Menu */}
+                    <div className="flex items-start gap-3 shrink-0">
+                      <div className="flex flex-col items-center">
+                        <div className="relative h-12 w-12">
+                          <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#E8F8F0" className="dark:stroke-emerald-950/60" strokeWidth="9" />
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r="40"
+                              fill="none"
+                              stroke="#12B76A"
+                              strokeWidth="9"
+                              strokeLinecap="round"
+                              strokeDasharray={2 * Math.PI * 40}
+                              strokeDashoffset={2 * Math.PI * 40 * (1 - job.matchScore / 100)}
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-[12px] font-black text-[#0B132B] dark:text-white leading-none">
+                              {job.matchScore}%
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-medium text-slate-400 mt-0.5">
+                          {isAr ? "توافق" : "Match"}
+                        </span>
+                        <span className="text-[10.5px] text-slate-400 mt-1">
+                          {isAr ? job.postedAgoAr : job.postedAgo}
+                        </span>
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 mt-1">
-                        {isAr ? "مطابقة" : "Match"}
-                      </span>
+
+                      <button type="button" className="text-slate-400 hover:text-slate-600 p-1">
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
                     </div>
 
                   </div>
 
-                  {/* Skills Match Bar */}
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[11.5px] font-bold text-slate-400">
-                        {isAr ? "المهارات المطابقة:" : "Top Skills Match:"}
-                      </span>
-                      {job.matchedSkills.map((skill) => (
-                        <span 
-                          key={skill.name}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-[11.5px] font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20"
-                        >
-                          <Check className="w-3 h-3 stroke-[3]" />
-                          {skill.name}
-                        </span>
-                      ))}
-                      {job.missingSkills.map((skill) => (
-                        <span 
-                          key={skill.name}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-[11.5px] font-bold text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20"
-                        >
-                          <X className="w-3 h-3 stroke-[3]" />
-                          {skill.name}
-                        </span>
-                      ))}
-                    </div>
-
-                    <span className="text-[11.5px] font-medium text-slate-400">
-                      {isAr ? job.postedAgoAr : job.postedAgo}
+                  {/* Skills Match Section (Matching Screenshot) */}
+                  <div className="pt-3 border-t border-slate-100 dark:border-white/5 space-y-2">
+                    <span className="block text-[11.5px] font-bold text-slate-400 uppercase tracking-wider">
+                      {isAr ? "المهارات المطابقة" : "Top Skills Match"}
                     </span>
-                  </div>
 
-                  {/* Action Buttons Row */}
-                  <div className="flex items-center justify-between pt-1">
-                    <Link
-                      href={`/jobs/${job.id}`}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
-                    >
-                      <span>{isAr ? "عرض التفاصيل والمطابقة" : "View Details & Fit"}</span>
-                      <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
-                    </Link>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {job.matchedSkills.map((skill) => (
+                          <span 
+                            key={skill.name}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#E8F8F0] dark:bg-emerald-950/50 text-[12px] font-bold text-[#12B76A] border border-emerald-200/60 dark:border-emerald-500/20"
+                          >
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            {skill.name}
+                          </span>
+                        ))}
+                        {job.missingSkills.map((skill) => (
+                          <span 
+                            key={skill.name}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#FFF7ED] dark:bg-amber-950/50 text-[12px] font-bold text-[#F97316] border border-orange-200/60 dark:border-orange-500/20"
+                          >
+                            <X className="w-3.5 h-3.5 stroke-[3]" />
+                            {skill.name}
+                          </span>
+                        ))}
+                        <span className="text-[12px] font-medium text-slate-400">
+                          {isAr ? "1 مهارة ناقصة" : "1 missing skill"}
+                        </span>
+                      </div>
 
-                    <button
-                      type="button"
-                      onClick={() => toggleSave(job.id)}
-                      className={`p-2.5 rounded-xl border transition-colors cursor-pointer ${
-                        isSaved
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
-                          : 'border-slate-200 dark:border-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-white'
-                      }`}
-                    >
-                      <Bookmark className={`w-4.5 h-4.5 ${isSaved ? 'fill-current' : ''}`} />
-                    </button>
+                      {/* Action Buttons (View Details & Fit + Bookmark) */}
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/jobs/${job.id}`}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white text-[13px] font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+                        >
+                          <span>{isAr ? "عرض التفاصيل والمطابقة" : "View Details & Fit"}</span>
+                          <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => toggleSave(job.id)}
+                          className={`p-2.5 rounded-xl border transition-colors cursor-pointer ${
+                            isSaved
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+                              : 'border-slate-200 dark:border-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-white'
+                          }`}
+                        >
+                          <Bookmark className={`w-4.5 h-4.5 ${isSaved ? 'fill-current' : ''}`} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                 </div>
