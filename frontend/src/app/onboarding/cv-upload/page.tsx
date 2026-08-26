@@ -12,6 +12,7 @@ import { Dropzone } from '@/components/onboarding/cv/Dropzone';
 import { ParsingStatus } from '@/components/onboarding/cv/ParsingStatus';
 import { ExtractedSkills } from '@/components/onboarding/cv/ExtractedSkills';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { parsedCvByRole } from '@/data/roleProfiles';
 import { roleOptions } from '@/data/roles';
 import { fadeUp } from '@/utils/motion';
@@ -19,6 +20,7 @@ import { surface } from '@/utils/styles';
 
 export default function CvUploadPage() {
   const router = useRouter();
+  const { isAr } = useLanguage();
   const { role, file, status, progress, checksRevealed, skillsAdded, uploadFile, removeFile } =
     useOnboarding();
 
@@ -33,12 +35,13 @@ export default function CvUploadPage() {
         <div className="flex min-h-[calc(100vh-196px)] flex-col">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-[27px] font-bold leading-tight tracking-[-0.025em] text-ink dark:text-white">
-                Upload Your CV
+              <h1 className="text-[27px] font-bold leading-tight tracking-tight text-[#0B132B] dark:text-white">
+                {isAr ? "ارفع سيرتك الذاتية (CV)" : "Upload Your CV"}
               </h1>
-              <p className="mt-1.5 text-[14px] font-light text-ink-muted dark:text-slate-400">
-                Our AI will analyze your experience and skills
-                {roleTitle ? ` against ${roleTitle} roles` : ''}
+              <p className="mt-1.5 text-[14px] font-normal text-slate-500 dark:text-slate-400">
+                {isAr 
+                  ? "محرك الذكاء الاصطناعي هيحلل خبراتك ومهاراتك ويطابقها مع متطلبات السوق المصري" 
+                  : `Our AI will analyze your experience and skills ${roleTitle ? `against ${roleTitle} roles` : ''}`}
               </p>
             </div>
             <div className="pt-1.5">
@@ -73,31 +76,35 @@ export default function CvUploadPage() {
                 >
                   <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-canvas dark:bg-white/5">
                     <FileSearchIcon
-                      className="h-6 w-6 text-ink-faint dark:text-slate-400"
+                      className="h-6 w-6 text-slate-400 dark:text-slate-400"
                       strokeWidth={1.7}
                       aria-hidden="true"
                     />
                   </span>
-                  <h2 className="mt-4 text-[17px] font-semibold text-ink dark:text-white">Live Parsing Status</h2>
-                  <p className="mt-2 max-w-[23rem] text-[13px] font-light leading-[1.65] text-ink-muted dark:text-slate-400">
-                    Nothing to analyze yet. The moment you upload a CV, MAJRA extracts your
-                    experience, detects your skills, and validates the ATS layout — live, right here.
+                  <h2 className="mt-4 text-[17px] font-bold text-[#0B132B] dark:text-white">
+                    {isAr ? "فحص وتحليل حي للسيرة الذاتية" : "Live Parsing Status"}
+                  </h2>
+                  <p className="mt-2 max-w-[23rem] text-[13px] font-normal leading-[1.65] text-slate-500 dark:text-slate-400">
+                    {isAr 
+                      ? "بمجرد رفع الـ CV، يقوم عواطلي باستخراج سنوات خبرتك، تحديد مهاراتك التقنية، وفحص مطابقة ملفك مع معايير الـ ATS فوراً."
+                      : "The moment you upload a CV, 3WATLY extracts your experience, detects your skills, and validates the ATS layout — live, right here."}
                   </p>
-                  <ul className="mt-6 space-y-2.5 text-left">
-                    {['Experience extraction', 'Skill detection', 'ATS layout validation'].map(
-                      (item) => (
-                        <li
-                          key={item}
-                          className="flex items-center gap-2.5 text-[12.5px] font-light text-ink-faint dark:text-slate-400"
-                        >
-                          <span
-                            className="h-[18px] w-[18px] rounded-full border border-dashed border-[#CBD5E8] dark:border-white/20"
-                            aria-hidden="true"
-                          />
-                          {item}
-                        </li>
-                      )
-                    )}
+                  <ul className="mt-6 space-y-2.5 text-left rtl:text-right">
+                    {(isAr 
+                      ? ['استخراج وتحليل الخبرات السابقة', 'اكتشاف وتصنيف المهارات التقنية', 'فحص هيكل وتوافق أنظمة ATS']
+                      : ['Experience extraction', 'Skill detection', 'ATS layout validation']
+                    ).map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-center gap-2.5 text-[12.5px] font-normal text-slate-500 dark:text-slate-400"
+                      >
+                        <span
+                          className="h-[18px] w-[18px] rounded-full border border-dashed border-[#CBD5E8] dark:border-white/20"
+                          aria-hidden="true"
+                        />
+                        {item}
+                      </li>
+                    ))}
                   </ul>
                 </motion.section>
               )}
@@ -116,10 +123,14 @@ export default function CvUploadPage() {
             <StepFooter
               onBack={() => router.push('/onboarding/career-path')}
               onNext={() => router.push('/onboarding/profile-insights')}
-              nextLabel="Continue to Profile Insights"
+              nextLabel={isAr ? "المتابعة إلى مؤشرات الملف" : "Continue to Profile Insights"}
               nextDisabled={!complete}
               hint={
-                !file ? 'Upload your CV to continue' : !complete ? 'Analyzing your CV...' : undefined
+                !file 
+                  ? (isAr ? "ارفع سيرتك الذاتية للمتابعة" : "Upload your CV to continue")
+                  : !complete 
+                  ? (isAr ? "جاري تحليل الـ CV..." : "Analyzing your CV...") 
+                  : undefined
               }
             />
           </div>

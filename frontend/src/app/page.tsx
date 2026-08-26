@@ -256,9 +256,15 @@ export default function LandingPage() {
                 transition={{ delay: 0.2 }}
                 className="text-[15px] sm:text-[17px] text-slate-600 dark:text-slate-300 leading-relaxed max-w-[540px] font-normal"
               >
-                {isAr
-                  ? "عواطلي بيحلل سوق العمل المصري، يحدد فجوات مهاراتك بدقة، ويطابق خبرتك مع أفضل الفرص المناسبة عشان تطور مسارك المهني بثقة."
-                  : "3WATLY analyzes the Egyptian job market, identifies your skill gaps, and matches you with high-fit opportunities so you can grow with confidence."}
+                {isAr ? (
+                  <>
+                    <span className="font-extrabold text-blue-600 dark:text-blue-400">عواطلي</span> بيحلل سوق العمل المصري، يحدد فجوات مهاراتك بدقة، ويطابق خبرتك مع أفضل الفرص المناسبة عشان تطور مسارك المهني بثقة.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-extrabold text-blue-600 dark:text-blue-400">3WATLY</span> analyzes the Egyptian job market, identifies your skill gaps, and matches you with high-fit opportunities so you can grow with confidence.
+                  </>
+                )}
               </motion.p>
 
               {/* CTA Buttons Row */}

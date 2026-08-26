@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CheckIcon } from 'lucide-react';
-import { onboardingSteps } from '../../data/roles';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StepperProps {
   current: number;
@@ -10,6 +10,22 @@ interface StepperProps {
 }
 
 export function Stepper({ current, onStepSelect }: StepperProps) {
+  const { isAr } = useLanguage();
+
+  const onboardingSteps = isAr
+    ? [
+        { id: 1, label: 'المسار المستهدف', path: '/onboarding/career-path' },
+        { id: 2, label: 'رفع الـ CV', path: '/onboarding/cv-upload' },
+        { id: 3, label: 'مؤشرات الملف', path: '/onboarding/profile-insights' },
+        { id: 4, label: 'خطة الانطلاق', path: '/onboarding/recommendations' }
+      ]
+    : [
+        { id: 1, label: 'Career Path', path: '/onboarding/career-path' },
+        { id: 2, label: 'CV Upload', path: '/onboarding/cv-upload' },
+        { id: 3, label: 'Profile Insights', path: '/onboarding/profile-insights' },
+        { id: 4, label: 'Action Plan', path: '/onboarding/recommendations' }
+      ];
+
   return (
     <nav aria-label="Onboarding progress" className="flex items-center justify-center">
       <ol className="flex flex-wrap items-center justify-center gap-y-2">
@@ -24,9 +40,9 @@ export function Stepper({ current, onStepSelect }: StepperProps) {
                 aria-hidden="true"
                 className={`flex h-[24px] w-[24px] items-center justify-center rounded-full text-[12px] font-bold transition-all duration-200 ease-smooth ${
                   isDone
-                    ? 'bg-brand-green dark:bg-emerald-500 text-white'
+                    ? 'bg-emerald-500 text-white'
                     : isActive
-                    ? 'bg-brand-blue dark:bg-blue-500 text-white ring-4 ring-brand-blue/20 dark:ring-blue-500/30'
+                    ? 'bg-blue-600 dark:bg-blue-500 text-white ring-4 ring-blue-600/20 dark:ring-blue-500/30'
                     : 'bg-[#E4E8F2] dark:bg-slate-800 text-slate-400 dark:text-slate-500'
                 }`}
               >
@@ -35,7 +51,7 @@ export function Stepper({ current, onStepSelect }: StepperProps) {
               <span
                 className={`whitespace-nowrap text-[13.5px] transition-colors duration-150 ease-smooth ${
                   isActive
-                    ? 'font-bold text-brand-blue dark:text-blue-400'
+                    ? 'font-bold text-blue-600 dark:text-blue-400'
                     : isDone
                     ? 'font-semibold text-slate-700 dark:text-slate-200'
                     : 'font-normal text-slate-400 dark:text-slate-500'
@@ -52,7 +68,7 @@ export function Stepper({ current, onStepSelect }: StepperProps) {
                 <button
                   type="button"
                   onClick={() => onStepSelect?.(step.path)}
-                  className="rounded-lg px-1.5 py-0.5 transition-opacity duration-150 ease-smooth hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/40 cursor-pointer"
+                  className="rounded-lg px-1.5 py-0.5 transition-opacity duration-150 ease-smooth hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer"
                 >
                   {content}
                 </button>
@@ -65,7 +81,7 @@ export function Stepper({ current, onStepSelect }: StepperProps) {
                   aria-hidden="true"
                   className={`mx-3.5 hidden h-px w-10 sm:block lg:w-14 transition-colors duration-200 ${
                     step.id < current
-                      ? 'bg-brand-green/60 dark:bg-emerald-500/50'
+                      ? 'bg-emerald-500/60'
                       : 'bg-slate-200 dark:bg-white/10'
                   }`}
                 />

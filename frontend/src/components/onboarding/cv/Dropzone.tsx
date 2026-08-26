@@ -1,8 +1,11 @@
+"use client";
+
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CircleAlertIcon, CircleCheckIcon, LockIcon, XIcon } from 'lucide-react';
 import { EASE, springPop } from '../../../utils/motion';
 import type { ParseStatus, UploadedFile } from '../../../types/onboarding';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const CLOUD_IMAGE = "/f4a5ae02-bd4f-4232-99c9-5d8471d21aea.png";
 
@@ -22,6 +25,7 @@ function extensionOf(name: string) {
 }
 
 export function Dropzone({ file, status, progress, onFile, onRemove }: DropzoneProps) {
+  const { isAr } = useLanguage();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -33,13 +37,13 @@ export function Dropzone({ file, status, progress, onFile, onRemove }: DropzoneP
     if (!next) return;
 
     if (!ALLOWED.includes(extensionOf(next.name))) {
-      setError("That file type isn't supported. Upload a PDF or DOCX.");
+      setError(isAr ? "نوع الملف غير مدعوم. يرجى رفع ملف بصيغة PDF أو DOCX." : "That file type isn't supported. Upload a PDF or DOCX.");
       return;
     }
 
     const mb = next.size / (1024 * 1024);
     if (mb > MAX_MB) {
-      setError(`That file is ${mb.toFixed(1)} MB. The limit is ${MAX_MB} MB.`);
+      setError(isAr ? `حجم الملف ${mb.toFixed(1)} ميجابايت. الحد الأقصى هو ${MAX_MB} ميجابايت.` : `That file is ${mb.toFixed(1)} MB. The limit is ${MAX_MB} MB.`);
       return;
     }
 
@@ -72,12 +76,12 @@ export function Dropzone({ file, status, progress, onFile, onRemove }: DropzoneP
           setDragging(false);
           handleFiles(event.dataTransfer.files);
         }}
-        className={`flex flex-1 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-8 py-9 text-center transition-[border-color,background-color,box-shadow] duration-150 ease-smooth focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-blue/25 dark:focus-visible:ring-indigo-500/30 ${
+        className={`flex flex-1 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-8 py-9 text-center transition-[border-color,background-color,box-shadow] duration-150 ease-smooth focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/25 dark:focus-visible:ring-indigo-500/30 ${
         error ?
         'border-[#E9A3A0] bg-[#FFFAFA] dark:border-red-500/40 dark:bg-red-950/20' :
         dragging ?
-        'border-brand-blue bg-[#EEF4FE] dark:border-indigo-400 dark:bg-indigo-950/30 shadow-[inset_0_0_0_4px_rgba(27,87,224,0.06)]' :
-        'border-[#C3D3F3] dark:border-slate-600/60 bg-[#FBFCFF] dark:bg-[#0B1120] hover:border-brand-blue dark:hover:border-indigo-400 hover:bg-[#F7FAFF] dark:hover:bg-[#111B30]'}`
+        'border-blue-600 bg-[#EEF4FE] dark:border-indigo-400 dark:bg-indigo-950/30 shadow-[inset_0_0_0_4px_rgba(27,87,224,0.06)]' :
+        'border-[#C3D3F3] dark:border-slate-600/60 bg-[#FBFCFF] dark:bg-[#0B1120] hover:border-blue-600 dark:hover:border-indigo-400 hover:bg-[#F7FAFF] dark:hover:bg-[#111B30]'}`
         }>
 
         <motion.img
@@ -89,14 +93,14 @@ export function Dropzone({ file, status, progress, onFile, onRemove }: DropzoneP
           transition={{ duration: 0.2, ease: EASE }}
           className="h-[124px] w-[168px] select-none object-contain dark:brightness-110" />
 
-        <h2 className="mt-3 text-[20px] font-semibold tracking-[-0.015em] text-[#0B132B] dark:text-white">
-          Drop your CV (PDF/DOCX) here
+        <h2 className="mt-3 text-[20px] font-bold tracking-tight text-[#0B132B] dark:text-white">
+          {isAr ? "اسحب وأفلت سيرتك الذاتية (PDF/DOCX) هنا" : "Drop your CV (PDF/DOCX) here"}
         </h2>
-        <span className="mt-1.5 text-[14.5px] font-semibold text-brand-blue dark:text-indigo-400">
-          or click to browse files
+        <span className="mt-1.5 text-[14.5px] font-bold text-blue-600 dark:text-blue-400">
+          {isAr ? "أو اضغط لتصفح واختيار الملف من جهازك" : "or click to browse files"}
         </span>
-        <p className="mt-2 text-[12.5px] font-light text-slate-400 dark:text-slate-500">
-          Max file size: {MAX_MB}MB &nbsp;•&nbsp; PDF or DOCX only
+        <p className="mt-2 text-[12.5px] font-normal text-slate-400 dark:text-slate-500">
+          {isAr ? `الحد الأقصى للحجم: ${MAX_MB} ميجابايت • صيغ PDF أو DOCX فقط` : `Max file size: ${MAX_MB}MB • PDF or DOCX only`}
         </p>
 
         <input
@@ -134,7 +138,7 @@ export function Dropzone({ file, status, progress, onFile, onRemove }: DropzoneP
             exit={{ opacity: 0, scale: 0.98 }}
             transition={springPop}
             onClick={(event) => event.stopPropagation()}
-            className="mt-6 w-full max-w-[340px] rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#131C31] px-3.5 py-3 text-left shadow-sm">
+            className="mt-6 w-full max-w-[340px] rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#131C31] px-3.5 py-3 text-left rtl:text-right shadow-sm">
 
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FDECEA] dark:bg-red-950/40">
@@ -146,13 +150,13 @@ export function Dropzone({ file, status, progress, onFile, onRemove }: DropzoneP
                   <span className="block truncate text-[13.5px] font-semibold text-[#0B132B] dark:text-white">
                     {file.name}
                   </span>
-                  <span className="block text-[11.5px] font-light text-slate-400 dark:text-slate-500">
-                    {file.sizeLabel} {parsing ? '• analyzing' : '• ready'}
+                  <span className="block text-[11.5px] font-normal text-slate-400 dark:text-slate-500">
+                    {file.sizeLabel} {parsing ? (isAr ? '• جاري التحليل...' : '• analyzing') : (isAr ? '• جاهز' : '• ready')}
                   </span>
                 </span>
                 {!parsing &&
               <CircleCheckIcon
-                className="h-[19px] w-[19px] shrink-0 text-brand-green"
+                className="h-[19px] w-[19px] shrink-0 text-emerald-500"
                 strokeWidth={2}
                 aria-hidden="true" />
               }
@@ -160,7 +164,7 @@ export function Dropzone({ file, status, progress, onFile, onRemove }: DropzoneP
                 type="button"
                 onClick={onRemove}
                 aria-label={`Remove ${file.name}`}
-                className="rounded-md p-1 text-slate-400 dark:text-slate-500 transition-colors duration-150 ease-smooth hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-600 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/40">
+                className="rounded-md p-1 text-slate-400 dark:text-slate-500 transition-colors duration-150 ease-smooth hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-600 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer">
                   <XIcon className="h-4 w-4" strokeWidth={2.2} />
                 </button>
               </div>
@@ -168,7 +172,7 @@ export function Dropzone({ file, status, progress, onFile, onRemove }: DropzoneP
               {parsing &&
             <div className="mt-2.5 h-[5px] overflow-hidden rounded-full bg-[#E7EAF3] dark:bg-slate-700">
                   <motion.span
-                className="block h-full rounded-full bg-brand-blue"
+                className="block h-full rounded-full bg-blue-600"
                 animate={{ width: `${Math.max(progress, 6)}%` }}
                 transition={{ duration: 0.2, ease: 'linear' }} />
                 </div>
@@ -178,9 +182,9 @@ export function Dropzone({ file, status, progress, onFile, onRemove }: DropzoneP
         </AnimatePresence>
       </div>
 
-      <p className="mt-3 flex shrink-0 items-center justify-center gap-2 text-[12px] font-light text-slate-400 dark:text-slate-500">
+      <p className="mt-3 flex shrink-0 items-center justify-center gap-2 text-[12px] font-normal text-slate-400 dark:text-slate-500">
         <LockIcon className="h-[13px] w-[13px]" strokeWidth={1.9} aria-hidden="true" />
-        We never share your data with third parties.
+        {isAr ? "بياناتك مشفرة ومحمية تماماً ولا نشاركها مع أي طرف ثالث." : "We never share your data with third parties."}
       </p>
     </div>);
 }

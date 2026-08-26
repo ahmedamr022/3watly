@@ -11,13 +11,13 @@ interface LogoProps {
 }
 
 const sizes = {
-  sm: { mark: 'h-7 w-7', word: 'text-[20px]', tag: 'text-[10px]' },
-  md: { mark: 'h-9 w-9', word: 'text-[24px]', tag: 'text-[11px]' },
-  lg: { mark: 'h-11 w-11', word: 'text-[28px]', tag: 'text-[12px]' },
-  xl: { mark: 'h-14 w-14', word: 'text-[34px]', tag: 'text-[13.5px]' }
+  sm: { mark: 'h-8 w-8', word: 'text-[20px]', tag: 'text-[10px]' },
+  md: { mark: 'h-10 w-10 sm:h-11 sm:w-11', word: 'text-[24px] sm:text-[27px]', tag: 'text-[11px]' },
+  lg: { mark: 'h-12 w-12 sm:h-14 sm:w-14', word: 'text-[28px] sm:text-[32px]', tag: 'text-[12px]' },
+  xl: { mark: 'h-16 w-16 sm:h-20 sm:w-20', word: 'text-[36px] sm:text-[42px]', tag: 'text-[14px]' }
 } as const;
 
-export function Logo({ tagline = 'منصة استخبارات سوق العمل', size = 'md', forceLang }: LogoProps) {
+export function Logo({ tagline = null, size = 'md', forceLang }: LogoProps) {
   const { isAr } = useLanguage();
   const activeIsAr = forceLang ? forceLang === 'ar' : isAr;
   const { mark, word, tag } = sizes[size];
