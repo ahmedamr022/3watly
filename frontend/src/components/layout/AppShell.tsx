@@ -23,7 +23,7 @@ export function AppShell({ children, title, subtitle, showSearch = true }: AppSh
       />
 
       {/* Main Content Area (Offset by sidebar width on desktop) */}
-      <div className="flex-1 flex flex-col min-w-0 lg:ltr:pl-64 lg:ltr:xl:pl-72 lg:rtl:pr-64 lg:rtl:xl:pr-72 transition-all">
+      <div className="flex-1 flex flex-col min-w-0 lg:ltr:pl-64 lg:rtl:pr-64 transition-all">
         {/* Shared Topbar */}
         <AppTopbar 
           onOpenMobile={() => setMobileOpen(true)} 

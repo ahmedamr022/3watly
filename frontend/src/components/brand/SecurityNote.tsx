@@ -1,5 +1,8 @@
+"use client";
+
 import React from 'react';
 import { ShieldCheckIcon } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SecurityNoteProps {
   subtext?: string;
@@ -7,6 +10,7 @@ interface SecurityNoteProps {
 }
 
 export function SecurityNote({ subtext, align = 'center' }: SecurityNoteProps) {
+  const { isAr } = useLanguage();
   return (
     <div
       className={`flex gap-2 ${
@@ -20,10 +24,9 @@ export function SecurityNote({ subtext, align = 'center' }: SecurityNoteProps) {
       
       <div>
         <p className="text-[12.5px] font-medium leading-4 text-brand-indigo">
-          Your data is secure and confidential
+          {isAr ? "بياناتك محمية وتخضع لأعلى معايير الخصوصية" : "Your data is secure and confidential"}
         </p>
         {subtext && <p className="mt-1 text-[11.5px] font-light text-ink-muted">{subtext}</p>}
       </div>
     </div>);
-
 }

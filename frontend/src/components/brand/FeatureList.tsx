@@ -1,5 +1,8 @@
+"use client";
+
 import React from 'react';
 import type { Feature, FeatureIcon } from '../../data/features';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const toneClasses: Record<Feature['tone'], { icon: string; tile: string }> = {
   blue: { 
@@ -82,6 +85,7 @@ interface FeatureListProps {
 }
 
 export function FeatureList({ features }: FeatureListProps) {
+  const { isAr } = useLanguage();
   return (
     <ul className="space-y-[clamp(12px,1.8vh,20px)]">
       {features.map((feature) => {
@@ -95,10 +99,10 @@ export function FeatureList({ features }: FeatureListProps) {
             </span>
             <div>
               <h3 className="text-[14.5px] font-bold leading-snug text-[#0B132B] dark:text-white">
-                {feature.title}
+                {isAr ? (feature.titleAr || feature.title) : feature.title}
               </h3>
               <p className="mt-0.5 max-w-[21rem] text-[13px] font-normal leading-[1.55] text-[#5B6579] dark:text-slate-300">
-                {feature.description}
+                {isAr ? (feature.descriptionAr || feature.description) : feature.description}
               </p>
             </div>
           </li>

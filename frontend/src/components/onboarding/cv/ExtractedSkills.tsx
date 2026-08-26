@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRightIcon, CheckIcon, UserIcon } from 'lucide-react';
@@ -5,6 +7,7 @@ import { TechIcon, techTile } from '../../icons/TechIcon';
 import { EASE, springPop } from '../../../utils/motion';
 import { surface } from '../../../utils/styles';
 import type { ParsedCv } from '../../../types/onboarding';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ExtractedSkillsProps {
   cv: ParsedCv;
@@ -13,18 +16,21 @@ interface ExtractedSkillsProps {
 }
 
 export function ExtractedSkills({ cv, addedCount, complete }: ExtractedSkillsProps) {
+  const { isAr } = useLanguage();
   const added = cv.detectedSkills.slice(0, addedCount);
 
   return (
     <section className={`p-6 ${surface}`}>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[184px_minmax(0,1fr)_auto_minmax(0,300px)] lg:items-center">
         <div>
-          <h2 className="text-[16px] font-semibold tracking-[-0.01em] text-[#0B132B] dark:text-white">Extracted Skills</h2>
+          <h2 className="text-[16px] font-semibold tracking-[-0.01em] text-[#0B132B] dark:text-white">
+            {isAr ? "المهارات المستخرجة" : "Extracted Skills"}
+          </h2>
           <p className="mt-1 text-[12.5px] font-light text-slate-500 dark:text-slate-400">
-            Detected skills from your CV
+            {isAr ? "المهارات المكتشفة من سيرتك الذاتية" : "Detected skills from your CV"}
           </p>
           <p className="mt-3 text-[12.5px] font-medium text-[#475569] dark:text-slate-300">
-            {addedCount}/{cv.detectedSkills.length} mapped
+            {addedCount}/{cv.detectedSkills.length} {isAr ? "مهارة مصنفة" : "mapped"}
           </p>
         </div>
 
@@ -59,7 +65,7 @@ export function ExtractedSkills({ cv, addedCount, complete }: ExtractedSkillsPro
 
         <div className="hidden items-center gap-3 lg:flex">
           <ArrowRightIcon
-            className="h-[18px] w-[18px] text-[#C3CEE6] dark:text-slate-600"
+            className={`h-[18px] w-[18px] text-[#C3CEE6] dark:text-slate-600 ${isAr ? "rotate-180" : ""}`}
             strokeWidth={2}
             aria-hidden="true" />
 
@@ -83,7 +89,9 @@ export function ExtractedSkills({ cv, addedCount, complete }: ExtractedSkillsPro
 
         <div>
           <p className="text-[13px] font-medium text-[#475569] dark:text-slate-300" aria-live="polite">
-            {complete ? 'Added to your profile' : 'Adding to your profile...'}
+            {complete 
+              ? (isAr ? 'تمت إضافتها لملفك المهني' : 'Added to your profile') 
+              : (isAr ? 'جاري الإضافة لملفك المهني...' : 'Adding to your profile...')}
           </p>
           <ul className="mt-2.5 flex flex-wrap gap-2">
             {added.map((skill) =>
@@ -98,7 +106,7 @@ export function ExtractedSkills({ cv, addedCount, complete }: ExtractedSkillsPro
             )}
             {addedCount === 0 &&
             <li className="flex h-8 items-center rounded-lg bg-slate-50 dark:bg-slate-800/50 px-3 text-[12.5px] font-light text-slate-400 dark:text-slate-500">
-                Waiting for extraction...
+                {isAr ? 'في انتظار الاستخراج...' : 'Waiting for extraction...'}
               </li>
             }
           </ul>

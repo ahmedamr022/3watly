@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckIcon, LoaderCircleIcon, ShieldCheckIcon } from 'lucide-react';
@@ -5,6 +7,7 @@ import { CvPreview } from './CvPreview';
 import { EASE, springPop } from '../../../utils/motion';
 import { surface } from '../../../utils/styles';
 import type { ParsedCv, ParseStatus } from '../../../types/onboarding';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ParsingStatusProps {
   cv: ParsedCv;
@@ -14,19 +17,27 @@ interface ParsingStatusProps {
 }
 
 export function ParsingStatus({ cv, status, progress, checksRevealed }: ParsingStatusProps) {
+  const { isAr } = useLanguage();
   const parsing = status === 'uploading' || status === 'parsing';
   const skillPreview = cv.detectedSkills.slice(0, 5).map((skill) => skill.name);
 
-  const checks = [
-  { label: 'Experience Extracted:', value: cv.currentTitle },
-  { label: `${cv.detectedSkills.length} Skills Detected:`, value: skillPreview.join(', ') },
-  { label: 'ATS Layout Parsed:', value: 'Single-Column Format Validated' }];
+  const checks = isAr
+    ? [
+        { label: 'الخبرة والمسمى المستخرج:', value: cv.currentTitle },
+        { label: `تم اكتشاف ${cv.detectedSkills.length} مهارات رئيسية:`, value: skillPreview.join(' • ') },
+        { label: 'فحص هيكل الـ ATS:', value: 'تم التحقق من التنسيق الأحادي القياسي' }
+      ]
+    : [
+        { label: 'Experience Extracted:', value: cv.currentTitle },
+        { label: `${cv.detectedSkills.length} Skills Detected:`, value: skillPreview.join(', ') },
+        { label: 'ATS Layout Parsed:', value: 'Single-Column Format Validated' }
+      ];
 
   return (
     <section className={`flex h-full flex-col p-6 ${surface}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-[#0B132B] dark:text-white">
-          Live Parsing Status
+          {isAr ? "حالة تحليل ومعالجة السيرة الذاتية" : "Live Parsing Status"}
         </h2>
         <span
           className={`flex h-8 items-center gap-2 rounded-full px-3.5 text-[12.5px] font-medium ${
@@ -42,11 +53,11 @@ export function ParsingStatus({ cv, status, progress, checksRevealed }: ParsingS
               className="h-3.5 w-3.5 animate-spin"
               strokeWidth={2.4}
               aria-hidden="true" />
-              Parsing in progress... {progress}%
+              {isAr ? `جاري التحليل... ${progress}%` : `Parsing in progress... ${progress}%`}
             </> :
           <>
               <span className="h-2 w-2 rounded-full bg-brand-green" aria-hidden="true" />
-              Parsing complete
+              {isAr ? "اكتمل التحليل بنجاح" : "Parsing complete"}
             </>
           }
         </span>
@@ -94,13 +105,13 @@ export function ParsingStatus({ cv, status, progress, checksRevealed }: ParsingS
               strokeWidth={2.2}
               aria-hidden="true" />
               <span className="text-[12.5px] font-light text-slate-400 dark:text-slate-500">
-                Reading your CV structure...
+                {isAr ? "جاري قراءة هيكل السيرة الذاتية..." : "Reading your CV structure..."}
               </span>
             </li>
           }
         </ul>
 
-        <div className="lg:border-l lg:border-slate-200 dark:lg:border-white/10 lg:pl-5">
+        <div className="lg:border-l rtl:lg:border-l-0 rtl:lg:border-r lg:border-slate-200 dark:lg:border-white/10 lg:pl-5 rtl:lg:pl-0 rtl:lg:pr-5">
           <CvPreview cv={cv} scanning={parsing} />
         </div>
       </div>
@@ -113,8 +124,8 @@ export function ParsingStatus({ cv, status, progress, checksRevealed }: ParsingS
         className="mt-4 flex items-center justify-center gap-2 text-[12px] font-light text-slate-400 dark:text-slate-500">
         <ShieldCheckIcon className="h-[14px] w-[14px]" strokeWidth={1.8} aria-hidden="true" />
         {parsing ?
-        'Scanning & extracting information securely...' :
-        'Extraction finished — nothing leaves your account.'}
+          (isAr ? 'فحص واستخراج البيانات بأمان وتشفير كامل...' : 'Scanning & extracting information securely...') :
+          (isAr ? 'اكتمل الاستخراج — بياناتك مشفرة ولا تغادر حسابك أبداً.' : 'Extraction finished — nothing leaves your account.')}
       </motion.p>
     </section>);
 }

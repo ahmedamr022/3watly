@@ -41,12 +41,10 @@ export default function LandingPage() {
     ? [
         { label: "الوظائف والفرص", href: "#features", id: "jobs", icon: <Briefcase className="w-4 h-4 text-slate-500" /> },
         { label: "مؤشرات السوق", href: "#insights", id: "insights", icon: <BarChart3 className="w-4 h-4 text-slate-500" /> },
-        { label: "صانع السيرة الذاتية", href: "/onboarding/career-path", id: "cv", icon: <FileText className="w-4 h-4 text-slate-500" /> },
       ]
     : [
         { label: "Jobs", href: "#features", id: "jobs", icon: <Briefcase className="w-4 h-4 text-slate-500" /> },
         { label: "Market Insights", href: "#insights", id: "insights", icon: <BarChart3 className="w-4 h-4 text-slate-500" /> },
-        { label: "CV Builder", href: "/onboarding/career-path", id: "cv", icon: <FileText className="w-4 h-4 text-slate-500" /> },
       ];
 
   // Scroll detection & Section Tracking
@@ -133,38 +131,53 @@ export default function LandingPage() {
               );
             })}
 
-            {/* Resources Dropdown */}
-            <div className="relative">
+            {/* Resources Dropdown - Premium 3D */}
+            <div 
+              className="relative"
+              onMouseEnter={() => setResourcesOpen(true)}
+              onMouseLeave={() => setResourcesOpen(false)}
+            >
               <button
                 type="button"
-                onClick={() => setResourcesOpen(!resourcesOpen)}
-                className="flex items-center gap-1.5 py-2 hover:text-blue-600 dark:hover:text-white transition-colors cursor-pointer"
+                className={`flex items-center gap-1.5 py-2 transition-all duration-200 cursor-pointer ${
+                  resourcesOpen 
+                    ? 'text-blue-600 dark:text-blue-400 font-bold' 
+                    : 'hover:text-blue-600 dark:hover:text-white'
+                }`}
               >
                 <span>{isAr ? "المصادر" : "Resources"}</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${resourcesOpen ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${resourcesOpen ? "rotate-180" : ""}`} />
               </button>
 
               <AnimatePresence>
                 {resourcesOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
-                    className="absolute ltr:left-0 rtl:right-0 top-10 w-48 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0D1527] p-2 shadow-xl shadow-slate-200/50 dark:shadow-black/80 z-50"
+                    initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute ltr:left-1/2 ltr:-translate-x-1/2 rtl:right-1/2 rtl:translate-x-1/2 top-10 w-56 rounded-2xl border border-white/20 dark:border-white/[0.08] bg-white/95 dark:bg-[#0D1527]/95 backdrop-blur-2xl p-2.5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] z-50"
                   >
+                    {/* Glossy top highlight */}
+                    <div className="absolute inset-x-0 top-0 h-[1px] rounded-t-2xl bg-gradient-to-r from-transparent via-white/60 dark:via-white/20 to-transparent" />
+                    
                     <a
                       href="#how-it-works"
-                      onClick={() => setResourcesOpen(false)}
-                      className="block px-3 py-2 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-lg"
+                      className="flex items-center gap-3 px-3.5 py-2.5 text-[13.5px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-950/40 dark:hover:to-indigo-950/40 rounded-xl transition-all duration-200 group"
                     >
-                      {isAr ? "كيف تعمل المنصة" : "How It Works"}
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
+                        <Play className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 fill-blue-600 dark:fill-blue-400" />
+                      </span>
+                      <span>{isAr ? "كيف تعمل المنصة" : "How It Works"}</span>
                     </a>
                     <a
                       href="#testimonials"
-                      onClick={() => setResourcesOpen(false)}
-                      className="block px-3 py-2 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-lg"
+                      className="flex items-center gap-3 px-3.5 py-2.5 text-[13.5px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 dark:hover:from-emerald-950/40 dark:hover:to-teal-950/40 rounded-xl transition-all duration-200 group"
                     >
-                      {isAr ? "قصص النجاح" : "Success Stories"}
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/50 dark:to-teal-900/50 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      </span>
+                      <span>{isAr ? "قصص النجاح" : "Success Stories"}</span>
                     </a>
                   </motion.div>
                 )}
