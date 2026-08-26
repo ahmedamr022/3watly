@@ -14,7 +14,8 @@ export const metadata: Metadata = {
   keywords: ["Egypt Tech Jobs", "Career Intelligence", "ATS Resume Builder", "Skill Gap Analysis", "Cairo Tech Jobs", "MAJRA"],
   authors: [{ name: "MAJRA Team" }],
   icons: {
-    icon: "/favicon.ico",
+    icon: "/logo.png",
+    apple: "/logo.png",
   },
 };
 
