@@ -17,7 +17,6 @@ import { SubmitButton } from '@/components/Form/SubmitButton';
 import { TextField } from '@/components/Form/TextField';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { passwordRules, signUpFeatures } from '@/data/features';
-import { Briefcase, BarChart2, FileText } from 'lucide-react';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -30,56 +29,27 @@ export default function SignUpPage() {
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[#F8FAFC] dark:bg-[#060913] text-[#1E293B] dark:text-[#F8FAFC] flex flex-col justify-between">
       <Decor />
 
-      {/* Top Navigation Bar */}
-      <header className="relative z-20 w-full border-b border-slate-100 dark:border-white/[0.06] bg-white/80 dark:bg-[#060913]/80 backdrop-blur-md">
-        <div className="mx-auto flex h-[72px] max-w-[1400px] items-center justify-between px-6 lg:px-12">
-          <Link href="/" className="transition-transform hover:scale-105">
+      {/* Floating Theme Toggle in Top Right */}
+      <div className="absolute top-6 right-6 lg:top-8 lg:right-10 z-30 flex items-center gap-3">
+        <ThemeToggle />
+      </div>
+
+      {/* Main Grid Content */}
+      <main className="relative z-10 mx-auto grid w-full max-w-[1360px] grid-cols-1 items-center gap-12 px-6 py-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-16 lg:px-12 lg:py-16">
+        {/* Left Column: Brand & Features */}
+        <section className="flex flex-col">
+          <Link href="/" className="inline-block w-fit transition-transform hover:scale-105">
             <Logo tagline="Career Intelligence" size="md" />
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8 text-[14px] font-semibold text-[#475569] dark:text-slate-300">
-            <Link href="/#features" className="hover:text-[#2563EB] dark:hover:text-white transition-colors flex items-center gap-1.5">
-              <Briefcase className="w-4 h-4 text-slate-400" />
-              Jobs
-            </Link>
-            <Link href="/#market-insights" className="hover:text-[#2563EB] dark:hover:text-white transition-colors flex items-center gap-1.5">
-              <BarChart2 className="w-4 h-4 text-slate-400" />
-              Market Insights
-            </Link>
-            <Link href="/#how-it-works" className="hover:text-[#2563EB] dark:hover:text-white transition-colors flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-slate-400" />
-              CV Builder
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <Link
-              href="/login"
-              className="text-[14px] font-bold text-[#1E293B] dark:text-white hover:text-[#2563EB] dark:hover:text-indigo-400 transition-colors"
-            >
-              Log In
-            </Link>
-            <Link
-              href="/signup"
-              className="hidden sm:inline-flex px-5 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-[13.5px] font-bold shadow-md shadow-blue-600/20 transition-all"
-            >
-              Sign Up Free
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Grid Content */}
-      <main className="relative z-10 mx-auto grid w-full max-w-[1360px] grid-cols-1 items-center gap-12 px-6 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-16 lg:px-12 lg:py-12">
-        {/* Left Column: Brand & Features */}
-        <section className="flex flex-col">
-          <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#EEF2FF] dark:bg-indigo-950/70 border border-indigo-100 dark:border-indigo-500/30 px-3.5 py-1.5 shadow-sm">
-            <Sparkle className="h-4 w-4 text-[#4F46E5] dark:text-indigo-400" />
-            <span className="text-[12.5px] font-bold text-[#4F46E5] dark:text-indigo-300">
-              AI-Powered Career Intelligence
+          <div className="mt-8">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#EEF2FF] dark:bg-indigo-950/70 border border-indigo-100 dark:border-indigo-500/30 px-3.5 py-1.5 shadow-sm">
+              <Sparkle className="h-4 w-4 text-[#4F46E5] dark:text-indigo-400" />
+              <span className="text-[12.5px] font-bold text-[#4F46E5] dark:text-indigo-300">
+                AI-Powered Career Intelligence
+              </span>
             </span>
-          </span>
+          </div>
 
           <h1 className="mt-5 text-[34px] sm:text-[42px] font-black leading-[1.12] tracking-[-0.035em] text-[#0B132B] dark:text-white">
             Create Your Account,

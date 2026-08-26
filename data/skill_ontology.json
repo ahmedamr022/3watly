@@ -10,7 +10,7 @@
           "id": "skill_python",
           "name": "Python",
           "aliases": ["python", "python3", "py", "python programming"],
-          "related_skills": ["Django", "FastAPI", "Pandas", "Flask", "PyTorch"]
+          "related_skills": ["Django", "FastAPI", "Pandas", "Flask", "PyTorch","Numpy"]
         },
         {
           "id": "skill_javascript",
