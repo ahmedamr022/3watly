@@ -354,20 +354,137 @@ export default function JobDetailsPage() {
 
             </div>
 
-            {/* CV Compatibility & Optimizer */}
-            <div className="rounded-[24px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white">
-                  {isAr ? "توافق الـ CV مع هذه الوظيفة" : "CV Compatibility for this Job"}
+          {/* Right Column: AI Fit Intelligence & CV Optimizer (Span 4 - Matching Screenshot 1:1) */}
+          <div className="lg:col-span-4 space-y-5">
+            
+            {/* Widget 1: Your Fit Intelligence */}
+            <div className="rounded-[24px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-5">
+              
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF3FE] dark:bg-purple-950/70 text-[#7C3AED] dark:text-[#A78BFA]">
+                  <Sparkles className="w-4.5 h-4.5" />
+                </div>
+                <h3 className="text-[16px] font-bold text-[#0B132B] dark:text-white">
+                  {isAr ? "ذكاء المطابقة لملفك" : "Your Fit Intelligence"}
                 </h3>
-                <Info className="w-3.5 h-3.5 text-slate-400" />
               </div>
 
-              <div className="flex flex-col items-center py-2">
-                <div className="text-[34px] font-black text-[#1B57E0] dark:text-blue-400">
-                  78<span className="text-[16px] text-slate-400 font-bold">/100</span>
+              {/* Circular Gauge Ring */}
+              <div className="flex flex-col items-center justify-center py-1">
+                <div className="relative h-[130px] w-[130px]">
+                  <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+                    <circle cx="50" cy="50" r="41" fill="none" stroke="#E8F8F0" className="dark:stroke-emerald-950/40" strokeWidth="7.5" />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="41"
+                      fill="none"
+                      stroke="#10B981"
+                      strokeWidth="7.5"
+                      strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 41}
+                      strokeDashoffset={2 * Math.PI * 41 * (1 - job.matchScore / 100)}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-[28px] font-black text-[#0B132B] dark:text-white leading-none">
+                      {job.matchScore}%
+                    </span>
+                    <span className="text-[11.5px] font-medium text-slate-400 dark:text-slate-400 mt-1">
+                      {isAr ? "توافق إجمالي" : "Overall Match"}
+                    </span>
+                  </div>
                 </div>
-                <p className="mt-1 text-center text-[12.5px] text-slate-600 dark:text-slate-300">
+
+                <p className="mt-3 text-center text-[13px] text-slate-600 dark:text-slate-300 font-medium max-w-[220px]">
+                  {isAr ? "توافق ممتاز! خبراتك تغطي أغلب متطلبات الوظيفة." : "Great Match! You meet most of the key requirements."}
+                </p>
+              </div>
+
+              {/* Skills Match Breakdown Subsection */}
+              <div className="pt-4 border-t border-slate-100 dark:border-white/[0.06] space-y-4">
+                <h4 className="text-[13.5px] font-bold text-[#0B132B] dark:text-white">
+                  {isAr ? "تفصيل مطابقة المهارات" : "Skills Match Breakdown"}
+                </h4>
+
+                {/* Matched Skills */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-[12.5px] font-bold text-[#12B76A]">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#E8F8F0] text-[#12B76A] text-[10px] font-black">
+                      ✓
+                    </span>
+                    <span>{isAr ? "المهارات المتطابقة" : "Matched Skills"}</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {job.matchedSkills.map((s) => (
+                      <div key={s.name} className="space-y-1">
+                        <div className="flex items-center justify-between text-[12px]">
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">{s.name}</span>
+                          <span className="font-bold text-slate-500 dark:text-slate-400">{s.weight}%</span>
+                        </div>
+                        <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                          <div className="h-full rounded-full bg-[#10B981]" style={{ width: `${s.weight * 3.5}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Missing Skills */}
+                <div className="space-y-2.5 pt-1">
+                  <div className="flex items-center gap-1.5 text-[12.5px] font-bold text-[#EA580C]">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#FFF7ED] text-[#EA580C] text-[10px] font-black">
+                      ●
+                    </span>
+                    <span>{isAr ? "المهارات الناقصة" : "Missing Skill"}</span>
+                  </div>
+
+                  {job.missingSkills.map((s) => (
+                    <div key={s.name} className="space-y-1">
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">{s.name}</span>
+                        <span className="font-bold text-slate-500 dark:text-slate-400">{s.weight}%</span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div className="h-full rounded-full bg-[#F97316]" style={{ width: `${s.weight * 3.5}%` }} />
+                      </div>
+                      <p className="text-[11px] text-[#EA580C] font-medium pt-0.5">
+                        {isAr ? "مطلوبة في 31% من وظائف القاهرة المشابهة" : "Found in 31% of similar Cairo jobs"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Widget 2: CV Compatibility & Optimizer */}
+            <div className="rounded-[24px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4">
+              
+              <div className="flex items-center justify-between">
+                <h3 className="text-[14.5px] font-bold text-[#0B132B] dark:text-white">
+                  {isAr ? "توافق الـ CV مع هذه الوظيفة" : "CV Compatibility for this Job"}
+                </h3>
+                <Info className="w-4 h-4 text-slate-400 cursor-pointer" />
+              </div>
+
+              {/* Arc Gauge */}
+              <div className="flex flex-col items-center py-2">
+                <div className="relative h-20 w-36 overflow-hidden flex items-end justify-center">
+                  <svg viewBox="0 0 100 50" className="h-full w-full">
+                    <path d="M10 45 A 35 35 0 0 1 90 45" fill="none" stroke="#EEF3FE" className="dark:stroke-slate-800" strokeWidth="8" strokeLinecap="round" />
+                    <path d="M10 45 A 35 35 0 0 1 72 17" fill="none" stroke="#1B57E0" strokeWidth="8" strokeLinecap="round" />
+                  </svg>
+                  <div className="absolute bottom-0 inset-x-0 flex items-center justify-center">
+                    <span className="text-[24px] font-black text-[#0B132B] dark:text-white leading-none">
+                      78<span className="text-[14px] text-slate-400 font-bold">/100</span>
+                    </span>
+                  </div>
+                </div>
+
+                <p className="mt-3 text-center text-[12px] text-slate-500 dark:text-slate-400 leading-relaxed max-w-[240px]">
                   {isAr 
                     ? "سيرتك الذاتية متوافقة بشكل جيد، ويمكن تحسين صياغة بعض الكلمات لمضاعفة فرص القبول."
                     : "Your CV is good, but can be improved for higher chances."}
@@ -378,9 +495,10 @@ export default function JobDetailsPage() {
                 href="/cv-builder"
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white text-[13.5px] font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
               >
-                <Zap className="w-4 h-4" />
+                <Zap className="w-4 h-4 fill-white" />
                 <span>{isAr ? "تحسين الـ CV لهذه الوظيفة" : "Optimize CV for this Role"}</span>
               </Link>
+
             </div>
 
           </div>
