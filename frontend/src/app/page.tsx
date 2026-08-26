@@ -2,14 +2,17 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowRight, 
   Sparkles, 
   Play, 
   Check, 
   ShieldCheck,
-  TrendingUp,
+  Briefcase,
+  BarChart3,
+  FileText,
+  ChevronDown
 } from "lucide-react";
 import { HeroBackdrop } from "@/components/landing/HeroBackdrop";
 import { HeroVisual } from "@/components/landing/HeroVisual";
@@ -29,22 +32,21 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LandingPage() {
   const { isAr, t } = useLanguage();
-  const [activeNav, setActiveNav] = useState("features");
+  const [activeNav, setActiveNav] = useState("jobs");
   const [isScrolled, setIsScrolled] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
   const isClickScrollingRef = useRef(false);
 
   const navigationLinks = isAr
     ? [
-        { label: "المميزات", href: "#features", id: "features" },
-        { label: "كيف تعمل المنصة", href: "#how-it-works", id: "how-it-works" },
-        { label: "مؤشرات السوق", href: "#insights", id: "insights" },
-        { label: "قصص النجاح", href: "#testimonials", id: "testimonials" }
+        { label: "الوظائف والفرص", href: "#features", id: "jobs", icon: <Briefcase className="w-4 h-4 text-slate-500" /> },
+        { label: "مؤشرات السوق", href: "#insights", id: "insights", icon: <BarChart3 className="w-4 h-4 text-slate-500" /> },
+        { label: "صانع السيرة الذاتية", href: "/onboarding/career-path", id: "cv", icon: <FileText className="w-4 h-4 text-slate-500" /> },
       ]
     : [
-        { label: "Features", href: "#features", id: "features" },
-        { label: "How It Works", href: "#how-it-works", id: "how-it-works" },
-        { label: "Market Insights", href: "#insights", id: "insights" },
-        { label: "Success Stories", href: "#testimonials", id: "testimonials" }
+        { label: "Jobs", href: "#features", id: "jobs", icon: <Briefcase className="w-4 h-4 text-slate-500" /> },
+        { label: "Market Insights", href: "#insights", id: "insights", icon: <BarChart3 className="w-4 h-4 text-slate-500" /> },
+        { label: "CV Builder", href: "/onboarding/career-path", id: "cv", icon: <FileText className="w-4 h-4 text-slate-500" /> },
       ];
 
   // Scroll detection & Section Tracking
@@ -59,10 +61,9 @@ export default function LandingPage() {
       if (isClickScrollingRef.current) return;
 
       const sections = [
-        { id: "features" },
-        { id: "how-it-works" },
-        { id: "insights" },
-        { id: "testimonials" }
+        { id: "features", navId: "jobs" },
+        { id: "insights", navId: "insights" },
+        { id: "how-it-works", navId: "resources" }
       ];
 
       const scrollPos = window.scrollY + 200;
@@ -72,7 +73,7 @@ export default function LandingPage() {
           const top = el.offsetTop;
           const height = el.offsetHeight;
           if (scrollPos >= top && scrollPos < top + height) {
-            setActiveNav(section.id);
+            setActiveNav(section.navId);
             break;
           }
         }
@@ -113,8 +114,8 @@ export default function LandingPage() {
             <Logo size="md" />
           </Link>
 
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-[14px] font-semibold text-slate-600 dark:text-slate-300">
+          {/* Navigation Links with Icons */}
+          <nav className="hidden md:flex items-center gap-7 text-[14px] font-semibold text-slate-600 dark:text-slate-300">
             {navigationLinks.map((link) => {
               const isActive = activeNav === link.id;
               return (
@@ -122,21 +123,53 @@ export default function LandingPage() {
                   key={link.id}
                   href={link.href}
                   onClick={() => handleNavClick(link.id)}
-                  className={`relative py-2 transition-colors duration-200 ${
+                  className={`flex items-center gap-2 py-2 transition-colors duration-200 ${
                     isActive ? "text-blue-600 dark:text-blue-400 font-bold" : "hover:text-blue-600 dark:hover:text-white"
                   }`}
                 >
+                  <span className="opacity-80">{link.icon}</span>
                   <span>{link.label}</span>
-                  {isActive && (
-                    <motion.span
-                      layoutId="activeNavUnderline"
-                      className="absolute -bottom-0.5 left-0 right-0 h-[2.5px] bg-blue-600 dark:bg-blue-400 rounded-full shadow-sm shadow-blue-600/30"
-                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                    />
-                  )}
                 </a>
               );
             })}
+
+            {/* Resources Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setResourcesOpen(!resourcesOpen)}
+                className="flex items-center gap-1.5 py-2 hover:text-blue-600 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <span>{isAr ? "المصادر" : "Resources"}</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${resourcesOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              <AnimatePresence>
+                {resourcesOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    className="absolute ltr:left-0 rtl:right-0 top-10 w-48 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0D1527] p-2 shadow-xl shadow-slate-200/50 dark:shadow-black/80 z-50"
+                  >
+                    <a
+                      href="#how-it-works"
+                      onClick={() => setResourcesOpen(false)}
+                      className="block px-3 py-2 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-lg"
+                    >
+                      {isAr ? "كيف تعمل المنصة" : "How It Works"}
+                    </a>
+                    <a
+                      href="#testimonials"
+                      onClick={() => setResourcesOpen(false)}
+                      className="block px-3 py-2 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-lg"
+                    >
+                      {isAr ? "قصص النجاح" : "Success Stories"}
+                    </a>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </nav>
 
           {/* Right Action Controls: Language Toggle + Theme Toggle + Log In + Sign Up */}
@@ -169,7 +202,7 @@ export default function LandingPage() {
       <div className="h-16 w-full" aria-hidden="true" />
 
       {/* ========================================================================= */}
-      {/* 2. UNIFIED HERO AREA                                                     */}
+      {/* 2. UNIFIED HERO AREA (Matching Uploaded Screenshot 1:1)                   */}
       {/* ========================================================================= */}
       <section className="relative w-full overflow-hidden px-4 pt-4 pb-8 sm:px-8 lg:px-12 lg:pt-6">
         {/* Full Section Background */}
@@ -191,7 +224,7 @@ export default function LandingPage() {
               >
                 <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                 <span className="text-[12.5px] font-bold text-blue-700 dark:text-blue-300">
-                  {isAr ? "ذكاء اصطناعي لتوجيه وتطوير المسار المهني" : "AI-Powered Career Intelligence"}
+                  {isAr ? "ذكاء اصطناعي لتوجيه المسار المهني" : "AI-Powered Career Intelligence"}
                 </span>
               </motion.div>
 
@@ -200,17 +233,17 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-[36px] sm:text-[46px] lg:text-[52px] font-black leading-[1.15] tracking-tight text-[#0F172A] dark:text-white"
+                className="text-[36px] sm:text-[46px] lg:text-[54px] font-black leading-[1.12] tracking-tight text-[#0F172A] dark:text-white"
               >
                 {isAr ? (
                   <>
-                    ابني <span className="bg-gradient-to-r from-[#1B57E0] via-[#0284C7] to-[#10B981] dark:from-[#3B82F6] dark:via-[#38BDF8] dark:to-[#34D399] bg-clip-text text-transparent">مسارك المهني</span>،
+                    ابني <span className="bg-gradient-to-r from-[#1B57E0] via-[#0284C7] to-[#10B981] dark:from-[#3B82F6] dark:via-[#38BDF8] dark:to-[#34D399] bg-clip-text text-transparent drop-shadow-sm">مسارك المهني</span>،
                     <br />
                     مش مجرد سيرة ذاتية
                   </>
                 ) : (
                   <>
-                    Build a <span className="bg-gradient-to-r from-[#1B57E0] via-[#0284C7] to-[#10B981] dark:from-[#3B82F6] dark:via-[#38BDF8] dark:to-[#34D399] bg-clip-text text-transparent">Career</span>,<br />
+                    Build a <span className="bg-gradient-to-r from-[#1B57E0] via-[#0284C7] to-[#10B981] dark:from-[#3B82F6] dark:via-[#38BDF8] dark:to-[#34D399] bg-clip-text text-transparent drop-shadow-sm">Career</span>,<br />
                     Not Just a Resume
                   </>
                 )}
@@ -282,7 +315,7 @@ export default function LandingPage() {
                       {isAr ? "بياناتك في أمان" : "Your Data is Safe"}
                     </span>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                      {isAr ? "لا نشارك معلوماتك أبداً" : "We never share your info"}
+                      {isAr ? "مش بنشارك معلوماتك أبداً" : "We never share your info"}
                     </span>
                   </div>
                 </div>
@@ -294,7 +327,7 @@ export default function LandingPage() {
                       {isAr ? "مطابقة ذكية" : "AI-Powered Matching"}
                     </span>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                      {isAr ? "فرص تناسب خبرتك الفعلية" : "Smarter opportunities"}
+                      {isAr ? "فرص تناسب مهاراتك الفعلية" : "Smarter opportunities"}
                     </span>
                   </div>
                 </div>

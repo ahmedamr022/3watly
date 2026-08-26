@@ -9,6 +9,7 @@ import {
   CareemLogo, 
   PaymobLogo 
 } from '@/components/brand/CompanyLogos';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const companies = [
   { name: "Vodafone", url: "https://web.vodafone.com.eg", Component: VodafoneLogo },
@@ -20,11 +21,13 @@ const companies = [
 ];
 
 export function LogoCloud() {
+  const { isAr } = useLanguage();
+
   return (
     <div className="w-full pt-4 pb-2">
       <div className="max-w-[1280px] mx-auto text-center">
         <p className="text-[12.5px] font-medium text-slate-500 dark:text-slate-400">
-          Trusted by professionals from leading companies
+          {isAr ? "يثق بنا محترفون من كبرى الشركات الرائدة" : "Trusted by professionals from leading companies"}
         </p>
 
         <div className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-5 sm:gap-x-14">
