@@ -201,3 +201,39 @@ html.dark ::-webkit-scrollbar-thumb {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, #1442BC 0%, #059669 100%);
 }
+
+/* ========================================================================= */
+/* CV PREVIEW PAPER ENFORCED LIGHT THEME (Always readable on white paper)   */
+/* ========================================================================= */
+.print-page {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+.print-page h1,
+.print-page h2,
+.print-page h3,
+.print-page h4 {
+  color: #0f172a !important;
+}
+.print-page p,
+.print-page span,
+.print-page li,
+.print-page dt,
+.print-page dd {
+  color: #334155 !important;
+}
+.print-page .text-blue-700,
+.print-page .text-brand-700 {
+  color: #1d4ed8 !important;
+}
+.print-page .text-slate-600,
+.print-page .text-slate-500 {
+  color: #475569 !important;
+}
+.print-page .text-slate-400 {
+  color: #94a3b8 !important;
+}
+.print-page .border-slate-200,
+.print-page .border-slate-300 {
+  border-color: #cbd5e1 !important;
+}

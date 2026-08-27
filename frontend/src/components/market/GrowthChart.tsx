@@ -85,7 +85,7 @@ export function GrowthChart({ filters }: { filters: Filters }) {
             <LineChart data={model.points} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.12)" />
               <XAxis
-                dataKey="date"
+                dataKey="tick"
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: '#94A3B8', fontSize: 11.5 }}

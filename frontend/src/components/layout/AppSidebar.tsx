@@ -49,7 +49,7 @@ export function AppSidebar({ mobileOpen = false, onCloseMobile }: AppSidebarProp
         {
           group: "أدوات السيرة الذاتية والمهارات",
           items: [
-            { label: "فاحص الـ ATS وتشخيص الأخطاء", href: "/ats-diagnostics", icon: FileCheck2 },
+            { label: "فاحص الـ ATS والتشخيص", href: "/ats-diagnostics", icon: FileCheck2 },
             { label: "صانع السيرة الذاتية الذكي", href: "/cv-builder", icon: FileText },
             { label: "فجوة المهارات وتطويرها", href: "/skills", icon: Zap },
           ]

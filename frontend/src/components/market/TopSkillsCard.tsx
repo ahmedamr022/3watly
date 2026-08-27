@@ -5,6 +5,7 @@ import { Info, Search } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SkillBar } from '../../data/market';
 import { Modal } from '../ui/Modal';
+import { SkillIcon } from '../skills/SkillIcon';
 
 type TopSkillsCardProps = {
   skills: SkillBar[];
@@ -61,9 +62,9 @@ export function TopSkillsCard({ skills, ranking, selected, onSelect }: TopSkills
                     isActive ? 'bg-blue-50/70 dark:bg-blue-950/40' : 'hover:bg-slate-50 dark:hover:bg-white/[0.03]'
                   }`}
                 >
-                  {/* Skill icon + Name */}
-                  <div className="flex w-[105px] shrink-0 items-center gap-2.5">
-                    <img src={skill.icon} alt="" className="h-4.5 w-4.5 object-contain" />
+                  {/* Bulletproof SVG Skill Icon + Name */}
+                  <div className="flex w-[120px] shrink-0 items-center gap-2">
+                    <SkillIcon skillId={skill.name} size="sm" className="!h-6 !w-6 !rounded-md" />
                     <span className={`text-[13.5px] font-bold truncate ${
                       isActive ? 'text-[#1B57E0] dark:text-[#60A5FA]' : 'text-slate-800 dark:text-slate-200'
                     }`}>
@@ -90,7 +91,7 @@ export function TopSkillsCard({ skills, ranking, selected, onSelect }: TopSkills
         </ul>
 
         {/* X-axis indicators */}
-        <div className="mt-2.5 flex items-center justify-between text-[11px] font-medium text-slate-400 dark:text-slate-500 ltr:pl-[115px] ltr:pr-10 rtl:pr-[115px] rtl:pl-10">
+        <div className="mt-2.5 flex items-center justify-between text-[11px] font-medium text-slate-400 dark:text-slate-500 ltr:pl-[130px] ltr:pr-10 rtl:pr-[130px] rtl:pl-10">
           <span>0%</span>
           <span>20%</span>
           <span>40%</span>
@@ -136,7 +137,7 @@ export function TopSkillsCard({ skills, ranking, selected, onSelect }: TopSkills
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-[11px] font-bold text-slate-400 w-5">#{idx + 1}</span>
-                    <img src={s.icon} alt="" className="h-4 w-4 object-contain" />
+                    <SkillIcon skillId={s.name} size="sm" className="!h-5 !w-5 !rounded-md" />
                     <span className="text-[13px] font-semibold text-slate-800 dark:text-slate-200">{s.name}</span>
                   </div>
                   <span className="text-[12.5px] font-bold text-[#1B57E0] dark:text-[#60A5FA]">{s.value}%</span>
