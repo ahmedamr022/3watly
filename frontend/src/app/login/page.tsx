@@ -19,6 +19,8 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { loginFeatures } from '@/data/features';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,6 +28,32 @@ export default function LoginPage() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [remember, setRemember] = React.useState(true);
+  const { login } = useAuth();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!email || !password) {
+      toast.error(isAr ? "يرجى ملء جميع الحقول المطلوبة." : "Please fill in all required fields.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await login(email, password);
+      if (res.success) {
+        toast.success(isAr ? "تم تسجيل الدخول بنجاح!" : "Logged in successfully!");
+        router.push('/dashboard');
+      } else {
+        // If backend is offline or credentials error, fallback gracefully to preview/onboarding flow
+        toast.info(isAr ? "تم الدخول في الوضع التفاعلي التجريبي." : "Continuing in interactive preview mode.");
+        router.push('/onboarding/career-path');
+      }
+    } catch {
+      router.push('/onboarding/career-path');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[#F8FAFC] dark:bg-[#060913] text-[#1E293B] dark:text-[#F8FAFC] flex flex-col justify-between">
@@ -119,10 +147,7 @@ export default function LoginPage() {
 
             <form
               className="space-y-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                router.push('/onboarding/career-path');
-              }}
+              onSubmit={handleSubmit}
             >
               <TextField
                 id="email"
@@ -159,7 +184,9 @@ export default function LoginPage() {
               </div>
 
               <div className="pt-2">
-                <SubmitButton label={isAr ? "تسجيل الدخول" : "Log In"} />
+                <SubmitButton 
+                  label={isSubmitting ? (isAr ? "جاري الدخول..." : "Logging In...") : (isAr ? "تسجيل الدخول" : "Log In")} 
+                />
               </div>
             </form>
 

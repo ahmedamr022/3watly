@@ -156,7 +156,7 @@ export function Features() {
             return (
               <div
                 key={card.title}
-                className="flex flex-col rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-xl shadow-slate-200/50 dark:shadow-[0_15px_35px_-10px_rgba(0,0,0,0.7),0_0_15px_rgba(99,102,241,0.06)] hover:shadow-2xl transition-all duration-300"
+                className="flex flex-col rounded-[28px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xl shadow-slate-200/50 dark:shadow-[0_15px_35px_-10px_rgba(0,0,0,0.7),0_0_15px_rgba(99,102,241,0.06)] hover:shadow-2xl transition-all duration-300"
               >
                 {/* Header */}
                 <div className="flex items-start gap-3.5">
@@ -205,7 +205,7 @@ export function Features() {
         <div className="mt-10 flex justify-center">
           <a
             href="#how-it-works"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white text-[13.5px] font-bold shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-white dark:bg-[#0B1120]/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white text-[13.5px] font-bold shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all"
           >
             <LayoutGrid className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>{isAr ? "استكشف خطوات العمل" : "Explore how it works"}</span>

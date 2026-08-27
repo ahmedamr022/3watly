@@ -110,7 +110,7 @@ export function MarketInsights() {
 
         {/* Filter Bar Form */}
         <form
-          className="mt-10 grid gap-4 rounded-[24px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end"
+          className="mt-10 grid gap-4 rounded-[24px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end"
           onSubmit={(e) => e.preventDefault()}
         >
           {filters.map((filter) => (
@@ -149,7 +149,7 @@ export function MarketInsights() {
         <div className="mt-6 grid gap-6 lg:grid-cols-4">
           
           {/* Salary Trend (Span 2) */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:col-span-2 flex flex-col justify-between">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:col-span-2 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
                 <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
@@ -158,7 +158,7 @@ export function MarketInsights() {
                   </span>
                   {isAr ? "متوسط الراتب الشهري" : "Average Monthly Salary"}
                 </h3>
-                <span className="rounded-lg bg-slate-100 dark:bg-white/5 px-2.5 py-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <span className="rounded-lg bg-slate-100 dark:bg-[#0B1120]/5 px-2.5 py-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
                   {isAr ? "ج.م / شهرياً" : "EGP / month"}
                 </span>
               </div>
@@ -178,7 +178,7 @@ export function MarketInsights() {
           </div>
 
           {/* Market Demand Gauge */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col justify-between">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col justify-between">
             <div>
               <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/30">
@@ -198,7 +198,7 @@ export function MarketInsights() {
           </div>
 
           {/* Most Requested Skills */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col">
             <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/30">
                 <Zap className="h-4 w-4" />
@@ -243,7 +243,7 @@ export function MarketInsights() {
         <div className="mt-6 grid gap-6 lg:grid-cols-4">
           
           {/* Active Job Postings */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90">
             <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/30">
                 <Briefcase className="h-4 w-4" />
@@ -260,7 +260,7 @@ export function MarketInsights() {
           </div>
 
           {/* Top Hiring Companies */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col">
             <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/30">
                 <Building2 className="h-4 w-4" />
@@ -282,7 +282,7 @@ export function MarketInsights() {
           </div>
 
           {/* Top Industries (Span 2) */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:col-span-2">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:col-span-2">
             <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/30">
                 <Building2 className="h-4 w-4" />
@@ -312,7 +312,7 @@ export function MarketInsights() {
         </div>
 
         {/* Bottom CTA Banner */}
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-[22px] border border-slate-200/70 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] px-7 py-5 sm:py-5 lg:flex-row shadow-lg shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90">
+        <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-[22px] border border-slate-200/70 dark:border-white/10 bg-white dark:bg-[#0B1120] px-7 py-5 sm:py-5 lg:flex-row shadow-lg shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90">
           <div className="flex items-center gap-4 text-left rtl:text-right">
             <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-100/80 dark:border-emerald-500/30 flex-shrink-0">
               <TrendingUp className="w-5 h-5 stroke-[2.5]" />

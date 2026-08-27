@@ -8,7 +8,7 @@ export interface JobItem {
   location: string;
   locationAr: string;
   workType: 'Hybrid' | 'Remote' | 'On-site';
-  workTypeAr: 'هجين' | 'عن بُعد' | 'من المقر';
+  workTypeAr: 'مرن (مكتبي وعن بُعد)' | 'عن بُعد بالكامل' | 'من مقر الشركة';
   employmentType: 'Full-time' | 'Part-time' | 'Contract';
   employmentTypeAr: 'دوام كامل' | 'دوام جزئي' | 'عقد';
   seniority: 'Fresh' | 'Junior' | 'Mid' | 'Senior';
@@ -46,7 +46,7 @@ export const mockJobsList: JobItem[] = [
     location: 'Smart Village, Giza',
     locationAr: 'القرية الذكية، الجيزة',
     workType: 'Hybrid',
-    workTypeAr: 'هجين',
+    workTypeAr: 'مرن (مكتبي وعن بُعد)',
     employmentType: 'Full-time',
     employmentTypeAr: 'دوام كامل',
     seniority: 'Junior',
@@ -118,7 +118,7 @@ export const mockJobsList: JobItem[] = [
     location: 'Smart Village, Cairo',
     locationAr: 'القرية الذكية، القاهرة',
     workType: 'On-site',
-    workTypeAr: 'من المقر',
+    workTypeAr: 'من مقر الشركة',
     employmentType: 'Full-time',
     employmentTypeAr: 'دوام كامل',
     seniority: 'Junior',
@@ -181,7 +181,7 @@ export const mockJobsList: JobItem[] = [
     location: 'New Cairo, Cairo',
     locationAr: 'التجمع الخامس، القاهرة الجديدة',
     workType: 'Hybrid',
-    workTypeAr: 'هجين',
+    workTypeAr: 'مرن (مكتبي وعن بُعد)',
     employmentType: 'Full-time',
     employmentTypeAr: 'دوام كامل',
     seniority: 'Junior',
@@ -244,7 +244,7 @@ export const mockJobsList: JobItem[] = [
     location: 'Maadi, Cairo',
     locationAr: 'المعادي، القاهرة',
     workType: 'Hybrid',
-    workTypeAr: 'هجين',
+    workTypeAr: 'مرن (مكتبي وعن بُعد)',
     employmentType: 'Full-time',
     employmentTypeAr: 'دوام كامل',
     seniority: 'Mid',

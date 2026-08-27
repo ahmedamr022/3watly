@@ -64,7 +64,7 @@ export function FeatureStrip() {
   return (
     <div className="w-full">
       <div className="mx-auto max-w-[1440px]">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 rounded-[26px] border border-slate-200/80 dark:border-white/[0.08] bg-white/85 dark:bg-[#0B1120]/80 backdrop-blur-xl p-4 sm:p-5 shadow-xl shadow-slate-200/40 dark:shadow-2xl dark:shadow-black/90">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 rounded-[26px] border border-slate-200/80 dark:border-white/10 bg-white/85 dark:bg-[#0B1120]/80 backdrop-blur-xl p-4 sm:p-5 shadow-xl shadow-slate-200/40 dark:shadow-2xl dark:shadow-black/90">
           {stripItems.map((item) => (
             <div key={item.title} className="flex items-center gap-3.5 p-1.5 group">
               <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${item.badgeBg} group-hover:scale-105 transition-transform duration-300`}>

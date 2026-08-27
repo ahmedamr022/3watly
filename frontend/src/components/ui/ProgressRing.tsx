@@ -70,7 +70,7 @@ export function ProgressRing({
           <span className="text-[0.55em] font-semibold tracking-tight">%</span>
         </p>
         {label ? (
-          <p className={`mt-1 font-medium text-slate-500 ${labelClassName}`}>{label}</p>
+          <p className={`mt-1 font-medium text-slate-500 dark:text-slate-400 ${labelClassName}`}>{label}</p>
         ) : null}
       </div>
     </div>

@@ -21,11 +21,27 @@ import {
 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { ApiService } from '@/services/api';
 import { CompanyLogo } from '@/components/brand/CompanyLogo';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { mockJobsList } from '@/data/jobs';
 
 export default function DashboardPage() {
   const { isAr } = useLanguage();
+  const { user } = useAuth();
+  const [liveJobs, setLiveJobs] = useState(mockJobsList);
+
+  React.useEffect(() => {
+    let mounted = true;
+    ApiService.getJobs().then((res: any) => {
+      if (mounted && res && (Array.isArray(res) || Array.isArray(res.jobs))) {
+        const data = Array.isArray(res) ? res : res.jobs;
+        if (data.length > 0) setLiveJobs(data);
+      }
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
   const [bookmarkedJobs, setBookmarkedJobs] = useState<number[]>([]);
 
   const toggleBookmark = (id: number, e: React.MouseEvent) => {
@@ -44,7 +60,7 @@ export default function DashboardPage() {
       company: "Vodafone Egypt",
       companyAr: "فودافون مصر",
       location: "Smart Village, Giza • Hybrid",
-      locationAr: "القرية الذكية، الجيزة • عمل هجين",
+      locationAr: "القرية الذكية، الجيزة • عمل مرن (مكتبي وعن بُعد)",
       matchScore: 84,
       skills: ["SQL", "Python", "Power BI"],
       extraSkillsCount: 2,
@@ -59,7 +75,7 @@ export default function DashboardPage() {
       company: "Valeo",
       companyAr: "فاليو",
       location: "Cairo • On-site",
-      locationAr: "القاهرة • مقر العمل",
+      locationAr: "القاهرة • من مقر الشركة",
       matchScore: 79,
       skills: ["SQL", "Power BI", "Excel"],
       extraSkillsCount: 3,
@@ -94,7 +110,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           
           {/* Card 1: Total Analyzed Jobs */}
-          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
+          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#EEF3FE] dark:bg-blue-950/70 text-[#1B57E0] dark:text-[#60A5FA]">
                 <Briefcase className="w-6 h-6 stroke-[2.2]" />
@@ -131,7 +147,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 2: Hiring Companies */}
-          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
+          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8F8F0] dark:bg-emerald-950/70 text-[#12B76A] dark:text-[#34D399]">
                 <Building2 className="w-6 h-6 stroke-[2.2]" />
@@ -168,7 +184,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 3: Remote/Hybrid Ratio */}
-          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
+          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#F3E8FF] dark:bg-purple-950/70 text-[#9333EA] dark:text-[#C084FC]">
                 <Monitor className="w-6 h-6 stroke-[2.2]" />
@@ -205,7 +221,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 4: Top In-Demand Skill */}
-          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
+          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FFF7ED] dark:bg-amber-950/70 text-[#F97316]">
                 <Star className="w-6 h-6 stroke-[2.2] fill-transparent" />
@@ -241,14 +257,21 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 items-stretch">
           
           {/* Card 1: Your Career Alignment (Span 4) */}
-          <div className="lg:col-span-4 rounded-[24px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+          <div className="lg:col-span-4 rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
             <div>
-              {/* Header with info icon */}
-              <div className="flex items-center gap-1.5">
-                <h2 className="text-[16px] font-bold text-[#0B132B] dark:text-white">
-                  {isAr ? "مؤشر التوافق المهني" : "Your Career Alignment"}
-                </h2>
-                <Info className="w-4 h-4 text-slate-400 cursor-pointer hover:text-slate-600 dark:hover:text-slate-300" />
+              {/* Header with info tooltip */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <h2 className="text-[16px] font-bold text-[#0B132B] dark:text-white">
+                    {isAr ? "مؤشر التوافق المهني" : "Your Career Alignment"}
+                  </h2>
+                  <InfoTooltip
+                    title="Career Alignment"
+                    titleAr="مؤشر التوافق المهني"
+                    content="Calculates your profile readiness against 1,240+ active Data & Tech roles across Egyptian top employers."
+                    contentAr="يقيس جاهزية وتوافق مهاراتك مع أكثر من 1,240 وظيفة نشطة في كبرى الشركات داخل مصر."
+                  />
+                </div>
               </div>
 
               {/* Progress Gauge + Status */}
@@ -296,7 +319,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Footer: Why this matters + Button */}
-            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-white/[0.06] space-y-3.5">
+            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-white/10 space-y-3.5">
               <div>
                 <p className="text-[13px] font-bold text-[#0B132B] dark:text-white">
                   {isAr ? "لماذا يهم هذا المؤشر؟" : "Why this matters?"}
@@ -310,7 +333,7 @@ export default function DashboardPage() {
 
               <Link
                 href="/market"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] text-slate-700 dark:text-slate-200 text-[12.5px] font-bold transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#0B1120]/[0.06] dark:hover:bg-white/[0.1] text-slate-700 dark:text-slate-200 text-[12.5px] font-bold transition-colors"
               >
                 <span>{isAr ? "عرض التقرير الكامل" : "View Full Report"}</span>
                 <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
@@ -319,7 +342,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 2: Your Next Best Move (Span 4) */}
-          <div className="lg:col-span-4 rounded-[24px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+          <div className="lg:col-span-4 rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
             <div>
               {/* Header with Target Squircle */}
               <div className="flex items-center gap-3">
@@ -359,7 +382,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 3: Upcoming Focus (Span 4) */}
-          <div className="lg:col-span-4 rounded-[24px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+          <div className="lg:col-span-4 rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
             <div>
               {/* Header */}
               <div className="flex items-center gap-2">
@@ -370,7 +393,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Task Items List */}
-              <div className="mt-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] p-2 space-y-1 divide-y divide-slate-100 dark:divide-white/[0.04]">
+              <div className="mt-4 rounded-2xl border border-slate-100 dark:border-white/10 p-2 space-y-1 divide-y divide-slate-100 dark:divide-white/[0.04]">
                 
                 {/* Item 1: Power BI Course */}
                 <div className="flex items-center justify-between p-2.5 hover:bg-slate-50/80 dark:hover:bg-white/[0.02] rounded-xl transition-colors">
@@ -449,7 +472,7 @@ export default function DashboardPage() {
         {/* ========================================================================= */}
         {/* 3. BOTTOM ROW: TOP MATCHED JOBS & MARKET TIP (Matching Image 2 Exactly)    */}
         {/* ========================================================================= */}
-        <div className="rounded-[24px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.03)] space-y-5">
+        <div className="rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.03)] space-y-5">
           
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -475,7 +498,7 @@ export default function DashboardPage() {
                 <Link
                   key={job.id}
                   href={`/jobs/${job.id}`}
-                  className="rounded-[20px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0E1628] p-4 hover:shadow-md hover:border-blue-400/50 transition-all flex flex-col justify-between group"
+                  className="rounded-[20px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0E1628] p-4 hover:shadow-md hover:border-blue-400/50 transition-all flex flex-col justify-between group"
                 >
                   <div>
                     {/* Top Row: Company Logo + Title/Company + Match Donut Ring */}
@@ -533,19 +556,19 @@ export default function DashboardPage() {
                       {job.skills.map((skill) => (
                         <span
                           key={skill}
-                          className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-white/5 text-[11px] font-medium text-slate-600 dark:text-slate-300"
+                          className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-[#0B1120]/5 text-[11px] font-medium text-slate-600 dark:text-slate-300"
                         >
                           {skill}
                         </span>
                       ))}
-                      <span className="px-1.5 py-0.5 rounded-lg bg-slate-100 dark:bg-white/5 text-[10.5px] font-medium text-slate-400">
+                      <span className="px-1.5 py-0.5 rounded-lg bg-slate-100 dark:bg-[#0B1120]/5 text-[10.5px] font-medium text-slate-400">
                         +{job.extraSkillsCount}
                       </span>
                     </div>
                   </div>
 
                   {/* Bottom Info: Posted Time + Bookmark Icon */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
                     <span className="text-[11px] font-normal text-slate-400 dark:text-slate-500">
                       {isAr ? job.postedAgoAr : job.postedAgo}
                     </span>

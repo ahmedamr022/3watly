@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900;1000&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:is(.dark, .dark *));
 
 @theme {
   --color-brand-blue: #1B57E0;
@@ -17,10 +17,71 @@
   --color-canvas: #F4F6FD;
   --color-canvas-alt: #EFF2FC;
   --color-line: #E6EAF5;
-  --shadow-card: 0 30px 80px -30px rgba(27, 45, 105, 0.18), 0 4px 14px -6px rgba(27, 45, 105, 0.08);
+
+  --color-navy-950: #070D1B;
+  --color-navy-900: #0B1220;
+  --color-navy-800: #0F172A;
+  --color-navy-700: #152238;
+  --color-navy-600: #1B2A45;
+  --color-navy-500: #243657;
+
+  --color-brand-50: #EFF6FF;
+  --color-brand-100: #DBEAFE;
+  --color-brand-200: #BFDBFE;
+  --color-brand-300: #93C5FD;
+  --color-brand-400: #60A5FA;
+  --color-brand-500: #3B82F6;
+  --color-brand-600: #2563EB;
+  --color-brand-700: #1D4ED8;
+  --color-brand-800: #1E40AF;
+  --color-brand-900: #1E3A8A;
+
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-panel: 0 12px 32px rgba(15, 23, 42, 0.10);
+  --shadow-page: 0 18px 40px rgba(2, 6, 23, 0.35);
   --shadow-tile: 0 8px 20px -10px rgba(27, 45, 105, 0.22);
   --shadow-cta: 0 18px 36px -14px rgba(43, 62, 224, 0.65);
   --shadow-field: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.scroll-slim {
+  scrollbar-width: thin;
+}
+.scroll-slim::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.35);
+  border-radius: 999px;
+}
+.scroll-slim::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+@page {
+  margin: 12mm;
+}
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+  .print-region {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    border-radius: 0 !important;
+  }
+  .print-page {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
 }
 
 :root {
@@ -37,7 +98,7 @@ html {
   scroll-padding-top: 90px;
 }
 
-/* Arabic typography - uses Cairo with perfect line heights */
+/* Arabic typography */
 html[dir="rtl"], 
 html[lang="ar"],
 html[dir="rtl"] body {
@@ -45,7 +106,7 @@ html[dir="rtl"] body {
   letter-spacing: normal !important;
 }
 
-/* English typography - uses Inter */
+/* English typography */
 html[dir="ltr"],
 html[lang="en"],
 html[dir="ltr"] body {
@@ -53,15 +114,49 @@ html[dir="ltr"] body {
 }
 
 body {
-  background-color: #ffffff;
+  background-color: #F8FAFC;
   color: #1e293b;
   overflow-x: clip;
-  transition: background-color 0.35s ease, color 0.25s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 html.dark body {
   background-color: #060913;
   color: #F8FAFC;
+}
+
+/* Base dark mode card foundations */
+.dark .bg-white:not(.print-page):not(.print-page *) {
+  background-color: #0B1120;
+}
+
+.dark .bg-slate-50 {
+  background-color: #070C18;
+}
+
+.dark .border-slate-200 {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .border-slate-100 {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.dark .text-slate-900 {
+  color: #F8FAFC;
+}
+
+.dark .text-slate-800 {
+  color: #E2E8F0;
+}
+
+.dark .text-slate-700 {
+  color: #CBD5E1;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: #94A3B8;
 }
 
 /* Professional Arabic Heading Enhancement */

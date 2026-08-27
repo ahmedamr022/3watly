@@ -84,7 +84,7 @@ export function ScrollToTop() {
             type="button"
             onClick={handleScrollToTop}
             aria-label="Scroll to top"
-            className="relative flex h-13 w-13 items-center justify-center rounded-2xl bg-white/95 dark:bg-[#0D1527]/90 backdrop-blur-2xl p-3.5 text-[#0052FF] dark:text-[#818CF8] shadow-[0_16px_36px_-8px_rgba(0,82,255,0.35)] dark:shadow-[0_15px_35px_-5px_rgba(0,0,0,0.8),0_0_20px_rgba(99,102,241,0.25)] border border-slate-200/80 dark:border-indigo-500/30 hover:bg-[#0052FF] dark:hover:bg-[#4338CA] hover:text-white dark:hover:text-white hover:-translate-y-1 active:scale-95 transition-all duration-300 group cursor-pointer"
+            className="relative flex h-13 w-13 items-center justify-center rounded-2xl bg-white dark:bg-[#0B1120]/95 dark:bg-[#0D1527]/90 backdrop-blur-2xl p-3.5 text-[#0052FF] dark:text-[#818CF8] shadow-[0_16px_36px_-8px_rgba(0,82,255,0.35)] dark:shadow-[0_15px_35px_-5px_rgba(0,0,0,0.8),0_0_20px_rgba(99,102,241,0.25)] border border-slate-200/80 dark:border-white/10 dark:border-indigo-500/30 hover:bg-[#0052FF] dark:hover:bg-[#4338CA] hover:text-white dark:hover:text-white hover:-translate-y-1 active:scale-95 transition-all duration-300 group cursor-pointer"
           >
             {/* Ambient Pulse Glow */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-blue-500/15 to-indigo-500/15 opacity-0 group-hover:opacity-100 transition-opacity" />

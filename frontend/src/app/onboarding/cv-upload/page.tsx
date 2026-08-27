@@ -21,10 +21,10 @@ import { surface } from '@/utils/styles';
 export default function CvUploadPage() {
   const router = useRouter();
   const { isAr } = useLanguage();
-  const { role, file, status, progress, checksRevealed, skillsAdded, uploadFile, removeFile } =
+  const { role, file, status, progress, checksRevealed, skillsAdded, uploadFile, removeFile, parsedCv: contextCv } =
     useOnboarding();
 
-  const cv = role ? parsedCvByRole[role] : null;
+  const cv = contextCv || (role ? parsedCvByRole[role] : null);
   const roleTitle = roleOptions.find((option) => option.id === role)?.title;
   const showResults = Boolean(file && cv);
   const complete = status === 'complete';
@@ -74,7 +74,7 @@ export default function CvUploadPage() {
                   {...fadeUp}
                   className={`flex h-full flex-col items-center justify-center border-dashed dark:border-white/10 dark:bg-[#0B1120] p-10 text-center ${surface}`}
                 >
-                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-canvas dark:bg-white/5">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-canvas dark:bg-[#0B1120]/5">
                     <FileSearchIcon
                       className="h-6 w-6 text-slate-400 dark:text-slate-400"
                       strokeWidth={1.7}

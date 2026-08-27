@@ -19,14 +19,45 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { passwordRules, signUpFeatures } from '@/data/features';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function SignUpPage() {
   const router = useRouter();
   const { isAr, t } = useLanguage();
+  const { signup } = useAuth();
   const [fullName, setFullName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [agreed, setAgreed] = React.useState(true);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!fullName || !email || !password) {
+      toast.error(isAr ? "يرجى ملء جميع الحقول المطلوبة." : "Please fill in all required fields.");
+      return;
+    }
+    if (!agreed) {
+      toast.error(isAr ? "يرجى الموافقة على الشروط والأحكام للمتابعة." : "Please agree to the terms to proceed.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await signup(fullName, email, password);
+      if (res.success) {
+        toast.success(isAr ? "تم إنشاء الحساب بنجاح!" : "Account created successfully!");
+        router.push('/onboarding/career-path');
+      } else {
+        toast.info(isAr ? "تم المتابعة في الوضع التجريبي." : "Continuing in preview mode.");
+        router.push('/onboarding/career-path');
+      }
+    } catch {
+      router.push('/onboarding/career-path');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const arabicPasswordRules = [
     "8 أحرف على الأقل",
@@ -139,10 +170,7 @@ export default function SignUpPage() {
 
             <form
               className="space-y-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                router.push('/onboarding/career-path');
-              }}
+              onSubmit={handleSubmit}
             >
               <TextField
                 id="fullName"
@@ -216,7 +244,9 @@ export default function SignUpPage() {
               </div>
 
               <div className="pt-2">
-                <SubmitButton label={isAr ? "إنشاء الحساب" : "Create Account"} />
+                <SubmitButton 
+                  label={isSubmitting ? (isAr ? "جاري إنشاء الحساب..." : "Creating Account...") : (isAr ? "إنشاء الحساب" : "Create Account")} 
+                />
               </div>
             </form>
 

@@ -1,60 +1,54 @@
 "use client";
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
 import {
-  CheckIcon,
-  ChartColumnIcon,
-  CloudUploadIcon,
-  CodeXmlIcon,
+  BarChart3Icon,
   DatabaseIcon,
+  CodeIcon,
   NetworkIcon,
+  CloudIcon,
   PlusIcon,
-  SparklesIcon,
-  XIcon
+  XIcon,
+  CheckIcon
 } from 'lucide-react';
 import { StepShell } from '@/components/onboarding/StepShell';
+import { SecureBadge } from '@/components/onboarding/PageHeading';
 import { StepFooter } from '@/components/onboarding/StepFooter';
-import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { EASE, riseIn, springPop } from '@/utils/motion';
+import { LOCATION_OPTIONS, LocationItem } from '@/data/roles';
+import type { RoleId } from '@/types/onboarding';
 
-const roleIcons = {
-  analytics: ChartColumnIcon,
+const iconMap = {
+  analytics: BarChart3Icon,
   database: DatabaseIcon,
-  code: CodeXmlIcon,
+  code: CodeIcon,
   network: NetworkIcon,
-  cloud: CloudUploadIcon
-} as const;
-
-const roleTones = {
-  blue: { tile: 'bg-[#EAF1FE] dark:bg-blue-950/60 dark:border dark:border-blue-500/20', icon: 'text-blue-600 dark:text-[#60A5FA]' },
-  green: { tile: 'bg-[#E6F7EF] dark:bg-emerald-950/60 dark:border dark:border-emerald-500/20', icon: 'text-emerald-600 dark:text-[#34D399]' },
-  violet: { tile: 'bg-[#ECEBFD] dark:bg-indigo-950/60 dark:border dark:border-indigo-500/20', icon: 'text-indigo-600 dark:text-[#A78BFA]' }
-} as const;
+  cloud: CloudIcon
+};
 
 export default function CareerPathPage() {
   const router = useRouter();
   const { isAr } = useLanguage();
-  const { role, selectRole, experience, setExperience, locations, toggleLocation } = useOnboarding();
-  const [locationMenuOpen, setLocationMenuOpen] = React.useState(false);
-  const menuRef = React.useRef<HTMLDivElement>(null);
+  const { role, experience, locations, selectRole, setExperience, toggleLocation } =
+    useOnboarding();
+  const [locationMenuOpen, setLocationMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const roleOptionsList = isAr
     ? [
         {
           id: 'data-analyst' as const,
           title: 'Data Analyst (محلل بيانات)',
-          description: 'تحويل البيانات والـ KPIs إلى قرارات Business ذكية واستراتيجية.',
+          description: 'تحليل البيانات واستخراج الرؤى ومؤشرات الأداء لدعم اتخاذ القرارات الذكية.',
           icon: 'analytics' as const,
           tone: 'blue' as const
         },
         {
           id: 'data-engineer' as const,
           title: 'Data Engineer (مهندس بيانات)',
-          description: 'بناء وإدارة ETL pipelines وقواعد البيانات الضخمة والبنية التحتية.',
+          description: 'بناء وتطوير خطوط نقل البيانات (Pipelines) والأنظمة السحابية وقواعد البيانات الضخمة.',
           icon: 'database' as const,
           tone: 'green' as const
         },
@@ -118,243 +112,185 @@ export default function CareerPathPage() {
         }
       ];
 
-  const experienceLevelsList = isAr
-    ? ['خريج جديد', 'سنة - سنتين', '3 - 5 سنوات', '+5 سنوات']
-    : ['Fresh Graduate', '1-2 Years', '3-5 Years', '5+ Years'];
+  const experienceLevelsList = [
+    { id: 'fresh', en: 'Fresh Graduate', ar: 'خريج جديد' },
+    { id: 'junior', en: '1-2 Years', ar: 'سنة - سنتين' },
+    { id: 'mid', en: '3-5 Years', ar: '3 - 5 سنوات' },
+    { id: 'senior', en: '5+ Years', ar: '+5 سنوات' }
+  ];
 
-  const allLocationOptions = isAr
-    ? ['القاهرة', 'الجيزة', 'الإسكندرية', 'عمل عن بُعد (مصر)', 'عمل عن بُعد (دولي)', 'هجين — القاهرة']
-    : ['Cairo', 'Giza', 'Alexandria', 'Remote in Egypt', 'Remote (Global)', 'Hybrid — Cairo'];
-
-  const remainingLocations = allLocationOptions.filter((option) => !locations.includes(option));
+  const remainingLocations = LOCATION_OPTIONS.filter((loc) => !locations.includes(loc.id));
 
   React.useEffect(() => {
     if (!locationMenuOpen) return;
-
     const onPointerDown = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setLocationMenuOpen(false);
       }
     };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setLocationMenuOpen(false);
-    };
-
     document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
+    return () => document.removeEventListener('mousedown', onPointerDown);
   }, [locationMenuOpen]);
+
+  const getLocationLabel = (id: string) => {
+    const found = LOCATION_OPTIONS.find(l => l.id === id);
+    if (!found) return id;
+    return isAr ? found.ar : found.en;
+  };
 
   return (
     <StepShell step={1}>
       <div className="flex min-h-[calc(100vh-196px)] flex-col">
-        {/* Heading */}
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl border border-[#E3EAFA] dark:border-white/10 bg-[#F1F5FE] dark:bg-blue-950/70">
-              <SparklesIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            </span>
-            <div>
-              <h1 className="text-[27px] font-bold leading-tight tracking-tight text-[#0B132B] dark:text-white">
-                {isAr ? "ما هو مسارك المهني المستهدف؟" : "What is your target career path?"}
-              </h1>
-              <p className="mt-1 text-[14px] font-normal text-slate-500 dark:text-slate-400">
-                {isAr ? "اختر التخصص الأنسب لطموحاتك وخبراتك الحالية." : "Choose the role that best matches your career aspirations."}
-              </p>
-            </div>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[27px] font-bold leading-tight tracking-tight text-[#0B132B] dark:text-white">
+              {isAr ? "حدد مسارك المهني المستهدف" : "Choose Your Target Role"}
+            </h1>
+            <p className="mt-1.5 text-[14px] font-normal text-slate-500 dark:text-slate-400">
+              {isAr 
+                ? "هنخصص التوصيات وتحليلات الفجوة المهارية بناءً على دورك المستهدف" 
+                : "We will tailor your skill gap, market insights, and job matches to this target."}
+            </p>
           </div>
-        </header>
+          <div className="pt-1.5">
+            <SecureBadge />
+          </div>
+        </div>
 
-        {/* Role Cards Grid */}
-        <div
-          role="radiogroup"
-          aria-label="Target career path"
-          className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {roleOptionsList.map((option, index) => {
-            const Icon = roleIcons[option.icon];
-            const tone = roleTones[option.tone];
-            const selected = role === option.id;
-            return (
-              <motion.button
-                key={option.id}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => selectRole(option.id)}
-                {...riseIn(index)}
-                whileHover={{ y: -3 }}
-                whileTap={{ scale: 0.985 }}
-                className={`group relative flex h-full flex-col items-start overflow-hidden rounded-2xl border p-5 text-left rtl:text-right transition-all duration-150 ease-smooth focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/25 cursor-pointer ${
-                  selected
-                    ? 'border-blue-600 dark:border-[#60A5FA] bg-[#F8FAFF] dark:bg-[#131E35] shadow-[0_20px_40px_-26px_rgba(27,87,224,0.5)] dark:shadow-[0_20px_40px_-26px_rgba(96,165,250,0.4)]'
-                    : 'border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0D1527] shadow-[0_1px_2px_rgba(16,24,40,0.04)] hover:border-slate-300 dark:hover:border-white/20 hover:shadow-[0_18px_34px_-26px_rgba(27,45,105,0.35)]'
-                }`}
-              >
-                <span
-                  className={`relative flex h-[50px] w-[50px] items-center justify-center rounded-2xl transition-transform duration-200 ease-smooth group-hover:scale-[1.04] ${tone.tile}`}
+        <section aria-labelledby="target-role-heading" className="mt-8">
+          <h2 id="target-role-heading" className="text-[14px] font-bold text-[#0B132B] dark:text-white">
+            {isAr ? "المسمى الوظيفي المستهدف" : "Target Role"}
+          </h2>
+          <div className="mt-3.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            {roleOptionsList.map((item) => {
+              const Icon = iconMap[item.icon];
+              const selected = role === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => selectRole(item.id)}
+                  aria-pressed={selected}
+                  className={`group relative flex flex-col rounded-2xl border p-5 text-left rtl:text-right transition-all duration-200 cursor-pointer ${
+                    selected
+                      ? 'border-blue-600 bg-blue-50/40 dark:bg-blue-950/30 dark:border-blue-500 shadow-md ring-2 ring-blue-500/20'
+                      : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#070B14] hover:border-slate-300 dark:hover:border-white/20'
+                  }`}
                 >
-                  <Icon
-                    className={`h-[22px] w-[22px] ${tone.icon}`}
-                    strokeWidth={1.9}
-                    aria-hidden="true"
-                  />
-                </span>
-
-                <AnimatePresence>
-                  {selected && (
-                    <motion.span
-                      initial={{ scale: 0.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.6, opacity: 0 }}
-                      transition={springPop}
-                      className="absolute ltr:right-4 rtl:left-4 top-4 flex h-[22px] w-[22px] items-center justify-center rounded-full bg-blue-600 dark:bg-blue-500 shadow-sm"
+                  <div className="flex items-start justify-between gap-3">
+                    <span
+                      className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${
+                        selected
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-slate-100 dark:bg-[#0B1120]/5 text-slate-700 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-white/10'
+                      }`}
                     >
-                      <CheckIcon
-                        className="h-[13px] w-[13px] text-white"
-                        strokeWidth={3.2}
-                        aria-hidden="true"
-                      />
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-
-                <h2 className="relative mt-4 text-[16.5px] font-bold leading-snug text-[#0B132B] dark:text-white">
-                  {option.title}
-                </h2>
-                <p className="relative mt-1.5 text-[13px] font-normal leading-[1.55] text-slate-500 dark:text-slate-400">
-                  {option.description}
-                </p>
-              </motion.button>
-            );
-          })}
-        </div>
-
-        {/* Preferences (Experience Level & Location) */}
-        <div className="mt-8 grid grid-cols-1 gap-7 lg:grid-cols-2 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0D1527] p-6 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
-          {/* Experience Level Section */}
-          <section>
-            <div className="flex items-center gap-2">
-              <h2 className="text-[14px] font-bold text-[#1E293B] dark:text-slate-200">
-                {isAr ? "مستوى الخبرة" : "Experience level"}
-              </h2>
-              <InfoTooltip content={isAr ? "يساعدنا في تخصيص ومطابقة الوظائف المناسبة لمستواك المهني وسنوات خبرتك." : "Helps us personalize job matches to your current seniority and career stage."} />
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2.5">
-              {experienceLevelsList.map((level) => {
-                const active = experience === level;
-                return (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => setExperience(level)}
-                    aria-pressed={active}
-                    className={`h-10 whitespace-nowrap rounded-xl border px-4 text-[13.5px] transition-all duration-150 ease-smooth active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer ${
-                      active
-                        ? 'border-blue-600 dark:border-[#60A5FA] bg-[#EEF4FE] dark:bg-blue-950/70 font-bold text-blue-600 dark:text-blue-300 shadow-sm'
-                        : 'border-slate-200 dark:border-slate-700/80 bg-[#F8FAFC] dark:bg-[#131C31] font-medium text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
-                    }`}
-                  >
-                    {level}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Location Section */}
-          <section>
-            <div className="flex items-center gap-2">
-              <h2 className="text-[14px] font-bold text-[#1E293B] dark:text-slate-200">
-                {isAr ? "المحافظة ونطاق العمل" : "Location"}{' '}
-                <span className="font-normal text-slate-400 dark:text-slate-400">
-                  {isAr ? "(يمكنك اختيار أكثر من خيار)" : "(select all that apply)"}
-                </span>
-              </h2>
-              <InfoTooltip content={isAr ? "نعطي أولوية لعرض الوظائف في المحافظات التي تختارها بالإضافة لفرص العمل عن بُعد." : "We prioritize job vacancies in your selected Egyptian governorates and remote opportunities."} />
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2.5">
-              <AnimatePresence initial={false}>
-                {locations.map((location) => (
-                  <motion.span
-                    key={location}
-                    layout
-                    initial={{ opacity: 0, scale: 0.94 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.94 }}
-                    transition={springPop}
-                    className="flex h-10 items-center gap-2 rounded-xl border border-blue-600 dark:border-[#60A5FA] bg-[#EEF4FE] dark:bg-blue-950/70 ltr:pl-4 ltr:pr-2.5 rtl:pr-4 rtl:pl-2.5 text-[13.5px] font-bold text-blue-600 dark:text-blue-300 shadow-sm"
-                  >
-                    {location}
-                    <button
-                      type="button"
-                      onClick={() => toggleLocation(location)}
-                      aria-label={`Remove ${location}`}
-                      className="rounded-md p-0.5 transition-colors duration-150 ease-smooth hover:bg-[#DCE7FC] dark:hover:bg-blue-900/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer"
-                    >
-                      <XIcon className="h-[15px] w-[15px]" strokeWidth={2.4} />
-                    </button>
-                  </motion.span>
-                ))}
-              </AnimatePresence>
-
-              {remainingLocations.length > 0 && (
-                <div className="relative" ref={menuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setLocationMenuOpen((open) => !open)}
-                    aria-expanded={locationMenuOpen}
-                    aria-haspopup="listbox"
-                    className="flex h-10 items-center gap-1.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-[#131C31] px-4 text-[13.5px] font-medium text-slate-500 dark:text-slate-300 transition-all duration-150 ease-smooth active:scale-[0.97] hover:border-blue-600 dark:hover:border-[#60A5FA] hover:text-blue-600 dark:hover:text-[#60A5FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer"
-                  >
-                    <PlusIcon className="h-4 w-4" strokeWidth={2.2} aria-hidden="true" />
-                    {isAr ? "إضافة محافظة / نطاق" : "Add location"}
-                  </button>
-
-                  <AnimatePresence>
-                    {locationMenuOpen && (
-                      <motion.ul
-                        role="listbox"
-                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                        transition={{ duration: 0.17, ease: EASE }}
-                        className="absolute ltr:left-0 rtl:right-0 top-12 z-20 w-56 overflow-hidden rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0D1527] py-1.5 shadow-xl dark:shadow-2xl dark:shadow-black/90"
-                      >
-                        {remainingLocations.map((option) => (
-                          <li key={option} role="option" aria-selected={false}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                toggleLocation(option);
-                                setLocationMenuOpen(false);
-                              }}
-                              className="block w-full px-4 py-2 text-left rtl:text-right text-[13.5px] font-medium text-slate-700 dark:text-slate-300 transition-colors duration-150 ease-smooth hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
-                            >
-                              {option}
-                            </button>
-                          </li>
-                        ))}
-                      </motion.ul>
+                      <Icon className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+                    </span>
+                    {selected && (
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white shadow-xs">
+                        <CheckIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
+                      </span>
                     )}
-                  </AnimatePresence>
-                </div>
-              )}
-            </div>
-          </section>
-        </div>
+                  </div>
+                  <h3 className="mt-4 text-[15px] font-bold text-[#0B132B] dark:text-white">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1.5 text-[12.5px] font-normal leading-relaxed text-slate-500 dark:text-slate-400">
+                    {item.description}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
-        {/* Footer CTA */}
+        <section aria-labelledby="experience-heading" className="mt-8">
+          <h2 id="experience-heading" className="text-[14px] font-bold text-[#0B132B] dark:text-white">
+            {isAr ? "مستوى الخبرة الحالي" : "Current Experience Level"}
+          </h2>
+          <div className="mt-3.5 flex flex-wrap gap-2.5">
+            {experienceLevelsList.map((level) => {
+              const selected = experience === level.en || experience === level.ar;
+              return (
+                <button
+                  key={level.id}
+                  type="button"
+                  onClick={() => setExperience(level.en)}
+                  aria-pressed={selected}
+                  className={`rounded-xl border px-4 py-2.5 text-[13px] font-semibold transition-all duration-150 cursor-pointer ${
+                    selected
+                      ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
+                      : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#070B14] text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/20'
+                  }`}
+                >
+                  {isAr ? level.ar : level.en}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section aria-labelledby="location-heading" className="mt-8">
+          <h2 id="location-heading" className="text-[14px] font-bold text-[#0B132B] dark:text-white">
+            {isAr ? "مواقع العمل المفضلة في مصر" : "Preferred Job Locations"}
+          </h2>
+          <div className="mt-3.5 flex flex-wrap items-center gap-2.5">
+            {locations.map((locId) => (
+              <span
+                key={locId}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/50 px-3 py-1.5 text-[12.5px] font-semibold text-blue-700 dark:text-blue-300 shadow-2xs"
+              >
+                <span>{getLocationLabel(locId)}</span>
+                <button
+                  type="button"
+                  onClick={() => toggleLocation(locId)}
+                  className="rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-900 cursor-pointer"
+                >
+                  <XIcon className="h-3.5 w-3.5" />
+                </button>
+              </span>
+            ))}
+
+            {remainingLocations.length > 0 && (
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={() => setLocationMenuOpen(!locationMenuOpen)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 dark:border-white/20 bg-white dark:bg-[#070B14] px-3.5 py-1.5 text-[12.5px] font-semibold text-slate-600 dark:text-slate-300 hover:border-slate-400 cursor-pointer"
+                >
+                  <PlusIcon className="h-3.5 w-3.5" />
+                  <span>{isAr ? "إضافة موقع آخر" : "Add location"}</span>
+                </button>
+
+                {locationMenuOpen && (
+                  <div className="absolute ltr:left-0 rtl:right-0 top-full mt-2 w-56 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1120] p-1.5 shadow-2xl z-30 animate-in fade-in zoom-in-95 duration-150">
+                    {remainingLocations.map((loc) => (
+                      <button
+                        key={loc.id}
+                        type="button"
+                        onClick={() => {
+                          toggleLocation(loc.id);
+                          setLocationMenuOpen(false);
+                        }}
+                        className="w-full text-left rtl:text-right rounded-xl px-3 py-2 text-[12.5px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
+                      >
+                        {isAr ? loc.ar : loc.en}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+
         <div className="mt-auto pt-8">
           <StepFooter
             onNext={() => router.push('/onboarding/cv-upload')}
-            nextLabel={isAr ? "المتابعة إلى رفع الـ CV" : "Continue to CV Upload"}
             nextDisabled={!role}
-            showBack={false}
-            hint={!role ? (isAr ? "اختر مسارك المهني للمتابعة" : "Select a career path to continue") : undefined}
+            nextLabel={isAr ? "المتابعة لرفع الـ CV" : "Continue to CV Upload"}
+            hint={!role ? (isAr ? "اختر مساراً وظيفياً للمتابعة" : "Please select a target role to continue") : undefined}
           />
         </div>
       </div>

@@ -103,7 +103,7 @@ export function HeroVisual() {
             </div>
           </div>
 
-          <div className="mt-5 border-t border-slate-100 dark:border-white/[0.06] pt-4">
+          <div className="mt-5 border-t border-slate-100 dark:border-white/10 pt-4">
             <h4 className="text-[12.5px] font-bold text-slate-900 dark:text-white">
               {isAr ? "أسباب التوافق القوي" : "Why it's a great match"}
             </h4>

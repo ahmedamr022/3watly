@@ -92,7 +92,7 @@ const translations: Record<Language, Record<string, string>> = {
     statJobs: "وظيفة تقنية محلية تم تحليلها",
     statSkills: "مهارة تقنية مصنفة ومعتمدة",
     statAccuracy: "دقة مطابقة أنظمة الـ ATS",
-    statRemote: "نسبة وظائف العمل عن بُعد والهجين",
+    statRemote: "نسبة وظائف العمل المرن وعن بُعد",
 
     // Features Section
     featuresHeading: "قرارات مهنية أذكى مبنية على لغة الأرقام",

@@ -58,7 +58,7 @@ export function AppHeader() {
       <div className="mx-auto flex h-[66px] w-full max-w-[1440px] items-center justify-between px-6 lg:px-10">
         <div className="flex items-center gap-4">
           <Logo tagline={null} />
-          <span className="hidden h-6 w-px bg-slate-200 dark:bg-white/10 sm:block" aria-hidden="true" />
+          <span className="hidden h-6 w-px bg-slate-200 dark:bg-[#0B1120]/10 sm:block" aria-hidden="true" />
           <span className="hidden text-[13.5px] font-normal text-slate-500 dark:text-slate-400 sm:block">
             {isAr ? 'تحليلات سوق العمل والتوجيه المهني' : 'Career Intelligence Platform'}
           </span>

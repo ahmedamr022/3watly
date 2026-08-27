@@ -124,7 +124,7 @@ export function HowItWorks() {
                 )}
 
                 {/* Step Card Container */}
-                <div className="flex w-full flex-col rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 pt-9 shadow-xl shadow-slate-200/50 dark:shadow-[0_15px_35px_-10px_rgba(0,0,0,0.7),0_0_15px_rgba(99,102,241,0.06)] hover:shadow-2xl transition-all">
+                <div className="flex w-full flex-col rounded-[28px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 pt-9 shadow-xl shadow-slate-200/50 dark:shadow-[0_15px_35px_-10px_rgba(0,0,0,0.7),0_0_15px_rgba(99,102,241,0.06)] hover:shadow-2xl transition-all">
                   
                   {/* Visual Preview */}
                   <div className="h-[210px]">
@@ -168,7 +168,7 @@ export function HowItWorks() {
         </div>
 
         {/* Bottom Banner */}
-        <div className="relative mt-12 overflow-hidden rounded-[26px] border border-slate-200/70 dark:border-white/[0.08] bg-[#F4F8FF] dark:bg-gradient-to-r dark:from-[#0B1224] dark:via-[#111C38] dark:to-[#09101E] px-6 py-6 sm:px-10 sm:py-6 shadow-xl shadow-slate-200/50 dark:shadow-[0_20px_45px_-10px_rgba(0,0,0,0.8),0_0_20px_rgba(99,102,241,0.1)]">
+        <div className="relative mt-12 overflow-hidden rounded-[26px] border border-slate-200/70 dark:border-white/10 bg-[#F4F8FF] dark:bg-gradient-to-r dark:from-[#0B1224] dark:via-[#111C38] dark:to-[#09101E] px-6 py-6 sm:px-10 sm:py-6 shadow-xl shadow-slate-200/50 dark:shadow-[0_20px_45px_-10px_rgba(0,0,0,0.8),0_0_20px_rgba(99,102,241,0.1)]">
           
           <div className="pointer-events-none absolute inset-0 select-none dark:hidden">
             <Image

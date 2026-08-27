@@ -305,9 +305,9 @@ export const roleProfiles: Record<RoleId, RoleProfile> = {
 
 export const parsedCvByRole: Record<RoleId, ParsedCv> = {
   'data-analyst': {
-    fullName: 'AHMED HASSAN',
+    fullName: 'AHMED AMR',
     currentTitle: 'Junior Data Analyst',
-    email: 'ahmed.hassan@email.com',
+    email: 'ahmed.amr@email.com',
     phone: '+20 100 123 4567',
     location: 'Cairo, Egypt',
     summary:
@@ -336,9 +336,9 @@ export const parsedCvByRole: Record<RoleId, ParsedCv> = {
 
   },
   'data-engineer': {
-    fullName: 'AHMED HASSAN',
+    fullName: 'AHMED AMR',
     currentTitle: 'Data Engineer',
-    email: 'ahmed.hassan@email.com',
+    email: 'ahmed.amr@email.com',
     phone: '+20 100 123 4567',
     location: 'Cairo, Egypt',
     summary:
@@ -371,9 +371,9 @@ export const parsedCvByRole: Record<RoleId, ParsedCv> = {
 
   },
   'software-engineer': {
-    fullName: 'AHMED HASSAN',
+    fullName: 'AHMED AMR',
     currentTitle: 'Software Engineer',
-    email: 'ahmed.hassan@email.com',
+    email: 'ahmed.amr@email.com',
     phone: '+20 100 123 4567',
     location: 'Cairo, Egypt',
     summary:
@@ -406,9 +406,9 @@ export const parsedCvByRole: Record<RoleId, ParsedCv> = {
 
   },
   'ml-engineer': {
-    fullName: 'AHMED HASSAN',
+    fullName: 'AHMED AMR',
     currentTitle: 'Machine Learning Engineer',
-    email: 'ahmed.hassan@email.com',
+    email: 'ahmed.amr@email.com',
     phone: '+20 100 123 4567',
     location: 'Cairo, Egypt',
     summary:
@@ -437,9 +437,9 @@ export const parsedCvByRole: Record<RoleId, ParsedCv> = {
 
   },
   devops: {
-    fullName: 'AHMED HASSAN',
+    fullName: 'AHMED AMR',
     currentTitle: 'DevOps Specialist',
-    email: 'ahmed.hassan@email.com',
+    email: 'ahmed.amr@email.com',
     phone: '+20 100 123 4567',
     location: 'Cairo, Egypt',
     summary:

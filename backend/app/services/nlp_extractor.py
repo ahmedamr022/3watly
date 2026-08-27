@@ -8,6 +8,7 @@ import json
 import re
 from pathlib import Path
 from typing import Dict, List, Set, Any, Tuple, Optional
+from app.core.config import settings
 
 
 class NLPSkillExtractor:
@@ -17,9 +18,7 @@ class NLPSkillExtractor:
 
     def __init__(self, ontology_path: Optional[str] = None):
         if ontology_path is None:
-            # Default to data/skill_ontology.json
-            project_root = Path(__file__).resolve().parent.parent.parent.parent
-            ontology_path = project_root / "data" / "skill_ontology.json"
+            ontology_path = settings.DATA_PATH / "skill_ontology.json"
 
         self.ontology_path = Path(ontology_path)
         self.alias_to_skill_map: Dict[str, Dict[str, Any]] = {}
@@ -57,7 +56,7 @@ class NLPSkillExtractor:
         Scans text for skills and determines if they are Required or Preferred.
         """
         if not text:
-            return {"required": [], "preferred": [], "all_canonical_ids": []}
+            return {"required_skills": [], "preferred_skills": [], "all_detected_skills": []}
 
         lower_text = text.lower()
         found_skills: Dict[str, Dict[str, Any]] = {}

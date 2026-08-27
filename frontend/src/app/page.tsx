@@ -156,7 +156,7 @@ export default function LandingPage() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.97 }}
                     transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute ltr:left-1/2 ltr:-translate-x-1/2 rtl:right-1/2 rtl:translate-x-1/2 top-10 w-56 rounded-2xl border border-white/20 dark:border-white/[0.08] bg-white/95 dark:bg-[#0D1527]/95 backdrop-blur-2xl p-2.5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] z-50"
+                    className="absolute ltr:left-1/2 ltr:-translate-x-1/2 rtl:right-1/2 rtl:translate-x-1/2 top-10 w-56 rounded-2xl border border-white/20 dark:border-white/10 bg-white/95 dark:bg-[#0D1527]/95 backdrop-blur-2xl p-2.5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] z-50"
                   >
                     {/* Glossy top highlight */}
                     <div className="absolute inset-x-0 top-0 h-[1px] rounded-t-2xl bg-gradient-to-r from-transparent via-white/60 dark:via-white/20 to-transparent" />
@@ -297,7 +297,7 @@ export default function LandingPage() {
 
                 <a
                   href="#how-it-works"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 font-bold text-[14.5px] transition-all backdrop-blur-sm"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#0B1120]/[0.04] hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 font-bold text-[14.5px] transition-all backdrop-blur-sm"
                 >
                   <div className="w-5 h-5 rounded-full border border-slate-400 dark:border-slate-500 flex items-center justify-center">
                     <Play className="w-2 h-2 text-slate-700 dark:text-slate-300 fill-slate-700 dark:fill-slate-300 ltr:ml-0.5 rtl:mr-0.5" />
@@ -311,7 +311,7 @@ export default function LandingPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-4 text-left rtl:text-right border-t border-slate-100 dark:border-white/[0.06] w-full"
+                className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-4 text-left rtl:text-right border-t border-slate-100 dark:border-white/10 w-full"
               >
                 <div className="flex items-start gap-2">
                   <div className="w-4.5 h-4.5 rounded-full border border-slate-400 dark:border-slate-600 flex items-center justify-center flex-shrink-0 mt-0.5">

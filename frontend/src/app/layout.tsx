@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Cairo } from "next/font/google";
 import "./globals.css";
-import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AppProviders } from "@/components/providers/AppProviders";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -38,9 +38,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="antialiased min-h-screen bg-[#F8FAFC] dark:bg-[#060913] text-slate-900 dark:text-slate-100 selection:bg-blue-600 selection:text-white font-sans">
-        <LanguageProvider>
+        <AppProviders>
           {children}
-        </LanguageProvider>
+        </AppProviders>
       </body>
     </html>
   );

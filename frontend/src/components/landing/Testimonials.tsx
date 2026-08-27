@@ -90,7 +90,7 @@ export function Testimonials() {
           {testimonials.map((testimonial) => (
             <div
               key={testimonial.name}
-              className="flex flex-col rounded-[24px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-5 shadow-xl shadow-slate-200/50 dark:shadow-[0_15px_35px_-10px_rgba(0,0,0,0.7),0_0_15px_rgba(99,102,241,0.06)] hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+              className="flex flex-col rounded-[24px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-xl shadow-slate-200/50 dark:shadow-[0_15px_35px_-10px_rgba(0,0,0,0.7),0_0_15px_rgba(99,102,241,0.06)] hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
             >
               <Quote className="h-5 w-5 text-blue-600 dark:text-blue-400 fill-blue-600/10 dark:fill-blue-400/10" />
 

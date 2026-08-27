@@ -1,0 +1,1 @@
+"""MAJRA Core Module"""

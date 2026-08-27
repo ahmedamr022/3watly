@@ -151,7 +151,7 @@ export default function ProfileInsightsPage() {
                       className={`inline-flex items-center h-8 rounded-xl px-3 text-[12.5px] font-bold ${
                         index < 3
                           ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-500/30'
-                          : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300'
+                          : 'bg-slate-100 dark:bg-[#0B1120]/5 text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       {skill.name}

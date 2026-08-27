@@ -112,7 +112,7 @@ export function PlanPanel() {
             className="flex items-center justify-between rounded-xl border border-slate-100 dark:border-white/5 bg-white dark:bg-[#0D1322] px-3 py-2 shadow-sm"
           >
             <div className="flex items-center gap-2.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-50 dark:bg-white/5">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-50 dark:bg-[#0B1120]/5">
                 {item.icon}
               </div>
               <div>

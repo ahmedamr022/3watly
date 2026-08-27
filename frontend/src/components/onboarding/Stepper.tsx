@@ -82,7 +82,7 @@ export function Stepper({ current, onStepSelect }: StepperProps) {
                   className={`mx-3.5 hidden h-px w-10 sm:block lg:w-14 transition-colors duration-200 ${
                     step.id < current
                       ? 'bg-emerald-500/60'
-                      : 'bg-slate-200 dark:bg-white/10'
+                      : 'bg-slate-200 dark:bg-[#0B1120]/10'
                   }`}
                 />
               )}

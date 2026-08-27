@@ -66,7 +66,7 @@ export function FinalCta() {
 
   return (
     <section className="w-full bg-white dark:bg-[#060913] pt-4 pb-10 px-6 sm:px-10 lg:px-16 transition-colors duration-300">
-      <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[32px] border border-white/90 dark:border-white/[0.08] bg-[#F4F8FF] dark:bg-gradient-to-r dark:from-[#0D1424] dark:via-[#111D35] dark:to-[#0A1F26] p-6 sm:p-10 lg:p-11 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90">
+      <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[32px] border border-white/90 dark:border-white/10 bg-[#F4F8FF] dark:bg-gradient-to-r dark:from-[#0D1424] dark:via-[#111D35] dark:to-[#0A1F26] p-6 sm:p-10 lg:p-11 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90">
         
         {/* Light Mode Background Image */}
         <div className="pointer-events-none absolute inset-0 select-none dark:hidden">
@@ -143,7 +143,7 @@ export function FinalCta() {
           <div className="relative mx-auto w-full max-w-[540px] lg:h-[310px]">
             
             {/* 1. Career Match Score Card */}
-            <div className="relative rounded-[22px] border border-white/95 dark:border-white/[0.08] bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:top-0 lg:z-20 lg:w-[225px]">
+            <div className="relative rounded-[22px] border border-white/95 dark:border-white/10 bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:top-0 lg:z-20 lg:w-[225px]">
               <h3 className="text-[12px] font-bold text-slate-900 dark:text-white">
                 {isAr ? "مؤشر التوافق المهني" : "Career Match Score"}
               </h3>
@@ -176,7 +176,7 @@ export function FinalCta() {
             </div>
 
             {/* 2. Top Skills Card */}
-            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/[0.08] bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:right-0 lg:rtl:left-0 lg:top-2 lg:z-10 lg:w-[275px] lg:ltr:pl-9 lg:rtl:pr-9">
+            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/10 bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:right-0 lg:rtl:left-0 lg:top-2 lg:z-10 lg:w-[275px] lg:ltr:pl-9 lg:rtl:pr-9">
               <div className="flex items-center gap-1.5 text-[12px] font-bold text-slate-900 dark:text-white">
                 <GitFork className="w-3 h-3 text-slate-500" />
                 <span>{isAr ? "المهارات الأكثر طلباً" : "Top Skills"}</span>
@@ -222,7 +222,7 @@ export function FinalCta() {
             </div>
 
             {/* 3. Salary Insight Card */}
-            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/[0.08] bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:bottom-0 lg:z-10 lg:w-[345px]">
+            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/10 bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:bottom-0 lg:z-10 lg:w-[345px]">
               <div className="grid grid-cols-[130px_1fr] items-center gap-2">
                 <div>
                   <h3 className="text-[12px] font-bold text-slate-900 dark:text-white">
@@ -269,7 +269,7 @@ export function FinalCta() {
             </div>
 
             {/* 4. Market Demand Card */}
-            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/[0.08] bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:right-0 lg:rtl:left-0 lg:bottom-0 lg:z-20 lg:w-[210px]">
+            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/10 bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:right-0 lg:rtl:left-0 lg:bottom-0 lg:z-20 lg:w-[210px]">
               <h3 className="text-[12px] font-bold text-slate-900 dark:text-white">
                 {isAr ? "الطلب في السوق" : "Market Demand"}
               </h3>

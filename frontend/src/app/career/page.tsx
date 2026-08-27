@@ -38,7 +38,7 @@ export default function CareerPage() {
       <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
         
         {/* Profile Header Card */}
-        <div className="rounded-[24px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+        <div className="rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-[22px] font-black shadow-md shadow-blue-600/20">
               AS
@@ -84,7 +84,7 @@ export default function CareerPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Skills Column (Span 7) */}
-          <div className="lg:col-span-7 rounded-[24px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4">
+          <div className="lg:col-span-7 rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-[16px] font-bold text-[#0B132B] dark:text-white">
                 {isAr ? "المهارات المثبتة في ملفك" : "Verified Skills in Your Profile"}
@@ -102,7 +102,7 @@ export default function CareerPage() {
               {userSkills.map((skill) => (
                 <div 
                   key={skill.name}
-                  className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/60 dark:bg-white/[0.02]"
+                  className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-white/10 bg-slate-50/60 dark:bg-[#0B1120]/[0.02]"
                 >
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-[#12B76A]" />
@@ -119,7 +119,7 @@ export default function CareerPage() {
           </div>
 
           {/* Quick Shortcuts (Span 5) */}
-          <div className="lg:col-span-5 rounded-[24px] border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4 flex flex-col justify-between">
+          <div className="lg:col-span-5 rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4 flex flex-col justify-between">
             <div>
               <h2 className="text-[16px] font-bold text-[#0B132B] dark:text-white">
                 {isAr ? "الأدوات والتوصيات" : "Career Growth Tools"}
@@ -131,7 +131,7 @@ export default function CareerPage() {
               <div className="mt-4 space-y-2.5">
                 <Link
                   href="/skills"
-                  className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-white/[0.06] hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors"
+                  className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors"
                 >
                   <div className="flex items-center gap-2.5">
                     <Zap className="w-4 h-4 text-blue-600" />
@@ -149,7 +149,7 @@ export default function CareerPage() {
 
                 <Link
                   href="/cv-builder"
-                  className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-white/[0.06] hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors"
+                  className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors"
                 >
                   <div className="flex items-center gap-2.5">
                     <FileText className="w-4 h-4 text-emerald-600" />

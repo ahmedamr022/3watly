@@ -20,7 +20,7 @@ export function TargetRoles({ roles }: TargetRolesProps) {
           key={role.title}
           className="flex items-center gap-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#131C31] px-3.5 py-3 transition-[border-color,background-color] duration-150 ease-smooth hover:border-slate-300 dark:hover:border-white/20 hover:bg-[#FAFCFF] dark:hover:bg-[#18243E]">
 
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-white/5">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#0B1120]/5">
               <UserIcon className="h-[19px] w-[19px] text-slate-400 dark:text-slate-400" strokeWidth={1.8} aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">

@@ -13,11 +13,16 @@ import {
   LogOut, 
   Settings, 
   User,
-  ChevronDown
+  ChevronDown,
+  Camera,
+  RotateCcw
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
+import { formatTopbarName } from '@/utils/formatName';
 
 interface AppTopbarProps {
   onOpenMobile?: () => void;
@@ -34,11 +39,39 @@ export function AppTopbar({
 }: AppTopbarProps) {
   const router = useRouter();
   const { isAr } = useLanguage();
+  const { user, logout, updateAvatar } = useAuth();
+  const { reset: resetOnboarding } = useOnboarding();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [notifOpen, setNotifOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  
   const notifRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Dynamic user details
+  const rawFullName = user?.fullName || (isAr ? 'أحمد عمرو' : 'Ahmed Amr');
+  const displayName = formatTopbarName(rawFullName, isAr);
+  const firstName = user?.fullName ? user.fullName.trim().split(/\s+/)[0] : (isAr ? 'أحمد' : 'Ahmed');
+  const userEmail = user?.email || (isAr ? 'ahmed.sayed@gmail.com' : 'ahmed.sayed@gmail.com');
+
+  const getInitials = (name: string) => {
+    if (!name) return 'AH';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  const initials = getInitials(displayName);
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    updateAvatar(file);
+  };
 
   const notifications = isAr
     ? [
@@ -110,7 +143,16 @@ export function AppTopbar({
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-white/95 dark:bg-[#060913]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/[0.08] transition-colors duration-300">
+    <header className="sticky top-0 z-30 w-full bg-white/95 dark:bg-[#060913]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 transition-colors duration-300">
+      {/* Hidden File Input for Avatar Upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handlePhotoSelect}
+        accept="image/png,image/jpeg,image/webp,image/jpg"
+        className="hidden"
+      />
+
       <div className="flex h-18 items-center justify-between px-4 sm:px-8 gap-4">
         
         {/* Left Side: Mobile Menu Button + Page Greeting/Title */}
@@ -119,7 +161,7 @@ export function AppTopbar({
             <button
               type="button"
               onClick={onOpenMobile}
-              className="lg:hidden p-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
+              className="lg:hidden p-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -127,7 +169,7 @@ export function AppTopbar({
 
           <div className="min-w-0">
             <h1 className="text-[17px] sm:text-[20px] font-black text-[#0B132B] dark:text-white leading-tight truncate">
-              {title || (isAr ? "صباح الخير، يا أحمد 👋" : "Good morning, Ahmed 👋")}
+              {title || (isAr ? `صباح الخير، يا ${firstName} 👋` : `Good morning, ${firstName} 👋`)}
             </h1>
             <p className="hidden sm:block text-[12.5px] font-normal text-slate-500 dark:text-slate-400 truncate mt-0.5">
               {subtitle || (isAr ? "ملخص مسارك المهني وفرصك اليوم." : "Here's your career overview for today.")}
@@ -216,30 +258,59 @@ export function AppTopbar({
             <button
               type="button"
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+              className="flex items-center gap-2 py-1 px-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-[13px] font-black shadow-sm">
-                AS
+              <div className="relative flex h-8.5 w-8.5 items-center justify-center rounded-full overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-[12.5px] font-black shadow-sm ring-1 ring-white/20">
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={displayName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span>{initials}</span>
+                )}
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
+
+              <span className="hidden sm:inline text-xs font-bold text-slate-800 dark:text-slate-200 max-w-[100px] truncate">
+                {displayName}
+              </span>
+
+              <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-150 ${userMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {userMenuOpen && (
-              <div className="absolute ltr:right-0 rtl:left-0 top-12 w-56 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1120] p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                <div className="px-3 py-2 border-b border-slate-100 dark:border-white/5">
-                  <span className="block text-[13.5px] font-bold text-slate-900 dark:text-white">
-                    {isAr ? "أحمد سيد" : "Ahmed Sayed"}
-                  </span>
-                  <span className="block text-[11.5px] text-slate-400">
-                    ahmed.sayed@gmail.com
-                  </span>
+              <div className="absolute ltr:right-0 rtl:left-0 top-12 w-60 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1120] p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 divide-y divide-slate-100 dark:divide-white/5">
+                {/* User Info Header */}
+                <div className="p-3 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-md ring-2 ring-blue-500/30 shrink-0">
+                    {user?.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={displayName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span>{initials}</span>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-[13.5px] font-bold text-slate-900 dark:text-white truncate">
+                      {displayName}
+                    </span>
+                    <span className="block text-[11px] text-slate-400 truncate">
+                      {userEmail}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="mt-1 space-y-0.5">
+                {/* Navigation Actions */}
+                <div className="py-1.5 space-y-0.5">
                   <Link
                     href="/career"
                     onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                   >
                     <User className="w-4 h-4 text-slate-400" />
                     <span>{isAr ? "الملف الشخصي" : "My Profile"}</span>
@@ -248,18 +319,23 @@ export function AppTopbar({
                   <Link
                     href="/settings"
                     onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                   >
                     <Settings className="w-4 h-4 text-slate-400" />
                     <span>{isAr ? "الإعدادات" : "Settings"}</span>
                   </Link>
+                </div>
 
+                {/* Logout Action */}
+                <div className="pt-1.5">
                   <button
                     type="button"
                     onClick={() => {
+                      logout();
+                      setUserMenuOpen(false);
                       router.push('/login');
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
                   >
                     <LogOut className="w-4 h-4 text-red-500" />
                     <span>{isAr ? "تسجيل الخروج" : "Log Out"}</span>
