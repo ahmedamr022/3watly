@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppSidebar } from './AppSidebar';
 import { AppTopbar } from './AppTopbar';
 
@@ -13,24 +13,44 @@ interface AppShellProps {
 
 export function AppShell({ children, title, subtitle, showSearch = true }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('majra-sidebar-collapsed');
+    if (saved === 'true') {
+      setIsCollapsed(true);
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('majra-sidebar-collapsed', String(next));
+      return next;
+    });
+  };
 
   return (
     <div className="relative min-h-screen w-full bg-[#F8FAFC] dark:bg-[#060913] text-[#1E293B] dark:text-[#F8FAFC] flex transition-colors duration-300">
       
-      {/* Dynamic Background Graphics for Internal Pages (Light & Dark) */}
+      {/* Dynamic Background Graphics */}
       <div 
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500 bg-[url('/backgrounds/dashboard-light.png')] dark:bg-[url('/backgrounds/dashboard-dark.png')] opacity-100 dark:opacity-90"
       />
 
-      {/* Shared Sidebar */}
+      {/* Shared Collapsible Sidebar */}
       <AppSidebar 
         mobileOpen={mobileOpen} 
-        onCloseMobile={() => setMobileOpen(false)} 
+        onCloseMobile={() => setMobileOpen(false)}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={toggleCollapse}
       />
 
-      {/* Main Content Area (Offset by sidebar width on desktop) */}
-      <div className="relative z-10 flex-1 flex flex-col min-w-0 lg:ltr:pl-64 lg:rtl:pr-64 transition-all">
+      {/* Main Content Area */}
+      <div className={`relative z-10 flex-1 flex flex-col min-w-0 ${
+        isCollapsed ? 'lg:ltr:pl-20 lg:rtl:pr-20' : 'lg:ltr:pl-64 lg:rtl:pr-64'
+      } transition-all duration-300`}>
         {/* Shared Topbar */}
         <AppTopbar 
           onOpenMobile={() => setMobileOpen(true)} 

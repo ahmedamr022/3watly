@@ -18,7 +18,7 @@ export function BulletList({
   footer
 }: BulletListProps) {
   const setBullet = (index: number, value: string) =>
-  onChange(bullets.map((b, i) => i === index ? value : b));
+    onChange(bullets.map((b, i) => (i === index ? value : b)));
 
   const insertAfter = (index: number) => {
     const next = [...bullets];
@@ -35,47 +35,47 @@ export function BulletList({
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3">
+    <div className="rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#070C18] p-3">
       <ul className="space-y-1">
-        {bullets.map((bullet, index) =>
-        <li
-          key={index}
-          className="group flex items-start gap-2 rounded-lg px-1.5 py-1 transition-colors duration-150 ease-smooth hover:bg-slate-50">
-          
+        {bullets.map((bullet, index) => (
+          <li
+            key={index}
+            className="group flex items-start gap-2 rounded-lg px-2 py-1.5 transition-colors duration-150 hover:bg-slate-50 dark:hover:bg-white/5"
+          >
             <span
-            className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400"
-            aria-hidden="true" />
-          
+              className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600 dark:bg-blue-400"
+              aria-hidden="true"
+            />
             <AutoTextarea
-            value={bullet}
-            onChange={(value) => setBullet(index, value)}
-            ariaLabel={`${itemLabel} ${index + 1}`}
-            placeholder="Describe what you did and the result it drove…"
-            onEnter={() => insertAfter(index)}
-            onBackspaceEmpty={() => removeAt(index)} />
-          
+              value={bullet}
+              onChange={(value) => setBullet(index, value)}
+              ariaLabel={`${itemLabel} ${index + 1}`}
+              placeholder="Describe what you did and the impact it drove…"
+              onEnter={() => insertAfter(index)}
+              onBackspaceEmpty={() => removeAt(index)}
+            />
             <button
-            type="button"
-            onClick={() => removeAt(index)}
-            aria-label={`Delete ${itemLabel} ${index + 1}`}
-            className="mt-0.5 shrink-0 rounded-md p-1 text-slate-300 opacity-0 transition-opacity duration-150 ease-smooth hover:bg-red-50 hover:text-red-500 focus-visible:opacity-100 group-hover:opacity-100">
-            
+              type="button"
+              onClick={() => removeAt(index)}
+              aria-label={`Delete ${itemLabel} ${index + 1}`}
+              className="mt-0.5 shrink-0 rounded-md p-1 text-slate-300 dark:text-slate-600 opacity-0 transition-opacity duration-150 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-rose-500 focus-visible:opacity-100 group-hover:opacity-100 cursor-pointer"
+            >
               <Trash2Icon className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           </li>
-        )}
+        ))}
       </ul>
 
       <button
         type="button"
         onClick={() => insertAfter(bullets.length - 1)}
-        className="mt-1.5 inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs font-semibold text-brand-600 transition-colors duration-150 ease-smooth hover:text-brand-700">
-        
+        className="mt-2 inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-bold text-[#1B57E0] dark:text-[#60A5FA] hover:bg-blue-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+      >
         <PlusIcon className="h-3.5 w-3.5" aria-hidden="true" />
-        Add {itemLabel}
+        <span>Add {itemLabel}</span>
       </button>
 
       {footer}
-    </div>);
-
+    </div>
+  );
 }
