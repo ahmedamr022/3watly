@@ -88,7 +88,7 @@ export function AppSidebar({ mobileOpen = false, onCloseMobile }: AppSidebarProp
       ];
 
   const sidebarContent = (
-    <div className="flex h-full flex-col justify-between bg-[#0B132B] dark:bg-[#070C18] text-[#F8FAFC] p-4 sm:p-5 select-none overflow-hidden transition-colors duration-200">
+    <div className="flex h-full flex-col justify-between bg-white dark:bg-[#070C18] text-slate-900 dark:text-[#F8FAFC] p-4 sm:p-5 select-none overflow-hidden transition-colors duration-200">
       
       {/* Top Area: Logo + Nav Items */}
       <div className="space-y-5">
@@ -103,7 +103,7 @@ export function AppSidebar({ mobileOpen = false, onCloseMobile }: AppSidebarProp
             <button
               type="button"
               onClick={onCloseMobile}
-              className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -111,10 +111,10 @@ export function AppSidebar({ mobileOpen = false, onCloseMobile }: AppSidebarProp
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent" />
+        <div className="h-px bg-slate-100 dark:bg-white/[0.08]" />
 
         {/* Nav Groups */}
-        <nav className="space-y-4">
+        <nav className="space-y-4.5">
           {navGroups.map((group) => (
             <div key={group.group} className="space-y-1.5">
               <span className="px-3 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
@@ -131,12 +131,12 @@ export function AppSidebar({ mobileOpen = false, onCloseMobile }: AppSidebarProp
                       onClick={onCloseMobile}
                       className={`flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-[13.5px] font-semibold transition-all duration-150 group ${
                         isActive
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md shadow-blue-600/30 ring-1 ring-white/10'
-                          : 'text-slate-300 dark:text-slate-400 hover:text-white hover:bg-white/[0.08] active:scale-[0.98]'
+                          ? 'bg-[#1B57E0] dark:bg-gradient-to-r dark:from-blue-600 dark:to-indigo-600 text-white font-bold shadow-md shadow-blue-600/25 ring-1 ring-blue-500/20 dark:ring-white/10'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100/90 dark:hover:bg-white/[0.08] active:scale-[0.98]'
                       }`}
                     >
                       <Icon className={`w-4.5 h-4.5 shrink-0 transition-transform duration-150 group-hover:scale-110 ${
-                        isActive ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'
+                        isActive ? 'text-white' : 'text-slate-400 dark:text-slate-400 group-hover:text-[#1B57E0] dark:group-hover:text-blue-400'
                       }`} />
                       <span className="truncate">{item.label}</span>
                     </Link>
@@ -150,7 +150,7 @@ export function AppSidebar({ mobileOpen = false, onCloseMobile }: AppSidebarProp
       </div>
 
       {/* Bottom Area: Settings + Logout only */}
-      <div className="pt-3 border-t border-white/[0.1] space-y-1.5">
+      <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] space-y-1.5">
         
         {/* Settings link */}
         <Link
@@ -158,12 +158,12 @@ export function AppSidebar({ mobileOpen = false, onCloseMobile }: AppSidebarProp
           onClick={onCloseMobile}
           className={`flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-[13.5px] font-semibold transition-all duration-150 group ${
             pathname === '/settings'
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md shadow-blue-600/30 ring-1 ring-white/10'
-              : 'text-slate-300 dark:text-slate-400 hover:text-white hover:bg-white/[0.08] active:scale-[0.98]'
+              ? 'bg-[#1B57E0] dark:bg-gradient-to-r dark:from-blue-600 dark:to-indigo-600 text-white font-bold shadow-md shadow-blue-600/25 ring-1 ring-blue-500/20 dark:ring-white/10'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100/90 dark:hover:bg-white/[0.08] active:scale-[0.98]'
           }`}
         >
           <Settings className={`w-4.5 h-4.5 transition-transform duration-150 group-hover:rotate-45 ${
-            pathname === '/settings' ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'
+            pathname === '/settings' ? 'text-white' : 'text-slate-400 dark:text-slate-400 group-hover:text-[#1B57E0] dark:group-hover:text-blue-400'
           }`} />
           <span>{isAr ? "الإعدادات" : "Settings"}</span>
         </Link>
@@ -172,9 +172,9 @@ export function AppSidebar({ mobileOpen = false, onCloseMobile }: AppSidebarProp
         <button
           type="button"
           onClick={handleLogout}
-          className="flex items-center gap-3.5 px-4 py-2.5 w-full rounded-xl text-[13.5px] font-semibold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all duration-150 cursor-pointer group active:scale-[0.98]"
+          className="flex items-center gap-3.5 px-4 py-2.5 w-full rounded-xl text-[13.5px] font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all duration-150 cursor-pointer group active:scale-[0.98]"
         >
-          <LogOut className="w-4.5 h-4.5 text-slate-400 group-hover:text-rose-400 transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5" />
+          <LogOut className="w-4.5 h-4.5 text-slate-400 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5" />
           <span>{isAr ? "تسجيل الخروج" : "Log out"}</span>
         </button>
 
@@ -186,7 +186,7 @@ export function AppSidebar({ mobileOpen = false, onCloseMobile }: AppSidebarProp
   return (
     <>
       {/* Desktop Fixed Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col fixed top-0 ltr:left-0 rtl:right-0 bottom-0 z-40 border-r rtl:border-r-0 rtl:border-l border-slate-800/80 dark:border-white/10 shadow-2xl">
+      <aside className="hidden lg:flex w-64 flex-col fixed top-0 ltr:left-0 rtl:right-0 bottom-0 z-40 border-r rtl:border-r-0 rtl:border-l border-slate-200/90 dark:border-white/10 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
         {sidebarContent}
       </aside>
 
