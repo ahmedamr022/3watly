@@ -26,11 +26,20 @@ import { ApiService } from '@/services/api';
 import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { mockJobsList } from '@/data/jobs';
+import { useCV } from '@/contexts/CVContext';
 
 export default function DashboardPage() {
   const { isAr } = useLanguage();
   const { user } = useAuth();
+  const { analysis } = useCV();
   const [liveJobs, setLiveJobs] = useState(mockJobsList);
+  const [marketStats, setMarketStats] = useState({
+    totalJobs: 260,
+    totalCompanies: 84,
+    remoteJobsPercentage: 38,
+    topSkillName: 'SQL',
+    topSkillPercentage: 81,
+  });
 
   React.useEffect(() => {
     let mounted = true;
@@ -40,6 +49,22 @@ export default function DashboardPage() {
         if (data.length > 0) setLiveJobs(data);
       }
     }).catch(() => {});
+
+    fetch('/api/market/stats')
+      .then((res) => res.json())
+      .then((data) => {
+        if (mounted && data?.stats) {
+          setMarketStats({
+            totalJobs: data.stats.totalJobs || 260,
+            totalCompanies: data.stats.totalCompanies || 84,
+            remoteJobsPercentage: data.stats.remoteJobsPercentage || 38,
+            topSkillName: data.stats.topSkillName || 'SQL',
+            topSkillPercentage: data.stats.topSkillPercentage || 81,
+          });
+        }
+      })
+      .catch(() => {});
+
     return () => { mounted = false; };
   }, []);
   const [bookmarkedJobs, setBookmarkedJobs] = useState<string[]>([]);
@@ -52,6 +77,11 @@ export default function DashboardPage() {
       prev.includes(strId) ? prev.filter(item => item !== strId) : [...prev, strId]
     );
   };
+
+  const careerAlignment = analysis?.score ? Math.min(98, Math.max(60, analysis.score)) : 84;
+  const missingSkills = analysis?.keywords?.missing?.length
+    ? analysis.keywords.missing.slice(0, 2)
+    : ['Power BI', 'SQL'];
 
   const topJobs = React.useMemo(() => {
     const list = liveJobs.length > 0 ? liveJobs.slice(0, 3) : mockJobsList.slice(0, 3);
@@ -95,7 +125,7 @@ export default function DashboardPage() {
                   {isAr ? "إجمالي الوظائف المحللة" : "Total Analyzed Jobs"}
                 </span>
                 <p className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
-                  12,842
+                  {marketStats.totalJobs.toLocaleString()}
                 </p>
                 <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
                   <span>↑ 8%</span>
@@ -132,7 +162,7 @@ export default function DashboardPage() {
                   {isAr ? "الشركات الموظفة" : "Hiring Companies"}
                 </span>
                 <p className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
-                  1,246
+                  {marketStats.totalCompanies.toLocaleString()}
                 </p>
                 <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
                   <span>↑ 6.3%</span>
@@ -169,7 +199,7 @@ export default function DashboardPage() {
                   {isAr ? "نسبة العمل عن بُعد/هجين" : "Remote/Hybrid Ratio"}
                 </span>
                 <p className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
-                  38.4%
+                  {marketStats.remoteJobsPercentage}%
                 </p>
                 <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
                   <span>↑ 4.7%</span>
@@ -206,10 +236,10 @@ export default function DashboardPage() {
                   {isAr ? "المهارة الأكثر طلباً" : "Top In-Demand Skill"}
                 </span>
                 <p className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
-                  SQL
+                  {marketStats.topSkillName}
                 </p>
                 <span className="block text-[11.5px] font-normal text-slate-500 dark:text-slate-400 mt-1 truncate">
-                  {isAr ? "مطلوبة في 81% من وظائف البيانات" : "81% of data roles"}
+                  {isAr ? `مطلوبة في ${marketStats.topSkillPercentage}% من الوظائف` : `${marketStats.topSkillPercentage}% of active roles`}
                 </span>
               </div>
             </div>
@@ -243,8 +273,8 @@ export default function DashboardPage() {
                   <InfoTooltip
                     title="Career Alignment"
                     titleAr="مؤشر التوافق المهني"
-                    content="Calculates your profile readiness against 1,240+ active Data & Tech roles across Egyptian top employers."
-                    contentAr="يقيس جاهزية وتوافق مهاراتك مع أكثر من 1,240 وظيفة نشطة في كبرى الشركات داخل مصر."
+                    content="Calculates your profile readiness against active Data & Tech roles across Egyptian top employers."
+                    contentAr="يقيس جاهزية وتوافق مهاراتك مع وظائف السوق النشطة في كبرى الشركات داخل مصر."
                   />
                 </div>
               </div>
@@ -272,12 +302,12 @@ export default function DashboardPage() {
                       strokeWidth="9"
                       strokeLinecap="round"
                       strokeDasharray={2 * Math.PI * 40}
-                      strokeDashoffset={2 * Math.PI * 40 * (1 - 0.74)}
+                      strokeDashoffset={2 * Math.PI * 40 * (1 - careerAlignment / 100)}
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="text-[26px] font-black text-[#0B132B] dark:text-white leading-none">
-                      74%
+                      {careerAlignment}%
                     </span>
                   </div>
                 </div>
@@ -333,13 +363,13 @@ export default function DashboardPage() {
               <div className="mt-6 space-y-2.5">
                 <h3 className="text-[15.5px] font-bold text-[#0B132B] dark:text-white leading-snug">
                   {isAr ? "طور مهارات " : "Improve "}
-                  <span className="text-[#1B57E0] dark:text-[#60A5FA]">Power BI</span> {isAr ? "و " : "and "}
-                  <span className="text-[#1B57E0] dark:text-[#60A5FA]">SQL</span>.
+                  <span className="text-[#1B57E0] dark:text-[#60A5FA]">{missingSkills[0] || 'SQL'}</span> {isAr ? "و " : "and "}
+                  <span className="text-[#1B57E0] dark:text-[#60A5FA]">{missingSkills[1] || 'Power BI'}</span>.
                 </h3>
                 <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
                   {isAr
-                    ? "هاتان هما أكثر مهارتين ذات تأثير مرتفع تنقصان ملفك مقارنة بـ 1,240 وظيفة نشطة في سوق العمل المصري."
-                    : "These are the two highest-impact skills missing from your profile based on 1,240 current Egyptian job postings."}
+                    ? `هاتان هما أكثر مهارتين ذات تأثير مرتفع تنقصان ملفك مقارنة بـ ${marketStats.totalJobs} وظيفة نشطة في سوق العمل المصري.`
+                    : `These are the two highest-impact skills missing from your profile based on ${marketStats.totalJobs} active job postings.`}
                 </p>
               </div>
             </div>
