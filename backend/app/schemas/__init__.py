@@ -1,1 +1,0 @@
-"""MAJRA Pydantic Schemas"""
