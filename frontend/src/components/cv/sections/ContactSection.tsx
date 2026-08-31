@@ -20,7 +20,7 @@ export function ContactSection() {
         label="Full Name"
         value={cv.contact.fullName}
         onChange={setField('fullName')}
-        placeholder="Ahmed Amr"
+        placeholder="Full Name"
         invalid={cv.contact.fullName.trim() === ''}
         error={
         cv.contact.fullName.trim() === '' ? 'Your name is required.' : undefined

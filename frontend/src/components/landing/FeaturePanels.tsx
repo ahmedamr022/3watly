@@ -134,7 +134,7 @@ export function CvPreviewPanel() {
         <div className="flex flex-col rounded-xl border border-slate-200/70 dark:border-white/5 bg-white dark:bg-[#0D1527] p-2.5 shadow-sm space-y-1.5">
           <div>
             <h4 className="text-[12px] font-bold text-slate-900 dark:text-white leading-tight">
-              {isAr ? "أحمد حسن" : "Ahmed Hassan"}
+              {isAr ? "الاسم الكامل" : "Full Name"}
             </h4>
             <p className="text-[9.5px] text-slate-400 font-medium leading-none mt-0.5">
               {isAr ? "محلل بيانات" : "Data Analyst"}
@@ -143,7 +143,7 @@ export function CvPreviewPanel() {
 
           <div className="flex items-center gap-2 text-[8px] text-slate-400 border-b border-slate-100 dark:border-white/5 pb-1">
             <span className="flex items-center gap-0.5"><MapPin className="w-2 h-2" /> {isAr ? "القاهرة" : "Cairo"}</span>
-            <span className="flex items-center gap-0.5"><Mail className="w-2 h-2" /> ahmed@</span>
+            <span className="flex items-center gap-0.5"><Mail className="w-2 h-2" /> info@</span>
             <span className="flex items-center gap-0.5"><Phone className="w-2 h-2" /> 0100...</span>
           </div>
 

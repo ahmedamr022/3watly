@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
-import React from 'react';
-import { parsedCvByRole, roleProfiles } from '../data/roleProfiles';
-import type { ParsedCv, ParseStatus, RoleId, RoleProfile, UploadedFile } from '../types/onboarding';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import type { ParsedCv, ParseStatus, RoleId, RoleProfile, UploadedFile, TechKey } from '../types/onboarding';
+import { roleProfiles } from '../data/roleProfiles';
 import { useAuth } from './AuthContext';
 import { extractNameFromFilename } from '../utils/formatName';
-import { ApiService } from '../services/api';
+import { toast } from 'sonner';
 
 interface OnboardingState {
   role: RoleId | null;
@@ -14,200 +14,303 @@ interface OnboardingState {
   file: UploadedFile | null;
   status: ParseStatus;
   progress: number;
+  stageMessage: string;
   checksRevealed: number;
   parsedCv: ParsedCv | null;
   profile: RoleProfile | null;
   skillsAdded: number;
+  previewUrl: string | null;
   selectRole: (role: RoleId) => void;
   setExperience: (level: string) => void;
   toggleLocation: (location: string) => void;
-  uploadFile: (file: UploadedFile) => void;
+  uploadFile: (file: UploadedFile) => Promise<void>;
   removeFile: () => void;
   reset: () => void;
 }
 
-const OnboardingContext = React.createContext<OnboardingState | null>(null);
-
-const CHECK_DELAYS = [1100, 2100, 3100];
-const PARSE_DURATION = 4200;
+const OnboardingContext = createContext<OnboardingState | null>(null);
 
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
-  const { user, updateFullName } = useAuth();
-  const [role, setRole] = React.useState<RoleId | null>(null);
-  const [experience, setExperience] = React.useState('Fresh Graduate');
-  const [locations, setLocations] = React.useState<string[]>(['cairo', 'giza', 'remote-egypt']);
-  const [file, setFile] = React.useState<UploadedFile | null>(null);
-  const [status, setStatus] = React.useState<ParseStatus>('idle');
-  const [progress, setProgress] = React.useState(0);
-  const [checksRevealed, setChecksRevealed] = React.useState(0);
-  const [skillsAdded, setSkillsAdded] = React.useState(0);
-  const [customParsedCv, setCustomParsedCv] = React.useState<ParsedCv | null>(null);
-  const timers = React.useRef<number[]>([]);
-  const roleRef = React.useRef<RoleId | null>(null);
+  const { user, updateFullName, updateTargetRole, setOnboardingCompleted } = useAuth();
+  const [role, setRole] = useState<RoleId | null>('data-analyst');
+  const [experience, setExperience] = useState('1-3 Years');
+  const [locations, setLocations] = useState<string[]>(['Cairo', 'Giza', 'Remote']);
+  const [file, setFile] = useState<UploadedFile | null>(null);
+  const [status, setStatus] = useState<ParseStatus>('idle');
+  const [progress, setProgress] = useState(0);
+  const [stageMessage, setStageMessage] = useState('');
+  const [checksRevealed, setChecksRevealed] = useState(0);
+  const [skillsAdded, setSkillsAdded] = useState(0);
+  const [parsedCv, setParsedCv] = useState<ParsedCv | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    roleRef.current = role;
-  }, [role]);
-
-  const clearTimers = React.useCallback(() => {
-    timers.current.forEach((id) => {
-      window.clearTimeout(id);
-      window.clearInterval(id);
-    });
-    timers.current = [];
+  // Restore onboarding and parsed CV from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedCv = localStorage.getItem('3watly_parsed_cv');
+      if (savedCv) {
+        const parsed = JSON.parse(savedCv);
+        setParsedCv(parsed);
+        setStatus('complete');
+        setProgress(100);
+        setChecksRevealed(3);
+      }
+      const savedRole = localStorage.getItem('3watly_role');
+      if (savedRole) {
+        setRole(savedRole as RoleId);
+      }
+    } catch (e) {
+      console.warn('Error loading onboarding state:', e);
+    }
   }, []);
 
-  React.useEffect(() => clearTimers, [clearTimers]);
-
-  const toggleLocation = React.useCallback((location: string) => {
+  const toggleLocation = useCallback((location: string) => {
     setLocations((prev) =>
       prev.includes(location) ? prev.filter((item) => item !== location) : [...prev, location]
     );
   }, []);
 
-  const removeFile = React.useCallback(() => {
-    clearTimers();
+  const removeFile = useCallback(() => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setFile(null);
+    setPreviewUrl(null);
     setStatus('idle');
     setProgress(0);
+    setStageMessage('');
     setChecksRevealed(0);
     setSkillsAdded(0);
-    setCustomParsedCv(null);
-  }, [clearTimers]);
+    setParsedCv(null);
+    localStorage.removeItem('3watly_parsed_cv');
+  }, [previewUrl]);
 
-  const uploadFile = React.useCallback(
-    (nextFile: UploadedFile) => {
-      clearTimers();
+  const selectRole = useCallback((next: RoleId) => {
+    setRole(next);
+    localStorage.setItem('3watly_role', next);
+    updateTargetRole(next.replace(/-/g, ' '));
+  }, [updateTargetRole]);
+
+  const reset = useCallback(() => {
+    removeFile();
+    setRole('data-analyst');
+    setExperience('1-3 Years');
+    setLocations(['Cairo', 'Giza', 'Remote']);
+    localStorage.removeItem('3watly_role');
+  }, [removeFile]);
+
+  // Real CV Upload & Parsing Handler
+  const uploadFile = useCallback(
+    async (nextFile: UploadedFile) => {
+      const raw = nextFile.rawFile || nextFile.file;
       setFile(nextFile);
-      setStatus('parsing');
-      setProgress(8);
+      setStatus('uploading');
+      setProgress(15);
+      setStageMessage('Uploading CV document...');
       setChecksRevealed(0);
       setSkillsAdded(0);
 
-      // 1. Extract name from filename or user auth profile
-      const extractedFromName = extractNameFromFilename(nextFile.name);
-      if (extractedFromName && (!user?.fullName || user.fullName === '3WATLY User' || user.fullName === 'مستخدم عواطلي')) {
-        updateFullName(extractedFromName);
+      // Create preview object URL for real document view
+      if (raw) {
+        const objUrl = URL.createObjectURL(raw);
+        setPreviewUrl(objUrl);
       }
 
-      // 2. Try sending file to FastAPI Backend
-      if ((nextFile as any).file || (nextFile as any).rawFile) {
+      try {
+        // Stage 1: Progress step
+        await new Promise((r) => setTimeout(r, 400));
+        setProgress(35);
+        setStageMessage('Reading document structure and layout...');
+        setChecksRevealed(1);
+
         const formData = new FormData();
-        formData.append('file', (nextFile as any).file || (nextFile as any).rawFile);
-        ApiService.analyzeCv(formData).then((res) => {
-          if (res && res.skills) {
-            console.log('Live backend CV parsed successfully:', res);
-          }
-        }).catch(() => {});
-      }
+        if (raw) {
+          formData.append('file', raw);
+        } else {
+          // If no raw file, construct text blob
+          const blob = new Blob([nextFile.name], { type: 'text/plain' });
+          formData.append('file', blob, nextFile.name);
+        }
+        if (role) formData.append('targetRole', role);
 
-      const intervalId = window.setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 92) {
-            window.clearInterval(intervalId);
-            return 92;
-          }
-          return prev + Math.floor(Math.random() * 9) + 4;
+        // Stage 2: Entity extraction
+        setProgress(60);
+        setStageMessage('Extracting contact details, experiences, and technical skills...');
+        setChecksRevealed(2);
+
+        // Call Next.js Server Parsing API
+        const response = await fetch('/api/cv/parse', {
+          method: 'POST',
+          body: formData
         });
-      }, 220);
-      timers.current.push(intervalId);
 
-      CHECK_DELAYS.forEach((delay, index) => {
-        const timerId = window.setTimeout(() => {
-          setChecksRevealed(index + 1);
-        }, delay);
-        timers.current.push(timerId);
-      });
+        if (!response.ok) {
+          const errJson = await response.json().catch(() => ({}));
+          throw new Error(errJson.error || 'Server failed to parse CV');
+        }
 
-      const finishTimer = window.setTimeout(() => {
-        window.clearInterval(intervalId);
+        // Stage 3: ATS analysis & insights
+        setProgress(85);
+        setStageMessage('Analyzing ATS compliance & matching against Egyptian market...');
+        setChecksRevealed(3);
+
+        const result = await response.json();
+        const data = result.data;
+
+        // Construct normalized ParsedCv object
+        const detectedSkills: { key: TechKey; name: string }[] = (data.skills || []).map((s: string) => ({
+          key: (s.toLowerCase().replace(/[^a-z]/g, '') as TechKey) || 'sql',
+          name: s
+        }));
+
+        const finalParsedCv: ParsedCv = {
+          fullName: data.fullName || user?.fullName || extractNameFromFilename(nextFile.name) || 'User',
+          currentTitle: data.targetRole || 'Data Analyst',
+          email: data.email || user?.email || '',
+          phone: data.phone || '',
+          location: data.location || 'Cairo, Egypt',
+          linkedin: data.linkedin || '',
+          github: data.github || '',
+          summary: data.summary || '',
+          filename: nextFile.name,
+          experienceYears: data.experienceYears || 2,
+          experiences: data.experiences || [],
+          experience: {
+            title: data.experiences?.[0]?.role || data.targetRole || 'Professional',
+            company: data.experiences?.[0]?.company || 'Tech Company',
+            location: data.location || 'Cairo, Egypt',
+            period: `${data.experiences?.[0]?.startDate || '2023'} — ${data.experiences?.[0]?.endDate || 'Present'}`,
+            bullets: data.experiences?.[0]?.bullets || []
+          },
+          educationHistory: data.education || [],
+          education: {
+            degree: data.education?.[0]?.degree || 'Bachelor Degree',
+            school: data.education?.[0]?.institution || 'University',
+            period: `${data.education?.[0]?.startDate || '2019'} — ${data.education?.[0]?.endDate || '2023'}`
+          },
+          skills: data.skills || [],
+          detectedSkills,
+          categorizedSkills: data.categorizedSkills,
+          projects: data.projects || [],
+          atsReport: data.atsReport,
+          actionPlan: data.actionPlan
+        };
+
+        // Complete parsing
+        await new Promise((r) => setTimeout(r, 300));
         setProgress(100);
         setStatus('complete');
-        setChecksRevealed(3);
-      }, PARSE_DURATION);
-      timers.current.push(finishTimer);
-    },
-    [clearTimers, user, updateFullName]
-  );
+        setStageMessage('Parsing and market alignment complete!');
+        setParsedCv(finalParsedCv);
+        setSkillsAdded(detectedSkills.length);
+        setOnboardingCompleted(true);
 
-  const selectRole = React.useCallback(
-    (next: RoleId) => {
-      const changed = roleRef.current !== next;
-      roleRef.current = next;
-      setRole(next);
-      if (changed && file) uploadFile(file);
-    },
-    [file, uploadFile]
-  );
+        // Sync name & role to AuthContext
+        if (data.fullName && (!user?.fullName || user.fullName === '3WATLY User' || user.fullName === 'مستخدم عواطلي')) {
+          updateFullName(data.fullName);
+        }
 
-  const reset = React.useCallback(() => {
-    clearTimers();
-    setRole(null);
-    setExperience('Fresh Graduate');
-    setLocations(['cairo', 'giza', 'remote-egypt']);
-    removeFile();
-  }, [clearTimers, removeFile]);
+        // Save to localStorage
+        try {
+          localStorage.setItem('3watly_parsed_cv', JSON.stringify(finalParsedCv));
+        } catch (storageErr) {
+          console.warn('Storage error:', storageErr);
+        }
 
-  // Derive dynamic parsed CV with REAL user name and email
-  const currentFullName = user?.fullName
-    ? user.fullName.toUpperCase()
-    : file?.name
-    ? (extractNameFromFilename(file.name)?.toUpperCase() || 'AHMED AMR')
-    : 'AHMED AMR';
-
-  const currentEmail = user?.email || (currentFullName ? `${currentFullName.toLowerCase().replace(/\s+/g, '.')}@email.com` : 'ahmed.amr@email.com');
-
-  const baseCv = role && status === 'complete' && parsedCvByRole[role] ? parsedCvByRole[role] : null;
-  const parsedCv: ParsedCv | null = baseCv
-    ? {
-        ...baseCv,
-        fullName: currentFullName,
-        email: currentEmail
+        toast.success('CV parsed and ATS analyzed successfully!');
+      } catch (err: any) {
+        console.error('CV Upload / Parsing Error:', err);
+        setStatus('error');
+        setStageMessage(err.message || 'Error occurred while analyzing CV');
+        toast.error(err.message || 'Failed to parse CV');
       }
-    : null;
-
-  const value = React.useMemo<OnboardingState>(
-    () => ({
-      role,
-      experience,
-      locations,
-      file,
-      status,
-      progress,
-      checksRevealed,
-      parsedCv,
-      profile: role && status === 'complete' ? roleProfiles[role] : null,
-      skillsAdded,
-      selectRole,
-      setExperience,
-      toggleLocation,
-      uploadFile,
-      removeFile,
-      reset
-    }),
-    [
-      role,
-      experience,
-      locations,
-      file,
-      status,
-      progress,
-      checksRevealed,
-      parsedCv,
-      skillsAdded,
-      selectRole,
-      toggleLocation,
-      uploadFile,
-      removeFile,
-      reset
-    ]
+    },
+    [role, user, updateFullName, setOnboardingCompleted]
   );
 
-  return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
+  // Construct dynamic RoleProfile derived from REAL parsed CV data
+  const profile: RoleProfile | null = React.useMemo(() => {
+    if (!parsedCv) {
+      return role && roleProfiles[role] ? roleProfiles[role] : null;
+    }
+
+    const atsScore = parsedCv.atsReport?.score ?? 84;
+    const expYears = parsedCv.experienceYears ?? 2;
+    const skillsList = parsedCv.skills ?? [];
+
+    const topSkills = parsedCv.detectedSkills && parsedCv.detectedSkills.length > 0
+      ? parsedCv.detectedSkills.slice(0, 6)
+      : [
+          { key: 'sql' as TechKey, name: 'SQL' },
+          { key: 'python' as TechKey, name: 'Python' },
+          { key: 'excel' as TechKey, name: 'Excel' }
+        ];
+
+    const fallbackGaps = role && roleProfiles[role]?.skillGaps ? roleProfiles[role].skillGaps : [];
+
+    return {
+      headline: `${parsedCv.fullName} • ${parsedCv.currentTitle}`,
+      scores: {
+        overall: atsScore,
+        skills: Math.min(100, Math.max(50, skillsList.length * 8)),
+        experience: Math.min(100, Math.max(60, expYears * 25)),
+        education: 90
+      },
+      experienceYears: expYears,
+      relevance: { relevant: 75, related: 20, other: 5 },
+      strengths: parsedCv.atsReport?.strengths?.length ? parsedCv.atsReport.strengths : ['Strong technical stack match'],
+      topSkills,
+      extraSkillCount: Math.max(0, skillsList.length - 6),
+      skillGaps: fallbackGaps,
+      targetRoles: [
+        { title: parsedCv.currentTitle, match: atsScore, label: 'Strong Match' },
+        { title: 'Data Engineer', match: Math.max(60, atsScore - 12), label: 'Good Match' },
+        { title: 'BI Specialist', match: Math.max(55, atsScore - 18), label: 'Possible Match' }
+      ],
+      actions: parsedCv.actionPlan?.map((ap) => ({
+        key: 'course' as const,
+        title: ap.title,
+        meta: ap.description
+      })) || [],
+      priorities: parsedCv.actionPlan?.map((ap) => ({
+        key: 'project' as const,
+        title: ap.title,
+        description: ap.description,
+        impact: ap.priority === 'high' ? 'High' : ap.priority === 'medium' ? 'Medium' : 'Low'
+      })) || []
+    };
+  }, [parsedCv, role]);
+
+  return (
+    <OnboardingContext.Provider
+      value={{
+        role,
+        experience,
+        locations,
+        file,
+        status,
+        progress,
+        stageMessage,
+        checksRevealed,
+        parsedCv,
+        profile,
+        skillsAdded,
+        previewUrl,
+        selectRole,
+        setExperience,
+        toggleLocation,
+        uploadFile,
+        removeFile,
+        reset
+      }}
+    >
+      {children}
+    </OnboardingContext.Provider>
+  );
 }
 
 export function useOnboarding() {
-  const context = React.useContext(OnboardingContext);
+  const context = useContext(OnboardingContext);
   if (!context) {
     throw new Error('useOnboarding must be used inside an OnboardingProvider');
   }

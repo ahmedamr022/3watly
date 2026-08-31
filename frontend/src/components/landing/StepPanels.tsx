@@ -18,7 +18,7 @@ export function UploadPanel() {
         <span className="mt-1.5 flex h-7 w-8 items-center justify-center rounded-md bg-[#E11D48] text-[9px] font-bold text-white shadow-sm">
           PDF
         </span>
-        <p className="mt-2 text-[11px] font-bold text-slate-900 dark:text-white leading-tight">Ahmed Hassan</p>
+        <p className="mt-2 text-[11px] font-bold text-slate-900 dark:text-white leading-tight">My Resume</p>
         <p className="text-[10px] text-slate-400 font-medium">Data Analyst</p>
         <div className="mt-2 flex flex-col gap-1">
           <span className="h-[3.5px] w-full rounded-full bg-slate-200 dark:bg-slate-700" />

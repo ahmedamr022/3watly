@@ -33,23 +33,31 @@ export default function JobsPage() {
   const [locationQuery, setLocationQuery] = useState('');
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const [jobs, setJobs] = useState<JobItem[]>(mockJobsList);
-  const [loadingLive, setLoadingLive] = useState(false);
+  const [loadingLive, setLoadingLive] = useState(true);
 
   React.useEffect(() => {
     let mounted = true;
-    ApiService.getJobs().then((res: any) => {
-      if (mounted && res && (Array.isArray(res) || Array.isArray(res.jobs))) {
-        const live = Array.isArray(res) ? res : res.jobs;
-        if (live.length > 0) {
-          setJobs(live);
+    setLoadingLive(true);
+    fetch('/api/jobs')
+      .then((res) => res.json())
+      .then((data) => {
+        if (mounted && data && Array.isArray(data.jobs) && data.jobs.length > 0) {
+          setJobs(data.jobs);
         }
-      }
-    }).catch(() => {});
-    return () => { mounted = false; };
+      })
+      .catch((err) => {
+        console.warn('Failed to load live jobs:', err);
+      })
+      .finally(() => {
+        if (mounted) setLoadingLive(false);
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
-  
+
   // Filter states
-  const [matchScoreFilter, setMatchScoreFilter] = useState<number>(70);
+  const [matchScoreFilter, setMatchScoreFilter] = useState<number>(60);
   const [seniorityFilter, setSeniorityFilter] = useState<string>('all');
   const [workTypeFilter, setWorkTypeFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'match' | 'recent' | 'salary'>('match');

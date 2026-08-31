@@ -1,12 +1,10 @@
 /**
  * 3WATLY Unified API Client
- * Connects frontend directly to FastAPI backend on http://127.0.0.1:8000
+ * Connects directly to internal Next.js Server & Supabase routes
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://127.0.0.1:8000';
-
 export async function fetchFromApi<T>(endpoint: string, options?: RequestInit): Promise<T | null> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('majra_token') : null;
+  const token = typeof window !== 'undefined' ? (localStorage.getItem('3watly_token') || localStorage.getItem('majra_token')) : null;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options?.headers as Record<string, string> || {})
@@ -17,7 +15,7 @@ export async function fetchFromApi<T>(endpoint: string, options?: RequestInit): 
   }
 
   try {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
+    const res = await fetch(endpoint, {
       ...options,
       headers
     });
@@ -29,7 +27,7 @@ export async function fetchFromApi<T>(endpoint: string, options?: RequestInit): 
 
     return await res.json();
   } catch (err) {
-    console.warn(`Network error on ${endpoint} - backend may be offline.`);
+    console.warn(`Network error on ${endpoint}`);
     return null;
   }
 }
@@ -48,36 +46,26 @@ export const ApiService = {
 
   // Candidate Matching
   matchUser: (data: { candidate_skills: string[]; experience_years?: number; target_role?: string; preferred_locations?: string[] }) => {
-    return fetchFromApi<any>('/api/matching/match-user', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
+    const qs = '?' + new URLSearchParams({
+      skills: data.candidate_skills.join(','),
+      seniority: data.experience_years ? (data.experience_years > 4 ? 'senior' : data.experience_years > 2 ? 'mid' : 'junior') : 'all',
+      location: data.preferred_locations?.[0] || 'all'
+    }).toString();
+    return fetchFromApi<any>(`/api/jobs${qs}`);
   },
 
   // Real CV Upload & ATS Analysis
   uploadAndParseCv: (formData: FormData) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('majra_token') : null;
-    return fetch(`${API_BASE}/api/cv/upload`, {
+    return fetch('/api/cv/parse', {
       method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData
     }).then(r => r.ok ? r.json() : null).catch(() => null);
   },
 
   analyzeCv: (formData: FormData) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('majra_token') : null;
-    return fetch(`${API_BASE}/api/cv/upload`, {
+    return fetch('/api/cv/parse', {
       method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData
     }).then(r => r.ok ? r.json() : null).catch(() => null);
   },
-
-  // NLP Analysis
-  analyzeJobText: (text: string, title?: string) => {
-    return fetchFromApi<any>('/api/nlp/analyze-job', {
-      method: 'POST',
-      body: JSON.stringify({ raw_text: text, job_title: title })
-    });
-  }
 };

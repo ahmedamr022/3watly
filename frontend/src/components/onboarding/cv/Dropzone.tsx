@@ -48,7 +48,12 @@ export function Dropzone({ file, status, progress, onFile, onRemove }: DropzoneP
     }
 
     setError(null);
-    onFile({ name: next.name, sizeLabel: `${Math.max(0.1, Number(mb.toFixed(1)))} MB` });
+    onFile({
+      name: next.name,
+      sizeLabel: `${Math.max(0.1, Number(mb.toFixed(1)))} MB`,
+      file: next,
+      rawFile: next
+    });
   };
 
   const openPicker = () => inputRef.current?.click();

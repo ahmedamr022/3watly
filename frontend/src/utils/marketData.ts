@@ -144,7 +144,7 @@ export function buildReportCsv(filters: Filters): string {
   const stats = getStats(filters);
   const summary = filterSummary(filters);
   const rows: string[][] = [
-  ['MAJRA Market Overview Report'],
+  ['3WATLY Market Overview Report'],
   ['Industry', summary.industry],
   ['Region', summary.region],
   ['Timeframe', summary.timeframe],

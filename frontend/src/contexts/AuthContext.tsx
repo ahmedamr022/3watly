@@ -1,9 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { resolveDisplayName } from '@/utils/formatName';
 
-const API_BASE = "http://127.0.0.1:8000";
-const AUTH_API = `${API_BASE}/api/auth`;
+
 
 export interface User {
   id?: string;
@@ -12,177 +13,592 @@ export interface User {
   avatarUrl?: string | null;
   targetRole?: string;
   token?: string;
+  hasUploadedCv?: boolean;
+  onboardingCompleted?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signup: (fullName: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; onboardingCompleted?: boolean }>;
+  signup: (fullName: string, email: string, password: string) => Promise<{ success: boolean; error?: string; onboardingCompleted?: boolean }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string; redirected?: boolean }>;
+  signInWithLinkedIn: () => Promise<{ success: boolean; error?: string; redirected?: boolean }>;
+  loginWithSocialAccount: (account: { fullName: string; email: string; avatarUrl?: string | null; provider?: 'google' | 'linkedin' }) => Promise<{ success: boolean; onboardingCompleted?: boolean }>;
+  logout: () => Promise<void>;
   updateAvatar: (file: File) => Promise<void>;
+  removeAvatar: () => Promise<void>;
   updateFullName: (name: string) => Promise<void>;
+  updateTargetRole: (role: string) => Promise<void>;
+  setOnboardingCompleted: (completed: boolean) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/**
- * Resolves an avatar URL to a full absolute URL.
- * If it's a relative path like /uploads/avatars/xxx.jpg, prepend the API base.
- */
 function resolveAvatarUrl(url: string | null | undefined): string | null {
   if (!url) return null;
-  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-    return url;
-  }
-  // Relative path from backend — prepend API base
-  return `${API_BASE}${url}`;
+  return url;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount
-  useEffect(() => {
+  const saveUserState = useCallback((userData: User) => {
+    setUser(userData);
     try {
-      const storedUser = localStorage.getItem('majra_user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      localStorage.setItem('3watly_user', JSON.stringify(userData));
+      if (userData.token) {
+        localStorage.setItem('3watly_token', userData.token);
       }
     } catch (e) {
-      console.error('Error loading stored user:', e);
-    } finally {
-      setLoading(false);
+      console.warn('Failed to save user state to localStorage:', e);
     }
   }, []);
 
-  const saveUserState = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('majra_user', JSON.stringify(userData));
-    if (userData.token) {
-      localStorage.setItem('majra_token', userData.token);
-    }
-  };
+  // Initialize Supabase & restore session
+  useEffect(() => {
+    let isMounted = true;
+    const supabase = createClient();
 
+    const initAuth = async () => {
+      try {
+        // 1. Try Supabase Auth Session
+        if (supabase) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user && isMounted) {
+            const metadata = session.user.user_metadata || {};
+            const resolvedName = resolveDisplayName({
+              fullName: metadata.full_name || metadata.name,
+              oauthName: metadata.preferred_username || metadata.user_name,
+              email: session.user.email
+            });
+
+            // Fetch profile record from database
+            let onboardingCompleted = metadata.onboarding_completed ?? false;
+            let avatarUrl = metadata.avatar_url || metadata.picture || null;
+            let fullName = resolvedName;
+
+            try {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+              if (profile) {
+                if (profile.full_name) {
+                  fullName = profile.full_name;
+                }
+                if (profile.onboarding_completed !== undefined) {
+                  onboardingCompleted = profile.onboarding_completed === true;
+                }
+                if (profile.avatar_url) {
+                  avatarUrl = profile.avatar_url;
+                }
+              }
+            } catch (e) {
+              console.warn('Profile fetch warning:', e);
+            }
+
+            const parsedUser: User = {
+              id: session.user.id,
+              email: session.user.email || '',
+              fullName,
+              avatarUrl,
+              targetRole: metadata.target_role || undefined,
+              token: session.access_token,
+              onboardingCompleted,
+              hasUploadedCv: metadata.has_uploaded_cv ?? false
+            };
+
+            saveUserState(parsedUser);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // 2. Fallback to LocalStorage session
+        const storedUser = localStorage.getItem('3watly_user') || localStorage.getItem('majra_user');
+        if (storedUser && isMounted) {
+          const parsed = JSON.parse(storedUser);
+          if (parsed.fullName === 'Ahmed H.' || parsed.fullName === 'Ahmed Salah' || parsed.fullName === 'Ahmed Amr') {
+            parsed.fullName = resolveDisplayName({ email: parsed.email });
+          }
+          setUser(parsed);
+        }
+      } catch (e) {
+        console.error('Error restoring session:', e);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    initAuth();
+
+    // Listen to Supabase auth state changes
+    if (supabase) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (!isMounted) return;
+
+        if (event === 'SIGNED_IN' && session?.user) {
+          const metadata = session.user.user_metadata || {};
+          const resolvedName = resolveDisplayName({
+            fullName: metadata.full_name || metadata.name,
+            oauthName: metadata.preferred_username,
+            email: session.user.email
+          });
+
+          let onboardingCompleted = metadata.onboarding_completed ?? false;
+          let avatarUrl = metadata.avatar_url || metadata.picture || null;
+          let fullName = resolvedName;
+
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            if (profile) {
+              if (profile.full_name) {
+                fullName = profile.full_name;
+              }
+              if (profile.onboarding_completed !== undefined) {
+                onboardingCompleted = profile.onboarding_completed === true;
+              }
+              if (profile.avatar_url) {
+                avatarUrl = profile.avatar_url;
+              }
+            }
+          } catch (e) {
+            console.warn('Profile fetch warning in onAuthStateChange:', e);
+          }
+
+          const authenticatedUser: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            fullName,
+            avatarUrl,
+            targetRole: metadata.target_role,
+            token: session.access_token,
+            onboardingCompleted,
+            hasUploadedCv: metadata.has_uploaded_cv ?? false
+          };
+
+          saveUserState(authenticatedUser);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          localStorage.removeItem('3watly_user');
+          localStorage.removeItem('3watly_token');
+          localStorage.removeItem('majra_user');
+          localStorage.removeItem('majra_token');
+        }
+      });
+
+      return () => {
+        isMounted = false;
+        subscription.unsubscribe();
+      };
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [saveUserState]);
+
+  // Email & Password Login
   const login = async (email: string, password: string) => {
     try {
-      const res = await fetch(`${AUTH_API}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+      const supabase = createClient();
+      if (supabase) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        const userData: User = {
-          id: data.user_id,
-          email: data.email,
-          fullName: data.full_name || email.split('@')[0],
-          avatarUrl: resolveAvatarUrl(data.avatar_url),
-          token: data.access_token
-        };
-        saveUserState(userData);
-        return { success: true };
-      } else {
-        const errData = await res.json().catch(() => ({}));
-        return { success: false, error: errData.detail || 'Login failed' };
+        if (!error && data.user) {
+          const metadata = data.user.user_metadata || {};
+          const resolvedName = resolveDisplayName({
+            fullName: metadata.full_name || metadata.name,
+            email: data.user.email
+          });
+
+          let onboardingCompleted = metadata.onboarding_completed === true;
+          let avatarUrl = metadata.avatar_url || null;
+          let fullName = resolvedName;
+
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.user.id)
+              .maybeSingle();
+
+            if (profile) {
+              if (profile.full_name) {
+                fullName = profile.full_name;
+              }
+              if (profile.onboarding_completed !== undefined) {
+                onboardingCompleted = profile.onboarding_completed === true;
+              }
+              if (profile.avatar_url) {
+                avatarUrl = profile.avatar_url;
+              }
+            }
+          } catch (e) {
+            console.warn('Error querying profiles table during login:', e);
+          }
+
+          const userData: User = {
+            id: data.user.id,
+            email: data.user.email || email,
+            fullName,
+            avatarUrl,
+            token: data.session?.access_token,
+            onboardingCompleted
+          };
+          saveUserState(userData);
+          return { success: true, onboardingCompleted };
+        }
+        if (error) {
+          return { success: false, error: error.message };
+        }
+        return { success: false, error: 'Login failed. Please try again.' };
       }
-    } catch (err) {
-      return { success: false, error: 'Network error. Make sure the backend is running.' };
+      return { success: false, error: 'Supabase is not configured.' };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'An unexpected error occurred.' };
     }
   };
 
+  // Email & Password Signup (Always starts as New User)
   const signup = async (fullName: string, email: string, password: string) => {
     try {
-      const res = await fetch(`${AUTH_API}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, full_name: fullName })
-      });
+      const resolvedName = resolveDisplayName({ fullName, email });
+      const supabase = createClient();
 
-      if (res.ok) {
-        const data = await res.json();
-        const userData: User = {
-          id: data.user_id,
-          email: data.email,
-          fullName: data.full_name || fullName,
-          avatarUrl: resolveAvatarUrl(data.avatar_url),
-          token: data.access_token
-        };
-        saveUserState(userData);
-        return { success: true };
-      } else {
-        const errData = await res.json().catch(() => ({}));
-        return { success: false, error: errData.detail || 'Registration failed' };
+      if (supabase) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: resolvedName,
+              onboarding_completed: false
+            }
+          }
+        });
+
+        if (!error && data.user) {
+          // Persist to profiles table
+          try {
+            await supabase.from('profiles').upsert({
+              id: data.user.id,
+              full_name: resolvedName,
+              avatar_url: null,
+              onboarding_completed: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+          } catch (pErr) {
+            console.warn('Profile creation fallback:', pErr);
+          }
+
+          const userData: User = {
+            id: data.user.id,
+            email: data.user.email || email,
+            fullName: resolvedName,
+            avatarUrl: null,
+            token: data.session?.access_token,
+            onboardingCompleted: false
+          };
+          saveUserState(userData);
+          return { success: true, onboardingCompleted: false };
+        }
+        if (error) {
+          return { success: false, error: error.message };
+        }
+        return { success: false, error: 'Signup failed. Please try again.' };
       }
-    } catch (err) {
-      return { success: false, error: 'Network error. Make sure the backend is running.' };
+      return { success: false, error: 'Supabase is not configured.' };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'An unexpected error occurred during signup.' };
     }
   };
 
-  const logout = () => {
+  // Google OAuth via Supabase Auth with Account Chooser Prompt
+  const signInWithGoogle = async () => {
+    try {
+      const supabase = createClient();
+      if (!supabase) {
+        return { success: false, error: 'Supabase credentials are not configured.' };
+      }
+
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account'
+          }
+        }
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      if (data?.url) {
+        window.location.href = data.url;
+        return { success: true, redirected: true };
+      }
+
+      return { success: false, error: 'No authorization URL received from Google provider.' };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Failed to initialize Google authentication.' };
+    }
+  };
+
+  // LinkedIn OAuth via Supabase Auth
+  const signInWithLinkedIn = async () => {
+    try {
+      const supabase = createClient();
+      if (!supabase) {
+        return { success: false, error: 'Supabase credentials are not configured.' };
+      }
+
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc' as any,
+        options: {
+          redirectTo: `${origin}/auth/callback`
+        }
+      });
+
+      if (!error && data?.url) {
+        window.location.href = data.url;
+        return { success: true, redirected: true };
+      }
+
+      const retry = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin' as any,
+        options: {
+          redirectTo: `${origin}/auth/callback`
+        }
+      });
+
+      if (!retry.error && retry.data?.url) {
+        window.location.href = retry.data.url;
+        return { success: true, redirected: true };
+      }
+
+      return { success: false, error: error?.message || retry.error?.message || 'LinkedIn provider authentication failed.' };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Failed to initialize LinkedIn authentication.' };
+    }
+  };
+
+  // Interactive Social Login / Custom Account Chooser Login
+  const loginWithSocialAccount = async ({
+    fullName,
+    email,
+    avatarUrl = null,
+    provider = 'google'
+  }: {
+    fullName: string;
+    email: string;
+    avatarUrl?: string | null;
+    provider?: 'google' | 'linkedin';
+  }) => {
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanName = fullName.trim() || resolveDisplayName({ email: cleanEmail });
+
+    // Check if user previously completed onboarding
+    let onboardingCompleted = false;
+    try {
+      const storedOnboarding = localStorage.getItem(`3watly_onboarding_${cleanEmail}`);
+      if (storedOnboarding === 'true') {
+        onboardingCompleted = true;
+      }
+    } catch {}
+
+    let resolvedAvatar = avatarUrl || null;
+    const supabase = createClient();
+
+    if (supabase) {
+      try {
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('avatar_url, onboarding_completed, full_name')
+          .ilike('id', `%${cleanEmail}%`)
+          .maybeSingle();
+
+        if (existing?.avatar_url) {
+          resolvedAvatar = existing.avatar_url;
+        }
+        if (existing?.onboarding_completed !== undefined) {
+          onboardingCompleted = existing.onboarding_completed;
+        }
+      } catch (e) {}
+    }
+
+    const socialUser: User = {
+      id: `${provider}-${Date.now()}`,
+      email: cleanEmail,
+      fullName: cleanName,
+      avatarUrl: resolvedAvatar,
+      token: `${provider}-token-${Date.now()}`,
+      onboardingCompleted,
+      hasUploadedCv: false
+    };
+
+    saveUserState(socialUser);
+    return { success: true, onboardingCompleted };
+  };
+
+  const logout = async () => {
+    const supabase = createClient();
+    if (supabase) {
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.warn('Supabase signOut warning:', e);
+      }
+    }
     setUser(null);
+    localStorage.removeItem('3watly_user');
+    localStorage.removeItem('3watly_token');
+    localStorage.removeItem('3watly_parsed_cv');
+    localStorage.removeItem('3watly_role');
     localStorage.removeItem('majra_user');
     localStorage.removeItem('majra_token');
   };
 
+  // Upload Avatar to permanent Supabase Storage & Profile table
   const updateAvatar = async (file: File) => {
     if (!user) return;
 
-    // Show local preview immediately for instant feedback
-    const localUrl = URL.createObjectURL(file);
-    const updated = { ...user, avatarUrl: localUrl };
-    saveUserState(updated);
-
-    // Upload to backend if we have a token
-    const token = user.token || localStorage.getItem('majra_token');
-    if (!token) return;
-
     try {
+      // 1. Immediate optimistic preview
+      const localPreviewUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(file);
+      });
+
+      setUser((prev) => (prev ? { ...prev, avatarUrl: localPreviewUrl } : prev));
+
+      // 2. Upload via Server API Route with Service Role Key
       const formData = new FormData();
       formData.append('file', file);
+      if (user.id) {
+        formData.append('userId', user.id);
+      }
 
-      const res = await fetch(`${AUTH_API}/avatar`, {
+      const res = await fetch('/api/user/avatar', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
+        body: formData,
       });
 
       if (res.ok) {
         const data = await res.json();
-        const serverUrl = resolveAvatarUrl(data.avatar_url);
-        // Replace local blob URL with permanent server URL
-        const serverUpdated = { ...user, avatarUrl: serverUrl };
-        saveUserState(serverUpdated);
-        URL.revokeObjectURL(localUrl);
+        if (data.avatarUrl) {
+          const finalUser = { ...user, avatarUrl: data.avatarUrl };
+          saveUserState(finalUser);
+          return;
+        }
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        console.warn('Avatar API upload warning:', errData.error);
       }
+    } catch (err) {
+      console.error('Failed to process avatar file:', err);
+    }
+  };
+
+  // Remove Avatar
+  const removeAvatar = async () => {
+    if (!user) return;
+    const updated = { ...user, avatarUrl: null };
+    saveUserState(updated);
+
+    try {
+      const q = user.id ? `?userId=${encodeURIComponent(user.id)}` : '';
+      await fetch(`/api/user/avatar${q}`, { method: 'DELETE' });
     } catch (e) {
-      // Keep local preview even if upload fails
-      console.warn('Avatar upload failed, keeping local preview');
+      console.warn('Error calling DELETE /api/user/avatar:', e);
     }
   };
 
   const updateFullName = async (name: string) => {
     if (!user) return;
-    const updated = { ...user, fullName: name };
+    const cleanName = name.trim();
+    if (!cleanName) return;
+
+    const updated = { ...user, fullName: cleanName };
     saveUserState(updated);
 
-    const token = user.token || localStorage.getItem('majra_token');
-    if (token) {
+    const supabase = createClient();
+    if (supabase && user.id) {
       try {
-        await fetch(`${AUTH_API}/profile`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ full_name: name })
+        await supabase.auth.updateUser({
+          data: { full_name: cleanName }
+        });
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          full_name: cleanName,
+          updated_at: new Date().toISOString()
         });
       } catch (e) {
-        console.error('Failed to sync name to backend:', e);
+        console.warn('Supabase name update error:', e);
+      }
+    }
+  };
+
+  const updateTargetRole = async (role: string) => {
+    if (!user) return;
+    const updated = { ...user, targetRole: role };
+    saveUserState(updated);
+
+    const supabase = createClient();
+    if (supabase && user.id) {
+      try {
+        await supabase.auth.updateUser({
+          data: { target_role: role }
+        });
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          target_role: role,
+          updated_at: new Date().toISOString()
+        });
+      } catch (e) {
+        console.warn('Supabase targetRole update error:', e);
+      }
+    }
+  };
+
+  const setOnboardingCompleted = async (completed: boolean) => {
+    if (!user) return;
+    const updated = { ...user, onboardingCompleted: completed };
+    saveUserState(updated);
+
+    const supabase = createClient();
+    if (supabase && user.id) {
+      try {
+        await supabase.auth.updateUser({
+          data: { onboarding_completed: completed }
+        });
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          onboarding_completed: completed,
+          updated_at: new Date().toISOString()
+        });
+      } catch (e) {
+        console.warn('Supabase onboardingCompleted update error:', e);
       }
     }
   };
@@ -194,9 +610,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         login,
         signup,
+        signInWithGoogle,
+        signInWithLinkedIn,
+        loginWithSocialAccount,
         logout,
         updateAvatar,
-        updateFullName
+        removeAvatar,
+        updateFullName,
+        updateTargetRole,
+        setOnboardingCompleted
       }}
     >
       {children}

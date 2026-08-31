@@ -22,7 +22,8 @@ import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
-import { formatTopbarName } from '@/utils/formatName';
+import { UserAvatar, getInitials } from '@/components/ui/UserAvatar';
+import { formatTopbarName, resolveDisplayName, buildDynamicGreeting } from '@/utils/formatName';
 
 interface AppTopbarProps {
   onOpenMobile?: () => void;
@@ -51,21 +52,34 @@ export function AppTopbar({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Dynamic user details
-  const rawFullName = user?.fullName || (isAr ? 'أحمد عمرو' : 'Ahmed Amr');
-  const displayName = formatTopbarName(rawFullName, isAr);
-  const firstName = user?.fullName ? user.fullName.trim().split(/\s+/)[0] : (isAr ? 'أحمد' : 'Ahmed');
-  const userEmail = user?.email || (isAr ? 'ahmed.sayed@gmail.com' : 'ahmed.sayed@gmail.com');
+  const resolvedFullName = resolveDisplayName({
+    fullName: user?.fullName,
+    email: user?.email,
+    isAr
+  });
+  const displayName = formatTopbarName(resolvedFullName, isAr);
+  const userEmail = user?.email || (isAr ? 'حسابك في عواطلي' : 'Your 3WATLY Account');
 
-  const getInitials = (name: string) => {
-    if (!name) return 'AH';
-    const parts = name.trim().split(/\s+/);
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
-  };
+  // Dynamic time-based greeting (5am-12pm Morning, 12pm-5pm Afternoon, 5pm-10pm Evening, 10pm-5am Night)
+  const [currentHour, setCurrentHour] = useState<number | null>(null);
 
-  const initials = getInitials(displayName);
+  useEffect(() => {
+    setCurrentHour(new Date().getHours());
+    const interval = setInterval(() => {
+      setCurrentHour(new Date().getHours());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const rawFirstName = resolvedFullName && resolvedFullName !== 'User' && resolvedFullName !== 'مستخدم' && resolvedFullName !== '3WATLY User' && resolvedFullName !== 'مستخدم عواطلي'
+    ? resolvedFullName.split(/\s+/)[0]
+    : null;
+
+  const dynamicGreeting = buildDynamicGreeting(
+    rawFirstName,
+    isAr,
+    currentHour !== null ? currentHour : undefined
+  );
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -169,7 +183,7 @@ export function AppTopbar({
 
           <div className="min-w-0">
             <h1 className="text-[17px] sm:text-[20px] font-black text-[#0B132B] dark:text-white leading-tight truncate">
-              {title || (isAr ? `صباح الخير، يا ${firstName} 👋` : `Good morning, ${firstName} 👋`)}
+              {title || dynamicGreeting}
             </h1>
             <p className="hidden sm:block text-[12.5px] font-normal text-slate-500 dark:text-slate-400 truncate mt-0.5">
               {subtitle || (isAr ? "ملخص مسارك المهني وفرصك اليوم." : "Here's your career overview for today.")}
@@ -260,17 +274,11 @@ export function AppTopbar({
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center gap-2 py-1 px-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
             >
-              <div className="relative flex h-8.5 w-8.5 items-center justify-center rounded-full overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-[12.5px] font-black shadow-sm ring-1 ring-white/20">
-                {user?.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={displayName}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span>{initials}</span>
-                )}
-              </div>
+              <UserAvatar
+                avatarUrl={user?.avatarUrl}
+                name={displayName}
+                size="sm"
+              />
 
               <span className="hidden sm:inline text-xs font-bold text-slate-800 dark:text-slate-200 max-w-[100px] truncate">
                 {displayName}
@@ -283,17 +291,12 @@ export function AppTopbar({
               <div className="absolute ltr:right-0 rtl:left-0 top-12 w-60 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1120] p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 divide-y divide-slate-100 dark:divide-white/5">
                 {/* User Info Header */}
                 <div className="p-3 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-md ring-2 ring-blue-500/30 shrink-0">
-                    {user?.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={displayName}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span>{initials}</span>
-                    )}
-                  </div>
+                  <UserAvatar
+                    avatarUrl={user?.avatarUrl}
+                    name={displayName}
+                    size="md"
+                    className="ring-2 ring-blue-500/30"
+                  />
 
                   <div className="min-w-0 flex-1">
                     <span className="block text-[13.5px] font-bold text-slate-900 dark:text-white truncate">
@@ -307,6 +310,26 @@ export function AppTopbar({
 
                 {/* Navigation Actions */}
                 <div className="py-1.5 space-y-0.5">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handlePhotoSelect}
+                    accept="image/*"
+                    className="hidden"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                      setUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer text-left rtl:text-right"
+                  >
+                    <Camera className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span>{isAr ? "تغيير الصورة الشخصية" : "Change Profile Photo"}</span>
+                  </button>
+
                   <Link
                     href="/career"
                     onClick={() => setUserMenuOpen(false)}

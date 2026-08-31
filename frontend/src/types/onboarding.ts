@@ -82,21 +82,87 @@ export interface ParsedCv {
   email: string;
   phone: string;
   location: string;
+  linkedin?: string;
+  github?: string;
   summary: string;
-  experience: {
+  filename?: string;
+  experienceYears?: number;
+  experiences?: Array<{
+    id: string;
+    company: string;
+    role: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    location?: string;
+    description?: string;
+    bullets: string[];
+  }>;
+  experience?: {
     title: string;
     company: string;
     location: string;
     period: string;
     bullets: string[];
   };
-  education: {degree: string;school: string;period: string;};
-  detectedSkills: {key: TechKey;name: string;}[];
+  educationHistory?: Array<{
+    id: string;
+    institution: string;
+    degree: string;
+    major: string;
+    startDate: string;
+    endDate: string;
+    location?: string;
+  }>;
+  education?: { degree: string; school: string; period: string };
+  skills?: string[];
+  detectedSkills?: { key: TechKey; name: string }[];
+  categorizedSkills?: {
+    programming: string[];
+    frameworks: string[];
+    databasesAndTools: string[];
+    cloud: string[];
+    soft: string[];
+  };
+  projects?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    technologies: string[];
+  }>;
+  atsReport?: {
+    score: number;
+    structureScore: number;
+    readabilityScore: number;
+    impactScore: number;
+    skillsScore: number;
+    hasEmail: boolean;
+    hasPhone: boolean;
+    hasLocation: boolean;
+    hasSummary: boolean;
+    hasExperience: boolean;
+    hasEducation: boolean;
+    hasSkills: boolean;
+    hasMetrics: boolean;
+    actionVerbsCount: number;
+    metricsCount: number;
+    strengths: string[];
+    improvements: string[];
+  };
+  actionPlan?: Array<{
+    title: string;
+    category: string;
+    priority: 'high' | 'medium' | 'low';
+    description: string;
+  }>;
 }
 
-export type ParseStatus = 'idle' | 'uploading' | 'parsing' | 'complete';
+export type ParseStatus = 'idle' | 'uploading' | 'parsing' | 'complete' | 'error';
 
 export interface UploadedFile {
   name: string;
   sizeLabel: string;
+  file?: File;
+  rawFile?: File;
+  previewUrl?: string;
 }

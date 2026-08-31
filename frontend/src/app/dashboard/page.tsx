@@ -42,63 +42,38 @@ export default function DashboardPage() {
     }).catch(() => {});
     return () => { mounted = false; };
   }, []);
-  const [bookmarkedJobs, setBookmarkedJobs] = useState<number[]>([]);
+  const [bookmarkedJobs, setBookmarkedJobs] = useState<string[]>([]);
 
-  const toggleBookmark = (id: number, e: React.MouseEvent) => {
+  const toggleBookmark = (id: string | number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    const strId = String(id);
     setBookmarkedJobs(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+      prev.includes(strId) ? prev.filter(item => item !== strId) : [...prev, strId]
     );
   };
 
-  const topJobs = [
-    {
-      id: 1,
-      title: "Data Analyst",
-      titleAr: "محلل بيانات",
-      company: "Vodafone Egypt",
-      companyAr: "فودافون مصر",
-      location: "Smart Village, Giza • Hybrid",
-      locationAr: "القرية الذكية، الجيزة • عمل مرن (مكتبي وعن بُعد)",
-      matchScore: 84,
-      skills: ["SQL", "Python", "Power BI"],
-      extraSkillsCount: 2,
-      postedAgo: "Posted 2h ago",
-      postedAgoAr: "منذ ساعتين",
-      logoType: "vodafone"
-    },
-    {
-      id: 2,
-      title: "Junior BI Developer",
-      titleAr: "مطور BI مبتدئ",
-      company: "Valeo",
-      companyAr: "فاليو",
-      location: "Cairo • On-site",
-      locationAr: "القاهرة • من مقر الشركة",
-      matchScore: 79,
-      skills: ["SQL", "Power BI", "Excel"],
-      extraSkillsCount: 3,
-      postedAgo: "Posted 4h ago",
-      postedAgoAr: "منذ 4 ساعات",
-      logoType: "valeo"
-    },
-    {
-      id: 3,
-      title: "Data Analyst",
-      titleAr: "محلل بيانات",
-      company: "Siemens Egypt",
-      companyAr: "سيمنز مصر",
-      location: "New Cairo • Hybrid",
-      locationAr: "القاهرة الجديدة • عمل هجين",
-      matchScore: 74,
-      skills: ["SQL", "Excel", "Python"],
-      extraSkillsCount: 2,
-      postedAgo: "Posted 6h ago",
-      postedAgoAr: "منذ 6 ساعات",
-      logoType: "siemens"
-    }
-  ];
+  const topJobs = React.useMemo(() => {
+    const list = liveJobs.length > 0 ? liveJobs.slice(0, 3) : mockJobsList.slice(0, 3);
+    return list.map((job: any) => ({
+      id: String(job.id),
+      title: job.title,
+      titleAr: job.titleAr || job.title,
+      company: job.company,
+      companyAr: job.companyAr || job.company,
+      location: job.location || 'Cairo, Egypt',
+      locationAr: job.locationAr || job.location || 'القاهرة، مصر',
+      matchScore: job.matchScore || 82,
+      skills: Array.isArray(job.matchedSkills)
+        ? job.matchedSkills.map((s: any) => typeof s === 'string' ? s : s.name).slice(0, 3)
+        : Array.isArray(job.skills)
+        ? job.skills.slice(0, 3)
+        : ['SQL', 'Python', 'Power BI'],
+      extraSkillsCount: Math.max(0, ((job.matchedSkills?.length || job.skills?.length || 5) - 3)),
+      postedAgo: job.postedAgo || 'Recently',
+      postedAgoAr: job.postedAgoAr || 'مؤخراً',
+    }));
+  }, [liveJobs]);
 
   return (
     <AppShell>
@@ -553,7 +528,7 @@ export default function DashboardPage() {
 
                     {/* Skill Pills */}
                     <div className="mt-3 flex flex-wrap gap-1.5">
-                      {job.skills.map((skill) => (
+                      {job.skills.map((skill: string) => (
                         <span
                           key={skill}
                           className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-[#0B1120]/5 text-[11px] font-medium text-slate-600 dark:text-slate-300"

@@ -40,7 +40,7 @@ export function OnboardingSidebar({ step, totalSteps }: OnboardingSidebarProps) 
           Your data. Smarter career decisions.
         </h2>
         <p className="mt-2 text-[12.5px] font-light leading-[1.6] text-ink-muted dark:text-slate-400">
-          MAJRA analyzes the Egyptian job market to help you choose the right path and land high-fit
+          3WATLY analyzes the Egyptian job market to help you choose the right path and land high-fit
           opportunities.
         </p>
 

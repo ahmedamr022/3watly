@@ -15,8 +15,9 @@ import {
 'lucide-react';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { initialNotifications, searchIndex, SearchEntry } from '../../data/market';
-
-const AVATAR = "/64c02eec-2cfc-4fcc-9c75-92b0314f627d.jpg";
+import { useAuth } from '@/contexts/AuthContext';
+import { UserAvatar } from '@/components/ui/UserAvatar';
+import { resolveDisplayName } from '@/utils/formatName';
 
 const notificationTargets: Record<string, string> = {
   n1: '/skills',
@@ -33,11 +34,18 @@ type TopBarProps = {
 
 export function TopBar({ onSearchSelect, onToggleNav, navCollapsed }: TopBarProps) {
   const router = useRouter();
+  const { user, logout } = useAuth();
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
   const [bellOpen, setBellOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
+
+  const displayName = resolveDisplayName({
+    fullName: user?.fullName,
+    email: user?.email
+  });
+  const roleName = user?.targetRole || 'Data Professional';
 
   const searchRef = useClickOutside<HTMLDivElement>(searchOpen, () => setSearchOpen(false));
   const bellRef = useClickOutside<HTMLDivElement>(bellOpen, () => setBellOpen(false));
@@ -189,7 +197,7 @@ export function TopBar({ onSearchSelect, onToggleNav, navCollapsed }: TopBarProp
                 </button>
               </div>
 
-              <ul className="majra-scroll max-h-[300px] overflow-y-auto">
+              <ul className="max-h-[300px] overflow-y-auto">
                 {notifications.map((n) =>
               <li key={n.id} className="border-b border-line last:border-b-0">
                     <button
@@ -241,10 +249,10 @@ export function TopBar({ onSearchSelect, onToggleNav, navCollapsed }: TopBarProp
           aria-expanded={userOpen}
           className="flex items-center gap-2.5 rounded-[10px] py-1 pl-1 pr-2 transition-colors duration-150 ease-out hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-100">
           
-          <img src={AVATAR} alt="" aria-hidden="true" className="h-9 w-9 rounded-full object-cover" />
+          <UserAvatar avatarUrl={user?.avatarUrl} name={displayName} size="sm" />
           <span className="text-left">
-            <span className="block text-[13.5px] font-semibold leading-tight text-ink-900">Ahmed Sayed</span>
-            <span className="block text-[11.5px] leading-tight text-ink-500">Data Engineer</span>
+            <span className="block text-[13.5px] font-semibold leading-tight text-ink-900">{displayName}</span>
+            <span className="block text-[11.5px] leading-tight text-ink-500">{roleName}</span>
           </span>
           <ChevronDownIcon
             className={`h-4 w-4 text-ink-400 transition-transform duration-150 ease-out ${userOpen ? 'rotate-180' : ''}`} />
@@ -262,8 +270,8 @@ export function TopBar({ onSearchSelect, onToggleNav, navCollapsed }: TopBarProp
             className="absolute right-0 top-[52px] z-30 w-[220px] rounded-[12px] border border-line bg-white p-1.5 shadow-pop">
             
               <div className="border-b border-line px-2.5 pb-2.5 pt-1.5">
-                <p className="text-[13px] font-semibold text-ink-900">Ahmed Sayed</p>
-                <p className="text-[11.5px] text-ink-500">ahmed.sayed@majra.io</p>
+                <p className="text-[13px] font-semibold text-ink-900">{displayName}</p>
+                <p className="text-[11.5px] text-ink-500 truncate">{user?.email || '3WATLY Account'}</p>
               </div>
               <div className="pt-1.5">
                 <UserMenuItem
@@ -286,9 +294,11 @@ export function TopBar({ onSearchSelect, onToggleNav, navCollapsed }: TopBarProp
                 icon={LogOutIcon}
                 label="Sign out"
                 danger
-                onClick={() => {
+                onClick={async () => {
                   setUserOpen(false);
-                  toast.success('Signed out of MAJRA');
+                  await logout();
+                  toast.success('Signed out of 3WATLY');
+                  router.push('/login');
                 }} />
               
               </div>

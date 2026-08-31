@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CheckIcon, FileTextIcon, Loader2Icon, UploadCloudIcon } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 interface ReuploadModalProps {
   open: boolean;
@@ -29,6 +30,7 @@ export function ReuploadModal({
   onComplete
 }: ReuploadModalProps) {
   const { isAr } = useLanguage();
+  const { uploadFile } = useOnboarding();
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [step, setStep] = useState(-1);
@@ -46,16 +48,25 @@ export function ReuploadModal({
     setDragging(false);
   }, [open]);
 
-  const start = (selected: File) => {
+  const start = async (selected: File) => {
     setFile(selected);
     setStep(0);
+    try {
+      uploadFile({
+        name: selected.name,
+        sizeLabel: `${(selected.size / (1024 * 1024)).toFixed(1)} MB`,
+        rawFile: selected,
+        file: selected
+      });
+    } catch {}
+
     timers.current = [
-      window.setTimeout(() => setStep(1), 700),
-      window.setTimeout(() => setStep(2), 1500),
+      window.setTimeout(() => setStep(1), 600),
+      window.setTimeout(() => setStep(2), 1200),
       window.setTimeout(() => {
         setStep(3);
         onComplete(selected.name);
-      }, 2300)
+      }, 1900)
     ];
   };
 

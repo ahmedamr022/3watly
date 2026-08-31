@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MailIcon, MapPinIcon, PhoneIcon } from 'lucide-react';
+import { MailIcon, MapPinIcon, PhoneIcon, Briefcase, GraduationCap, Sparkles, CheckCircle2 } from 'lucide-react';
 import type { ParsedCv } from '../../../types/onboarding';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 function LinkedinIcon({ className = "h-3 w-3" }: { className?: string }) {
   return (
@@ -17,71 +18,162 @@ interface CvPreviewProps {
 }
 
 export function CvPreview({ cv, scanning }: CvPreviewProps) {
+  const { isAr } = useLanguage();
+
   return (
-    <div className="relative overflow-hidden rounded-xl border border-line dark:border-white/10 bg-white dark:bg-[#070B14] px-5 py-4">
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-sm transition-all">
+      {/* Scanning Animation Laser Line */}
       {scanning && (
         <motion.span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 h-[3px] bg-brand-blue shadow-[0_0_18px_4px_rgba(27,87,224,0.45)]"
-          initial={{ top: '6%' }}
-          animate={{ top: ['6%', '92%', '6%'] }}
-          transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+          className="pointer-events-none absolute inset-x-0 h-[3px] bg-gradient-to-r from-blue-500 via-emerald-400 to-blue-600 shadow-[0_0_18px_4px_rgba(27,87,224,0.5)] z-20"
+          initial={{ top: '4%' }}
+          animate={{ top: ['4%', '94%', '4%'] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
         />
       )}
 
-      <h3 className="text-[13.5px] font-bold tracking-[0.02em] text-ink dark:text-white">{cv.fullName}</h3>
-      <p className="mt-0.5 text-[11.5px] font-medium text-ink-soft dark:text-slate-300">{cv.currentTitle}</p>
+      {/* Luxury CV Paper Sheet */}
+      <div className="space-y-4 text-slate-900 dark:text-white" style={{ fontFamily: 'Georgia, serif' }}>
+        
+        {/* Header Section */}
+        <header className="border-b border-slate-200 dark:border-white/10 pb-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-[20px] font-extrabold tracking-tight text-slate-900 dark:text-white">
+                {cv.fullName || 'User'}
+              </h2>
+              <p className="mt-0.5 text-[13px] font-bold text-blue-600 dark:text-[#60A5FA] font-sans">
+                {cv.currentTitle}
+              </p>
+            </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-[9.5px] font-light text-ink-muted dark:text-slate-400">
-        <span className="flex items-center gap-1">
-          <MailIcon className="h-[11px] w-[11px]" strokeWidth={1.8} aria-hidden="true" />
-          {cv.email}
-        </span>
-        <span className="flex items-center gap-1">
-          <PhoneIcon className="h-[11px] w-[11px]" strokeWidth={1.8} aria-hidden="true" />
-          {cv.phone}
-        </span>
-        <span className="flex items-center gap-1">
-          <MapPinIcon className="h-[11px] w-[11px]" strokeWidth={1.8} aria-hidden="true" />
-          {cv.location}
-        </span>
-        <span className="flex items-center gap-1">
-          <LinkedinIcon className="h-[11px] w-[11px]" />
-          LinkedIn
-        </span>
-      </div>
+            {cv.atsReport && (
+              <span className="shrink-0 px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 text-[11px] font-black border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-1 font-sans">
+                <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                <span>ATS {cv.atsReport.score}%</span>
+              </span>
+            )}
+          </div>
 
-      <div className="mt-3 border-t border-line dark:border-white/10 pt-2.5">
-        <h4 className="text-[9.5px] font-semibold tracking-[0.12em] text-ink-muted dark:text-slate-400">SUMMARY</h4>
-        <p className="mt-1 text-[9.5px] font-light leading-[1.55] text-ink-muted dark:text-slate-400">{cv.summary}</p>
-      </div>
+          {/* Contact Bar */}
+          <ul className="mt-2.5 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-[11px] text-slate-600 dark:text-slate-400 font-sans">
+            {cv.email && (
+              <li className="flex items-center gap-1">
+                <MailIcon className="h-3 w-3 text-slate-400 dark:text-slate-500" />
+                <span>{cv.email}</span>
+              </li>
+            )}
+            {cv.phone && (
+              <li className="flex items-center gap-1">
+                <PhoneIcon className="h-3 w-3 text-slate-400 dark:text-slate-500" />
+                <span dir="ltr">{cv.phone}</span>
+              </li>
+            )}
+            {cv.linkedin && (
+              <li className="flex items-center gap-1">
+                <LinkedinIcon className="h-3 w-3 text-slate-400 dark:text-slate-500" />
+                <span>{cv.linkedin}</span>
+              </li>
+            )}
+            {cv.location && (
+              <li className="flex items-center gap-1">
+                <MapPinIcon className="h-3 w-3 text-slate-400 dark:text-slate-500" />
+                <span>{cv.location}</span>
+              </li>
+            )}
+          </ul>
+        </header>
 
-      <div className="mt-3 border-t border-line dark:border-white/10 pt-2.5">
-        <h4 className="text-[9.5px] font-semibold tracking-[0.12em] text-ink-muted dark:text-slate-400">EXPERIENCE</h4>
-        <div className="mt-1.5 flex items-baseline justify-between gap-3">
-          <p className="text-[10.5px] font-semibold text-ink dark:text-white">{cv.experience.title}</p>
-          <p className="shrink-0 text-[9.5px] font-light text-ink-faint dark:text-slate-500">{cv.experience.period}</p>
-        </div>
-        <p className="text-[9.5px] font-light text-ink-muted dark:text-slate-400">
-          {cv.experience.company} &nbsp;•&nbsp; {cv.experience.location}
-        </p>
-        <ul className="mt-1.5 space-y-1">
-          {cv.experience.bullets.map((bullet, index) => (
-            <li key={index} className="flex items-start gap-1.5 text-[9.5px] font-light leading-[1.5] text-ink-soft dark:text-slate-300">
-              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-brand-blue" aria-hidden="true" />
-              <span>{bullet}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+        {/* Summary */}
+        {cv.summary && (
+          <section className="space-y-1">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans">
+              {isAr ? "الملخص المهني" : "Professional Summary"}
+            </h3>
+            <p className="text-[12px] leading-[1.65] text-slate-700 dark:text-slate-300">
+              {cv.summary}
+            </p>
+          </section>
+        )}
 
-      <div className="mt-3 border-t border-line dark:border-white/10 pt-2.5">
-        <h4 className="text-[9.5px] font-semibold tracking-[0.12em] text-ink-muted dark:text-slate-400">EDUCATION</h4>
-        <div className="mt-1.5 flex items-baseline justify-between gap-3">
-          <p className="text-[10.5px] font-semibold text-ink dark:text-white">{cv.education.degree}</p>
-          <p className="shrink-0 text-[9.5px] font-light text-ink-faint dark:text-slate-500">{cv.education.period}</p>
-        </div>
-        <p className="text-[9.5px] font-light text-ink-muted dark:text-slate-400">{cv.education.school}</p>
+        {/* Experience Section */}
+        {cv.experience && (
+          <section className="space-y-2 pt-2 border-t border-slate-100 dark:border-white/10">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans flex items-center gap-1.5">
+              <Briefcase className="w-3.5 h-3.5 text-blue-600 dark:text-[#60A5FA]" />
+              <span>{isAr ? "الخبرات المهنية" : "Work Experience"}</span>
+            </h3>
+
+            <div>
+              <div className="flex items-baseline justify-between gap-2">
+                <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">
+                  {cv.experience.title}
+                </h4>
+                <span className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400 font-sans shrink-0">
+                  {cv.experience.period}
+                </span>
+              </div>
+              <p className="text-[11.5px] font-semibold text-blue-600 dark:text-[#60A5FA] font-sans">
+                {cv.experience.company} {cv.experience.location ? `• ${cv.experience.location}` : ''}
+              </p>
+
+              {cv.experience.bullets && cv.experience.bullets.length > 0 && (
+                <ul className="mt-1.5 space-y-1 font-sans">
+                  {cv.experience.bullets.slice(0, 3).map((bullet, index) => (
+                    <li key={index} className="flex items-start gap-2 text-[11.5px] text-slate-700 dark:text-slate-300 leading-relaxed">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600 dark:bg-blue-400" />
+                      <span>{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Education Section */}
+        {cv.education && (
+          <section className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-white/10">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans flex items-center gap-1.5">
+              <GraduationCap className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>{isAr ? "المؤهل الدراسي والتعليم" : "Education"}</span>
+            </h3>
+
+            <div className="flex items-baseline justify-between gap-2">
+              <h4 className="text-[12.5px] font-bold text-slate-900 dark:text-white">
+                {cv.education.degree}
+              </h4>
+              <span className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400 font-sans shrink-0">
+                {cv.education.period}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 font-sans">
+              {cv.education.school}
+            </p>
+          </section>
+        )}
+
+        {/* Extracted Skills Section */}
+        {cv.skills && cv.skills.length > 0 && (
+          <section className="pt-2 border-t border-slate-100 dark:border-white/10 space-y-2">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans">
+              {isAr ? "المهارات والتقنيات" : "Skills & Technologies"}
+            </h3>
+
+            <div className="flex flex-wrap gap-1.5 font-sans">
+              {cv.skills.slice(0, 10).map((skill, index) => (
+                <span
+                  key={index}
+                  className="px-2.5 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 text-[10.5px] font-bold border border-blue-100 dark:border-blue-500/20"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
       </div>
     </div>
   );

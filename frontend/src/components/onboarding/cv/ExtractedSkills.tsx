@@ -17,7 +17,8 @@ interface ExtractedSkillsProps {
 
 export function ExtractedSkills({ cv, addedCount, complete }: ExtractedSkillsProps) {
   const { isAr } = useLanguage();
-  const added = cv.detectedSkills.slice(0, addedCount);
+  const detectedSkills = cv.detectedSkills || [];
+  const added = detectedSkills.slice(0, addedCount);
 
   return (
     <section className={`p-6 ${surface}`}>
@@ -30,12 +31,12 @@ export function ExtractedSkills({ cv, addedCount, complete }: ExtractedSkillsPro
             {isAr ? "المهارات المكتشفة من سيرتك الذاتية" : "Detected skills from your CV"}
           </p>
           <p className="mt-3 text-[12.5px] font-medium text-[#475569] dark:text-slate-300">
-            {addedCount}/{cv.detectedSkills.length} {isAr ? "مهارة مصنفة" : "mapped"}
+            {addedCount}/{detectedSkills.length} {isAr ? "مهارة مصنفة" : "mapped"}
           </p>
         </div>
 
         <ul className="flex flex-wrap gap-2.5">
-          {cv.detectedSkills.map((skill, index) => {
+          {detectedSkills.map((skill, index) => {
             const mapped = index < addedCount;
             return (
               <motion.li

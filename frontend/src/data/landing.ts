@@ -16,8 +16,7 @@ import type {
 export const navLinks: NavLink[] = [
   { label: 'Features', href: '#features' },
   { label: 'How It Works', href: '#how-it-works' },
-  { label: 'Market Insights', href: '#insights' },
-  { label: 'Success Stories', href: '#testimonials' }
+  { label: 'Market Insights', href: '#insights' }
 ];
 
 export const resourceLinks: ResourceLink[] = [
@@ -182,7 +181,7 @@ export const ctaHighlights: { title: string; icon: string; tone: 'primary' | 'su
 export const testimonials: Testimonial[] = [
   {
     quote:
-      "MAJRA helped me discover skills I didn't know I was missing. I got my dream job in just 6 weeks.",
+      "3WATLY helped me discover skills I didn't know I was missing. I got my dream job in just 6 weeks.",
     name: 'Ahmed M.',
     role: 'Data Analyst',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&q=80'
@@ -209,7 +208,7 @@ export const testimonials: Testimonial[] = [
 
 export const faqs: Faq[] = [
   {
-    question: 'Is MAJRA really free?',
+    question: 'Is 3WATLY really free?',
     answer:
       'Yes. Career matching, market insights, skill gap analysis, and the CV builder are free for individuals, with no credit card required. We monetize through employer and research products.'
   },
@@ -229,7 +228,7 @@ export const faqs: Faq[] = [
       'Your CV is used only to build your profile and generate your recommendations. We never sell or share your information with employers unless you explicitly apply or make your profile visible.'
   },
   {
-    question: 'Does MAJRA work outside Egypt?',
+    question: 'Does 3WATLY work outside Egypt?',
     answer:
       'The market intelligence layer is built specifically for the Egyptian market today. Gulf market coverage is in progress, and the CV builder and skill analysis already work anywhere.'
   }

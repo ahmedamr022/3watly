@@ -1,4 +1,12 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
+import { GoogleAccountChooserModal } from '@/components/auth/GoogleAccountChooserModal';
+import { LinkedInAccountChooserModal } from '@/components/auth/LinkedInAccountChooserModal';
 
 function GoogleMark() {
   return (
@@ -37,19 +45,140 @@ interface SocialAuthButtonsProps {
 }
 
 export function SocialAuthButtons({ googleLabel, linkedinLabel }: SocialAuthButtonsProps) {
+  const router = useRouter();
+  const { isAr } = useLanguage();
+  const { signInWithGoogle, signInWithLinkedIn, loginWithSocialAccount } = useAuth();
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [showLinkedInModal, setShowLinkedInModal] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const handleGoogleClick = async () => {
+    if (isRedirecting) return;
+    setIsRedirecting(true);
+    try {
+      const res = await signInWithGoogle();
+      if (res.redirected) {
+        return; // Redirecting to official Google OAuth screen
+      }
+      if (res.error) {
+        setShowGoogleModal(true);
+      }
+    } catch {
+      setShowGoogleModal(true);
+    } finally {
+      setIsRedirecting(false);
+    }
+  };
+
+  const handleLinkedInClick = async () => {
+    if (isRedirecting) return;
+    setIsRedirecting(true);
+    try {
+      const res = await signInWithLinkedIn();
+      if (res.redirected) {
+        return;
+      }
+      if (res.error) {
+        setShowLinkedInModal(true);
+      }
+    } catch {
+      setShowLinkedInModal(true);
+    } finally {
+      setIsRedirecting(false);
+    }
+  };
+
+  const handleSelectGoogleAccount = async (account: { name: string; email: string; avatarUrl?: string | null }) => {
+    setShowGoogleModal(false);
+    try {
+      const res = await loginWithSocialAccount({
+        fullName: account.name,
+        email: account.email,
+        avatarUrl: account.avatarUrl,
+        provider: 'google'
+      });
+
+      toast.success(
+        isAr
+          ? `تم تسجيل الدخول بنجاح بحساب Google: ${account.name}`
+          : `Signed in successfully with Google as ${account.name}`
+      );
+
+      if (res.onboardingCompleted) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding/career-path');
+      }
+    } catch {
+      toast.error(isAr ? 'حدث خطأ أثناء تسجيل الدخول.' : 'An error occurred during sign in.');
+    }
+  };
+
+  const handleSelectLinkedInAccount = async (account: { name: string; email: string; avatarUrl?: string | null }) => {
+    setShowLinkedInModal(false);
+    try {
+      const res = await loginWithSocialAccount({
+        fullName: account.name,
+        email: account.email,
+        avatarUrl: account.avatarUrl,
+        provider: 'linkedin'
+      });
+
+      toast.success(
+        isAr
+          ? `تم تسجيل الدخول بنجاح بحساب LinkedIn: ${account.name}`
+          : `Signed in successfully with LinkedIn as ${account.name}`
+      );
+
+      if (res.onboardingCompleted) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding/career-path');
+      }
+    } catch {
+      toast.error(isAr ? 'حدث خطأ أثناء تسجيل الدخول.' : 'An error occurred during sign in.');
+    }
+  };
+
   const base =
-    'flex h-[48px] items-center justify-center gap-2.5 whitespace-nowrap rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-[#131C31] text-[13.5px] font-semibold text-[#1E293B] dark:text-white shadow-sm transition-all duration-150 ease-smooth hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-[#18243E] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer';
+    'flex h-[48px] items-center justify-center gap-2.5 whitespace-nowrap rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-[#131C31] text-[13.5px] font-semibold text-[#1E293B] dark:text-white shadow-sm transition-all duration-150 ease-smooth hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-[#18243E] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer disabled:opacity-60';
 
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <button type="button" className={base}>
-        <GoogleMark />
-        <span>{googleLabel}</span>
-      </button>
-      <button type="button" className={base}>
-        <LinkedInMark />
-        <span>{linkedinLabel}</span>
-      </button>
-    </div>
+    <>
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={handleGoogleClick}
+          disabled={isRedirecting}
+          className={base}
+        >
+          <GoogleMark />
+          <span>{googleLabel}</span>
+        </button>
+        <button
+          type="button"
+          onClick={handleLinkedInClick}
+          disabled={isRedirecting}
+          className={base}
+        >
+          <LinkedInMark />
+          <span>{linkedinLabel}</span>
+        </button>
+      </div>
+
+      {/* Google Account Selection Modal */}
+      <GoogleAccountChooserModal
+        isOpen={showGoogleModal}
+        onClose={() => setShowGoogleModal(false)}
+        onSelectAccount={handleSelectGoogleAccount}
+      />
+
+      {/* LinkedIn Account Selection Modal */}
+      <LinkedInAccountChooserModal
+        isOpen={showLinkedInModal}
+        onClose={() => setShowLinkedInModal(false)}
+        onSelectAccount={handleSelectLinkedInAccount}
+      />
+    </>
   );
 }

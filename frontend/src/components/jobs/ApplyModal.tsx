@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -16,6 +17,8 @@ import {
   Check
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { JobItem } from '@/data/jobs';
 
@@ -28,9 +31,13 @@ interface ApplyModalProps {
 
 export function ApplyModal({ job, isOpen, onClose, onSuccess }: ApplyModalProps) {
   const { isAr } = useLanguage();
+  const { user } = useAuth();
+  const { file, parsedCv } = useOnboarding();
   const [step, setStep] = useState<'options' | 'submitting' | 'success'>('options');
   const [customNote, setCustomNote] = useState('');
   const [includeCoverLetter, setIncludeCoverLetter] = useState(true);
+
+  const cvFileName = file?.name || parsedCv?.filename || (user?.fullName ? `${user.fullName.replace(/\s+/g, '_')}_CV.pdf` : 'My_Resume.pdf');
 
   if (!isOpen || !job) return null;
 
@@ -113,7 +120,7 @@ export function ApplyModal({ job, isOpen, onClose, onSuccess }: ApplyModalProps)
                 <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
               </div>
 
-              {/* Primary Method: 1-Click Smart Apply via Majra */}
+              {/* Primary Method: 1-Click Smart Apply via 3WATLY */}
               <div className="p-4 rounded-2xl border-2 border-blue-500/80 bg-blue-50/40 dark:bg-blue-950/20 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[13.5px] font-bold text-[#1B57E0] dark:text-blue-400 flex items-center gap-1.5">
@@ -127,16 +134,16 @@ export function ApplyModal({ job, isOpen, onClose, onSuccess }: ApplyModalProps)
 
                 {/* Attached CV Preview */}
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-[#070B14] border border-blue-200 dark:border-blue-500/30">
-                  <div className="flex items-center gap-2 text-[12px]">
-                    <FileText className="w-4 h-4 text-blue-600" />
-                    <span className="font-bold text-slate-800 dark:text-slate-200">Ahmed_Salah_CV_2026.pdf</span>
-                    <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded">
+                  <div className="flex items-center gap-2 text-[12px] truncate">
+                    <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span className="font-bold text-slate-800 dark:text-slate-200 truncate">{cvFileName}</span>
+                    <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded shrink-0">
                       {isAr ? "مُحسّن ATS" : "ATS Optimized"}
                     </span>
                   </div>
-                  <button type="button" className="text-[11px] font-bold text-blue-600 hover:underline">
+                  <Link href="/cv-builder" className="text-[11px] font-bold text-blue-600 hover:underline shrink-0">
                     {isAr ? "تغيير" : "Change"}
-                  </button>
+                  </Link>
                 </div>
 
                 {/* Note input */}

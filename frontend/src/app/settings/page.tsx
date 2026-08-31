@@ -60,7 +60,7 @@ function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
 
 export default function SettingsPage() {
   const { isAr } = useLanguage();
-  const { user, updateAvatar, updateFullName } = useAuth();
+  const { user, updateAvatar, removeAvatar, updateFullName } = useAuth();
   const { file, role } = useOnboarding();
   
   // View mode: 'settings' | 'edit-profile'
@@ -87,10 +87,8 @@ export default function SettingsPage() {
   // File input ref for avatar
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Determine user name based on real CV file or profile
-  const cvName = file?.name ? extractNameFromFilename(file.name) : null;
-  const initialName = user?.fullName || cvName || (isAr ? 'مستخدم عواطلي' : '3WATLY User');
-  const initialEmail = user?.email || 'user@3watly.com';
+  const initialName = user?.fullName || (isAr ? 'المستخدم' : 'User');
+  const initialEmail = user?.email || '';
   const initialRole = user?.targetRole || (role ? String(role).replace(/-/g, ' ') : (isAr ? 'محلل بيانات' : 'Data Analyst'));
 
   // Profile data state
@@ -98,10 +96,10 @@ export default function SettingsPage() {
     fullName: initialName,
     jobTitle: initialRole,
     email: initialEmail,
-    phone: '+20 101 234 5678',
+    phone: '',
     location: 'Cairo, Egypt',
-    bio: 'Passionate about technical growth and helping businesses make data-driven decisions.',
-    dateJoined: 'March 2024',
+    bio: '',
+    dateJoined: '2025',
     linkedin: '',
     github: ''
   });
@@ -575,14 +573,30 @@ export default function SettingsPage() {
                     JPG, PNG or GIF. Max size 2MB.
                   </p>
 
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center justify-center gap-2 w-full max-w-[160px] py-2 px-3 rounded-xl border border-slate-200 dark:border-white/10 hover:border-blue-500 text-slate-700 dark:text-slate-200 text-[12.5px] font-bold transition-all shadow-2xs hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
-                  >
-                    <Upload className="w-3.5 h-3.5 text-blue-600" />
-                    <span>{isAr ? "تغيير الصورة" : "Change Photo"}</span>
-                  </button>
+                  <div className="flex flex-col gap-2 w-full max-w-[160px]">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-white/10 hover:border-blue-500 text-slate-700 dark:text-slate-200 text-[12.5px] font-bold transition-all shadow-2xs hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-blue-600" />
+                      <span>{user?.avatarUrl ? (isAr ? "تغيير الصورة" : "Replace Photo") : (isAr ? "رفع صورة" : "Upload Photo")}</span>
+                    </button>
+
+                    {user?.avatarUrl && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await removeAvatar();
+                          toast.success(isAr ? "تمت إزالة الصورة الشخصية" : "Profile photo removed");
+                        }}
+                        className="flex items-center justify-center gap-1.5 w-full py-1.5 px-3 rounded-xl border border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 text-[12px] font-semibold hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>{isAr ? "إزالة الصورة" : "Remove Photo"}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Right Column: Form Fields */}
@@ -599,7 +613,7 @@ export default function SettingsPage() {
                         value={profile.fullName}
                         onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
                         className="w-full h-11 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-[#070B14] text-[13.5px] text-slate-900 dark:text-white font-medium focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-[#0B1120] transition-all"
-                        placeholder="Ahmed Sayed"
+                        placeholder="Mohamed Ahmed"
                       />
                     </div>
 
@@ -620,15 +634,20 @@ export default function SettingsPage() {
                   {/* Row 2: Email & Phone */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[12.5px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                        {isAr ? "البريد الإلكتروني" : "Email Address"}
-                      </label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-[12.5px] font-bold text-slate-700 dark:text-slate-300">
+                          {isAr ? "البريد الإلكتروني" : "Email Address"}
+                        </label>
+                        <span className="text-[10.5px] font-bold text-slate-400">
+                          {isAr ? "(الحساب الموثق)" : "(Verified Account)"}
+                        </span>
+                      </div>
                       <input
                         type="email"
                         value={profile.email}
-                        onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                        className="w-full h-11 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-[#070B14] text-[13.5px] text-slate-900 dark:text-white font-medium focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-[#0B1120] transition-all"
-                        placeholder="ahmed.sayed@gmail.com"
+                        readOnly
+                        className="w-full h-11 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-900/70 text-[13.5px] text-slate-500 dark:text-slate-400 font-medium cursor-not-allowed select-none"
+                        placeholder="user@example.com"
                       />
                     </div>
 

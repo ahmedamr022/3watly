@@ -2,12 +2,12 @@ import type { CVData, SectionId, TemplateId } from '../types/cv';
 
 export const initialCV: CVData = {
   contact: {
-    fullName: 'Ahmed Amr',
-    jobTitle: 'Data Analyst',
-    phone: '+20 100 123 4567',
-    email: 'ahmed.amr@email.com',
-    linkedin: 'linkedin.com/in/ahmedamr',
-    location: 'Cairo, Egypt'
+    fullName: '',
+    jobTitle: '',
+    phone: '',
+    email: '',
+    linkedin: '',
+    location: ''
   },
   summary:
   'Data Analyst with 2+ years of experience turning data into actionable insights that drive business performance. Skilled in SQL, Python, Power BI, and Excel. Passionate about building dashboards, identifying trends, and solving problems through data.',
@@ -164,10 +164,4 @@ export const SECTION_META: Record<
   education: { label: 'Education', heading: 'Education' },
   projects: { label: 'Projects', heading: 'Projects' },
   skills: { label: 'Skills', heading: 'Skills' }
-};
-
-export const CURRENT_USER = {
-  name: 'Ahmed Salah',
-  role: 'Data Analyst',
-  initials: 'AS'
 };

@@ -3,11 +3,14 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+import Link from 'next/link';
+
 interface LogoProps {
   tagline?: string | null;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   forceLang?: 'ar' | 'en';
   iconOnly?: boolean;
+  href?: string | null;
 }
 
 const sizes = {
@@ -17,7 +20,7 @@ const sizes = {
   xl: { mark: 'h-16 w-16 sm:h-20 sm:w-20', word: 'text-[36px] sm:text-[42px]', tag: 'text-[14px]' }
 } as const;
 
-export function Logo({ tagline = null, size = 'md', forceLang, iconOnly = false }: LogoProps) {
+export function Logo({ tagline = null, size = 'md', forceLang, iconOnly = false, href = null }: LogoProps) {
   const { isAr } = useLanguage();
   const activeIsAr = forceLang ? forceLang === 'ar' : isAr;
   const { mark, word, tag } = sizes[size];
@@ -29,14 +32,14 @@ export function Logo({ tagline = null, size = 'md', forceLang, iconOnly = false 
 
   const finalTagline = tagline === null ? null : (tagline || defaultTagline);
 
-  return (
-    <div className="flex items-center gap-3 select-none">
+  const content = (
+    <div className="flex items-center gap-3 select-none cursor-pointer group">
       {/* Official 3D 3WATLY / عواطلي Logo */}
       <div className={`${mark} relative shrink-0 flex items-center justify-center`}>
         <img 
           src="/logo.png" 
           alt={brandTitle}
-          className="w-full h-full object-contain drop-shadow-md transition-transform duration-200 hover:scale-105"
+          className="w-full h-full object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-105"
         />
       </div>
       
@@ -54,4 +57,14 @@ export function Logo({ tagline = null, size = 'md', forceLang, iconOnly = false 
       )}
     </div>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 rounded-xl" title={brandTitle}>
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }

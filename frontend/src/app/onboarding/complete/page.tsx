@@ -7,14 +7,23 @@ import { AppHeader } from '@/components/onboarding/AppHeader';
 import { RequireOnboarding } from '@/components/onboarding/RequireOnboarding';
 import { roleOptions } from '@/data/roles';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function CompletePage() {
   const router = useRouter();
   const { isAr } = useLanguage();
   const { role, profile, experience, locations, reset } = useOnboarding();
+  const { setOnboardingCompleted } = useAuth();
 
   const selected = roleOptions.find((option) => option.id === role);
+
+  const handleGoDashboard = async () => {
+    try {
+      await setOnboardingCompleted(true);
+    } catch {}
+    router.push('/dashboard');
+  };
 
   return (
     <RequireOnboarding need="parsedCv">
@@ -28,7 +37,7 @@ export default function CompletePage() {
             </span>
 
             <h1 className="mt-6 text-[28px] font-black leading-tight tracking-tight text-slate-900 dark:text-white">
-              {isAr ? "جاهز للانطلاق، يا أحمد! 🎉" : "You’re all set, Ahmed!"}
+              {isAr ? "جاهز للانطلاق! 🎉" : "You’re all set! 🎉"}
             </h1>
             <p className="mx-auto mt-2.5 max-w-[24rem] text-[14.5px] font-normal leading-[1.6] text-slate-500 dark:text-slate-400">
               {isAr 
@@ -58,11 +67,11 @@ export default function CompletePage() {
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <button
                 type="button"
-                onClick={() => router.push('/')}
+                onClick={handleGoDashboard}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 text-[15px] shadow-lg shadow-blue-600/25 transition-all duration-150 active:translate-y-[1px] sm:w-auto cursor-pointer"
               >
                 <LayoutDashboard className="h-[17px] w-[17px]" />
-                <span>{isAr ? "استكشاف الوظائف والمنصة" : "Explore Jobs & Platform"}</span>
+                <span>{isAr ? "الدخول للوحة التحكم" : "Enter Dashboard"}</span>
                 <ArrowRightIcon className={`h-[17px] w-[17px] ${isAr ? "rotate-180" : ""}`} strokeWidth={2.1} />
               </button>
 

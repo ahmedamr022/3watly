@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Decor } from '@/components/brand/Decor';
@@ -25,44 +25,64 @@ import { toast } from 'sonner';
 export default function SignUpPage() {
   const router = useRouter();
   const { isAr, t } = useLanguage();
-  const { signup } = useAuth();
-  const [fullName, setFullName] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [agreed, setAgreed] = React.useState(true);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { user, signup } = useAuth();
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [agreed, setAgreed] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // If already logged in, redirect based on onboarding completion status
+  useEffect(() => {
+    if (user) {
+      if (user.onboardingCompleted) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding/career-path');
+      }
+    }
+  }, [user, router]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!fullName || !email || !password) {
+    if (!fullName.trim() || !email.trim() || !password || !confirmPassword) {
       toast.error(isAr ? "يرجى ملء جميع الحقول المطلوبة." : "Please fill in all required fields.");
+      return;
+    }
+    if (password.length < 6) {
+      toast.error(isAr ? "كلمة المرور يجب أن تكون 6 أحرف على الأقل." : "Password must be at least 6 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error(isAr ? "كلمتا المرور غير متطابقتين." : "Passwords do not match.");
       return;
     }
     if (!agreed) {
       toast.error(isAr ? "يرجى الموافقة على الشروط والأحكام للمتابعة." : "Please agree to the terms to proceed.");
       return;
     }
+
     setIsSubmitting(true);
     try {
-      const res = await signup(fullName, email, password);
+      const res = await signup(fullName.trim(), email.trim(), password);
       if (res.success) {
-        toast.success(isAr ? "تم إنشاء الحساب بنجاح!" : "Account created successfully!");
+        toast.success(isAr ? "تم إنشاء الحساب بنجاح! مرحباً بك." : "Account created successfully! Welcome.");
         router.push('/onboarding/career-path');
       } else {
-        toast.info(isAr ? "تم المتابعة في الوضع التجريبي." : "Continuing in preview mode.");
-        router.push('/onboarding/career-path');
+        toast.error(res.error || (isAr ? "فشل إنشاء الحساب." : "Failed to create account."));
       }
     } catch {
-      router.push('/onboarding/career-path');
+      toast.error(isAr ? "حدث خطأ أثناء إنشاء الحساب." : "An error occurred during account creation.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const arabicPasswordRules = [
-    "8 أحرف على الأقل",
-    "حرف كبير واحد على الأقل",
-    "رقم أو رمز خاص"
+    "6 أحرف على الأقل",
+    "حرف كبير أو رقم",
+    "تأكيد كلمة المرور متطابق"
   ];
 
   const activePasswordRules = isAr ? arabicPasswordRules : passwordRules;
@@ -149,7 +169,7 @@ export default function SignUpPage() {
               </div>
               <div>
                 <h2 className="text-[26px] font-black leading-tight tracking-tight text-[#0B132B] dark:text-white">
-                  {isAr ? "إنشاء حساب جديد" : "Create Your Account"}
+                  {isAr ? "إنشاء حساب جديد" : "Create Account"}
                 </h2>
                 <p className="mt-0.5 text-[13.5px] font-normal text-[#5B6579] dark:text-slate-400">
                   {isAr ? "سجّل للبدء في رحلتك مع منصة عواطلي" : "Sign up to start your journey with 3WATLY"}
@@ -157,10 +177,11 @@ export default function SignUpPage() {
               </div>
             </div>
 
+            {/* Social Signup (Google & LinkedIn on Signup Only) */}
             <div className="mt-7">
               <SocialAuthButtons
-                googleLabel={isAr ? "التسجيل عبر Google" : "Sign up with Google"}
-                linkedinLabel={isAr ? "التسجيل عبر LinkedIn" : "Sign up with LinkedIn"}
+                googleLabel={isAr ? "المتابعة عبر Google" : "Continue with Google"}
+                linkedinLabel={isAr ? "المتابعة عبر LinkedIn" : "Continue with LinkedIn"}
               />
             </div>
 
@@ -193,27 +214,36 @@ export default function SignUpPage() {
                 onChange={setEmail}
               />
 
-              <div>
-                <TextField
-                  id="password"
-                  label={isAr ? "كلمة المرور" : "Password"}
-                  placeholder={isAr ? "أنشئ كلمة مرور قوية" : "Create a strong password"}
-                  icon="lock"
-                  type="password"
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={setPassword}
-                />
+              <TextField
+                id="password"
+                label={isAr ? "كلمة المرور" : "Password"}
+                placeholder={isAr ? "أنشئ كلمة مرور قوية" : "Create a password"}
+                icon="lock"
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={setPassword}
+              />
 
-                <ul className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5">
-                  {activePasswordRules.map((rule) => (
-                    <li key={rule} className="flex items-center gap-1.5">
-                      <span className="h-[6px] w-[6px] rounded-full bg-[#10B981]" />
-                      <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">{rule}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <TextField
+                id="confirmPassword"
+                label={isAr ? "تأكيد كلمة المرور" : "Confirm Password"}
+                placeholder={isAr ? "أعد إدخال كلمة المرور" : "Confirm your password"}
+                icon="lock"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+              />
+
+              <ul className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1.5">
+                {activePasswordRules.map((rule) => (
+                  <li key={rule} className="flex items-center gap-1.5">
+                    <span className="h-[6px] w-[6px] rounded-full bg-[#10B981]" />
+                    <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">{rule}</span>
+                  </li>
+                ))}
+              </ul>
 
               <div className="pt-1">
                 <Checkbox id="terms" checked={agreed} onChange={setAgreed}>

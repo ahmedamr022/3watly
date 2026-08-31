@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Decor } from '@/components/brand/Decor';
@@ -11,8 +11,6 @@ import { SecurityNote } from '@/components/brand/SecurityNote';
 import { Sparkle } from '@/components/brand/Sparkle';
 import { Underline } from '@/components/brand/Underline';
 import { Checkbox } from '@/components/Form/Checkbox';
-import { Divider } from '@/components/Form/Divider';
-import { SocialAuthButtons } from '@/components/Form/SocialAuthButtons';
 import { SubmitButton } from '@/components/Form/SubmitButton';
 import { TextField } from '@/components/Form/TextField';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -25,11 +23,22 @@ import { toast } from 'sonner';
 export default function LoginPage() {
   const router = useRouter();
   const { isAr, t } = useLanguage();
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [remember, setRemember] = React.useState(true);
-  const { login } = useAuth();
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(true);
+  const { user, login } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // If already logged in, redirect based on onboarding completion status
+  useEffect(() => {
+    if (user) {
+      if (user.onboardingCompleted) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding/career-path');
+      }
+    }
+  }, [user, router]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -42,14 +51,16 @@ export default function LoginPage() {
       const res = await login(email, password);
       if (res.success) {
         toast.success(isAr ? "تم تسجيل الدخول بنجاح!" : "Logged in successfully!");
-        router.push('/dashboard');
+        if (res.onboardingCompleted) {
+          router.push('/dashboard');
+        } else {
+          router.push('/onboarding/career-path');
+        }
       } else {
-        // If backend is offline or credentials error, fallback gracefully to preview/onboarding flow
-        toast.info(isAr ? "تم الدخول في الوضع التفاعلي التجريبي." : "Continuing in interactive preview mode.");
-        router.push('/onboarding/career-path');
+        toast.error(res.error || (isAr ? "فشل تسجيل الدخول. يرجى التحقق من البيانات." : "Login failed. Please check your credentials."));
       }
     } catch {
-      router.push('/onboarding/career-path');
+      toast.error(isAr ? "حدث خطأ أثناء تسجيل الدخول." : "An error occurred during login.");
     } finally {
       setIsSubmitting(false);
     }
@@ -119,7 +130,7 @@ export default function LoginPage() {
           </div>
         </section>
 
-        {/* Right Column: Auth Form Card */}
+        {/* Right Column: Auth Form Card (Clean Login: Email & Password Only) */}
         <section className="w-full flex justify-center lg:justify-end">
           <div className="w-full max-w-[540px] rounded-[28px] border border-slate-100 dark:border-white/10 bg-white dark:bg-[#0D1527] p-7 sm:p-10 shadow-[0_20px_50px_rgba(27,45,105,0.08)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_20px_rgba(99,102,241,0.06)]">
             <div className="flex flex-col items-center text-center">
@@ -134,19 +145,8 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <div className="mt-7">
-              <SocialAuthButtons
-                googleLabel={isAr ? "المتابعة عبر Google" : "Continue with Google"}
-                linkedinLabel={isAr ? "المتابعة عبر LinkedIn" : "Continue with LinkedIn"}
-              />
-            </div>
-
-            <div className="my-6">
-              <Divider />
-            </div>
-
             <form
-              className="space-y-4"
+              className="mt-7 space-y-4"
               onSubmit={handleSubmit}
             >
               <TextField

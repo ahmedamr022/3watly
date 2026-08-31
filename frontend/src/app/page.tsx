@@ -20,8 +20,6 @@ import { FeatureStrip } from "@/components/landing/FeatureStrip";
 import { Features } from "@/components/landing/Features";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { MarketInsights } from "@/components/landing/MarketInsights";
-import { Testimonials } from "@/components/landing/Testimonials";
-import { LogoCloud } from "@/components/landing/LogoCloud";
 import { FinalCta } from "@/components/landing/FinalCta";
 import { Footer } from "@/components/layout/Footer";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
@@ -169,15 +167,6 @@ export default function LandingPage() {
                         <Play className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 fill-blue-600 dark:fill-blue-400" />
                       </span>
                       <span>{isAr ? "كيف تعمل المنصة" : "How It Works"}</span>
-                    </a>
-                    <a
-                      href="#testimonials"
-                      className="flex items-center gap-3 px-3.5 py-2.5 text-[13.5px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 dark:hover:from-emerald-950/40 dark:hover:to-teal-950/40 rounded-xl transition-all duration-200 group"
-                    >
-                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/50 dark:to-teal-900/50 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
-                        <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                      </span>
-                      <span>{isAr ? "قصص النجاح" : "Success Stories"}</span>
                     </a>
                   </motion.div>
                 )}
@@ -362,13 +351,8 @@ export default function LandingPage() {
           </div>
 
           {/* Key Metrics Feature Strip */}
-          <div className="mt-8 mb-4">
+          <div className="mt-8 mb-2">
             <FeatureStrip />
-          </div>
-
-          {/* Trusted Companies Logo Cloud */}
-          <div className="mt-6">
-            <LogoCloud />
           </div>
 
         </div>
@@ -396,14 +380,7 @@ export default function LandingPage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 6. SUCCESS STORIES / TESTIMONIALS SECTION                                */}
-      {/* ========================================================================= */}
-      <section id="testimonials" className="w-full py-16 bg-slate-50/50 dark:bg-[#070B14]/50 scroll-mt-20 border-y border-slate-100 dark:border-white/5">
-        <Testimonials />
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 7. FINAL CALL TO ACTION (CTA)                                            */}
+      {/* 6. FINAL CALL TO ACTION (CTA)                                            */}
       {/* ========================================================================= */}
       <section className="w-full py-16">
         <FinalCta />

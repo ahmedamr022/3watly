@@ -8,6 +8,7 @@ import { StepShell } from '@/components/onboarding/StepShell';
 import { RequireOnboarding } from '@/components/onboarding/RequireOnboarding';
 import { StepFooter } from '@/components/onboarding/StepFooter';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { riseIn } from '@/utils/motion';
 
@@ -15,6 +16,14 @@ export default function RecommendationsPage() {
   const router = useRouter();
   const { isAr } = useLanguage();
   const { profile } = useOnboarding();
+  const { setOnboardingCompleted } = useAuth();
+
+  const handleFinish = async () => {
+    try {
+      await setOnboardingCompleted(true);
+    } catch {}
+    router.push('/dashboard');
+  };
 
   if (!profile) {
     return (
@@ -173,7 +182,7 @@ export default function RecommendationsPage() {
           <div className="mt-auto pt-8">
             <StepFooter
               onBack={() => router.push('/onboarding/profile-insights')}
-              onNext={() => router.push('/dashboard')}
+              onNext={handleFinish}
               nextLabel={isAr ? "إتمام التهيئة والدخول للوحة التحكم" : "Complete & Enter Dashboard"}
               variant="finish"
             />

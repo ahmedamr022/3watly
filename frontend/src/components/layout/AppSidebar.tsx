@@ -106,7 +106,7 @@ export function AppSidebar({
         
         {/* Brand Header with Collapse Toggle Button */}
         <div className={`flex items-center ${isCollapsed ? 'justify-center flex-col gap-3' : 'justify-between'} px-1 pt-1 pb-1`}>
-          <Link href="/dashboard" className="transition-transform hover:scale-105" title="عواطلي">
+          <Link href="/" className="transition-transform hover:scale-105" title="3WATLY | عواطلي">
             <Logo size="md" iconOnly={isCollapsed} />
           </Link>
 

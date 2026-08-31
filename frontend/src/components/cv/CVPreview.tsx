@@ -86,7 +86,7 @@ export function CVPreview() {
       >
         {/* Header: Name + Contact info */}
         <header className="border-b border-slate-200 dark:border-white/10 pb-5 text-center">
-          <h1 className={style.name}>{cv.contact.fullName || 'Ahmed Amr'}</h1>
+          <h1 className={style.name}>{cv.contact.fullName || 'Full Name'}</h1>
           {cv.contact.jobTitle && <p className={style.role}>{cv.contact.jobTitle}</p>}
 
           <ul className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 font-sans ${style.contact}`}>

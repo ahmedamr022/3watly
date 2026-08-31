@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Briefcase,
@@ -26,6 +26,7 @@ import {
 } from '@/data/market';
 import {
   Filters,
+  StatSet,
   defaultFilters,
   getStats,
   getTopSkills,
@@ -49,14 +50,55 @@ export default function MarketPage() {
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [selectedSkill, setSelectedSkill] = useState<string>('SQL');
   const [exporting, setExporting] = useState<boolean>(false);
+  const [liveStats, setLiveStats] = useState<any>(null);
+
+  // Fetch live market stats from /api/market/stats
+  useEffect(() => {
+    const params = new URLSearchParams({
+      industry: filters.industry,
+      region: filters.region,
+      timeframe: filters.timeframe,
+    });
+    fetch(`/api/market/stats?${params}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data.stats) {
+          setLiveStats(data);
+        }
+      })
+      .catch(() => {});
+  }, [filters]);
 
   const isFiltered =
     filters.industry !== defaultFilters.industry ||
     filters.region !== defaultFilters.region ||
     filters.timeframe !== defaultFilters.timeframe;
 
-  const stats = getStats(filters);
-  const topSkills = getTopSkills(filters);
+  // Merge live stats from Supabase with computed fallback
+  const computedStats = getStats(filters);
+  const stats: StatSet = liveStats?.stats
+    ? {
+        ...computedStats,
+        jobs: Math.max(computedStats.jobs, liveStats.stats.totalJobs),
+        companies: Math.max(computedStats.companies, liveStats.stats.totalCompanies),
+        remote: liveStats.stats.remoteJobsPercentage || computedStats.remote,
+        topSkill: liveStats.stats.topSkillName
+          ? { name: liveStats.stats.topSkillName, share: liveStats.stats.topSkillPercentage }
+          : computedStats.topSkill,
+      }
+    : computedStats;
+
+  // Merge live skills with computed ranking
+  const computedTopSkills = getTopSkills(filters);
+  const topSkills = liveStats?.topSkills?.length > 0
+    ? liveStats.topSkills.map((s: any) => ({
+        name: s.name,
+        value: s.percentage || s.count,
+        icon: '📊',
+        color: '#3B82F6',
+      }))
+    : computedTopSkills;
+
   const ranking = getSkillRanking(filters);
 
   const setFilter = (key: keyof Filters) => (value: string) => {
