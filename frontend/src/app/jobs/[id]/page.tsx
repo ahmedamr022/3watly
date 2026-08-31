@@ -68,7 +68,28 @@ export default function JobDetailsPage() {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
   const jobId = params?.id as string;
-  const job = mockJobsList.find((j) => j.id === jobId) || mockJobsList[0];
+  const [job, setJob] = useState(mockJobsList.find((j) => j.id === jobId) || mockJobsList[0]);
+  const [loadingJob, setLoadingJob] = useState(true);
+
+  React.useEffect(() => {
+    let mounted = true;
+    if (jobId) {
+      fetch(`/api/jobs/${jobId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (mounted && data?.job) {
+            setJob(data.job);
+          }
+        })
+        .catch((err) => console.warn('Could not fetch dynamic job:', err))
+        .finally(() => {
+          if (mounted) setLoadingJob(false);
+        });
+    }
+    return () => {
+      mounted = false;
+    };
+  }, [jobId]);
 
   // Specific, 100% accurate company locations and details
   const getCompanyDetails = (comp: string) => {
