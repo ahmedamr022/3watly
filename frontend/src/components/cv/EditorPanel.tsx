@@ -43,20 +43,40 @@ const PANELS: Record<SectionId, React.ComponentType> = {
 
 export function EditorPanel() {
   const { cv } = useCV();
-  const [open, setOpen] = useState<SectionId[]>(['projects']);
+  const [open, setOpen] = useState<SectionId[]>(['contact']);
   const [reorderOpen, setReorderOpen] = useState(false);
 
   const toggle = (id: SectionId) =>
-  setOpen((current) =>
-  current.includes(id) ?
-  current.filter((s) => s !== id) :
-  [...current, id]
-  );
+    setOpen((current) =>
+      current.includes(id)
+        ? current.filter((s) => s !== id)
+        : [...current, id]
+    );
 
   return (
     <div>
-      <div className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-card">
+      <div className="divide-y divide-slate-200 dark:divide-white/10 overflow-hidden rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-card">
+        {/* 1. Header & Contact Information (Personal Info & Links) */}
+        <SectionRow
+          key="contact"
+          id="contact"
+          label={SECTION_META['contact'].label || 'Header & Contact Information'}
+          icon={ICONS['contact']}
+          open={open.includes('contact')}
+          onToggle={() => toggle('contact')}
+          complete={Boolean(cv.contact.fullName.trim() && cv.contact.email.trim())}
+          badge={
+            <span className="rounded-md bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:text-blue-400">
+              Header
+            </span>
+          }
+        >
+          <ContactSection />
+        </SectionRow>
+
+        {/* 2. Content Sections */}
         {cv.sectionOrder.map((id) => {
+          if (id === 'contact') return null;
           const status = sectionStatus(cv, id);
           const Panel = PANELS[id];
           const hidden = cv.hiddenSections.includes(id);
@@ -71,24 +91,24 @@ export function EditorPanel() {
               complete={status.complete}
               count={status.count}
               badge={
-              <>
-                  {id === 'summary' &&
-                <span className="inline-flex items-center gap-1 rounded-md bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-700">
+                <>
+                  {id === 'summary' && (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-violet-50 dark:bg-violet-950/60 px-2 py-0.5 text-[11px] font-semibold text-violet-700 dark:text-violet-400">
                       <SparklesIcon className="h-3 w-3" aria-hidden="true" />
                       AI Assisted
                     </span>
-                }
-                  {hidden &&
-                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+                  )}
+                  {hidden && (
+                    <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
                       Hidden
                     </span>
-                }
+                  )}
                 </>
-              }>
-              
+              }
+            >
               <Panel />
-            </SectionRow>);
-
+            </SectionRow>
+          );
         })}
       </div>
 

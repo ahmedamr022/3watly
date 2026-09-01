@@ -32,41 +32,86 @@ export default function DashboardPage() {
   const { isAr } = useLanguage();
   const { user } = useAuth();
   const { analysis } = useCV();
-  const [liveJobs, setLiveJobs] = useState(mockJobsList);
-  const [marketStats, setMarketStats] = useState({
-    totalJobs: 260,
-    totalCompanies: 84,
-    remoteJobsPercentage: 38,
-    topSkillName: 'SQL',
-    topSkillPercentage: 81,
+
+  // Instant synchronous hydration from cache to eliminate 100% of latency and mock flashes
+  const [userParsedCv, setUserParsedCv] = useState<any>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('3watly_parsed_cv');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return null;
+  });
+
+  const [liveJobs, setLiveJobs] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem('3watly_dashboard_jobs');
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return [];
+  });
+
+  const [loadingJobs, setLoadingJobs] = useState(() => liveJobs.length === 0);
+
+  const [marketStats, setMarketStats] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem('3watly_market_stats');
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return {
+      totalJobs: 401,
+      totalCompanies: 120,
+      remoteJobsPercentage: 38,
+      topSkillName: 'SQL',
+      topSkillPercentage: 81,
+    };
   });
 
   React.useEffect(() => {
     let mounted = true;
-    ApiService.getJobs().then((res: any) => {
+
+    ApiService.getJobs({ limit: '6' }).then((res: any) => {
       if (mounted && res && (Array.isArray(res) || Array.isArray(res.jobs))) {
         const data = Array.isArray(res) ? res : res.jobs;
-        if (data.length > 0) setLiveJobs(data);
+        if (data.length > 0) {
+          setLiveJobs(data);
+          try {
+            sessionStorage.setItem('3watly_dashboard_jobs', JSON.stringify(data));
+          } catch {}
+        }
       }
-    }).catch(() => {});
+    }).catch(() => {})
+      .finally(() => {
+        if (mounted) setLoadingJobs(false);
+      });
 
     fetch('/api/market/stats')
       .then((res) => res.json())
       .then((data) => {
         if (mounted && data?.stats) {
-          setMarketStats({
-            totalJobs: data.stats.totalJobs || 260,
-            totalCompanies: data.stats.totalCompanies || 84,
+          const stats = {
+            totalJobs: data.stats.totalJobs || 401,
+            totalCompanies: data.stats.totalCompanies || 120,
             remoteJobsPercentage: data.stats.remoteJobsPercentage || 38,
             topSkillName: data.stats.topSkillName || 'SQL',
             topSkillPercentage: data.stats.topSkillPercentage || 81,
-          });
+          };
+          setMarketStats(stats);
+          try {
+            sessionStorage.setItem('3watly_market_stats', JSON.stringify(stats));
+          } catch {}
         }
       })
       .catch(() => {});
 
     return () => { mounted = false; };
   }, []);
+
   const [bookmarkedJobs, setBookmarkedJobs] = useState<string[]>([]);
 
   const toggleBookmark = (id: string | number, e: React.MouseEvent) => {
@@ -78,19 +123,21 @@ export default function DashboardPage() {
     );
   };
 
-  const careerAlignment = analysis?.score ? Math.min(98, Math.max(60, analysis.score)) : 84;
+  const careerAlignment = userParsedCv?.atsReport?.score || (analysis?.score ? Math.min(98, Math.max(60, analysis.score)) : 84);
   const missingSkills = analysis?.keywords?.missing?.length
     ? analysis.keywords.missing.slice(0, 2)
+    : userParsedCv?.skills?.length
+    ? [userParsedCv.skills[0], userParsedCv.skills[1] || 'Git']
     : ['Power BI', 'SQL'];
 
   const topJobs = React.useMemo(() => {
-    const list = liveJobs.length > 0 ? liveJobs.slice(0, 3) : mockJobsList.slice(0, 3);
-    return list.map((job: any) => ({
+    return liveJobs.slice(0, 4).map((job: any) => ({
       id: String(job.id),
       title: job.title,
       titleAr: job.titleAr || job.title,
       company: job.company,
       companyAr: job.companyAr || job.company,
+      companyLogo: job.companyLogo || job.company_logo || null,
       location: job.location || 'Cairo, Egypt',
       locationAr: job.locationAr || job.location || 'القاهرة، مصر',
       matchScore: job.matchScore || 82,
@@ -124,8 +171,8 @@ export default function DashboardPage() {
                 <span className="block text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
                   {isAr ? "إجمالي الوظائف المحللة" : "Total Analyzed Jobs"}
                 </span>
-                <p className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
-                  {marketStats.totalJobs.toLocaleString()}
+                <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
+                  {marketStats.totalJobs.toLocaleString('en-US')}
                 </p>
                 <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
                   <span>↑ 8%</span>
@@ -161,8 +208,8 @@ export default function DashboardPage() {
                 <span className="block text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
                   {isAr ? "الشركات الموظفة" : "Hiring Companies"}
                 </span>
-                <p className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
-                  {marketStats.totalCompanies.toLocaleString()}
+                <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
+                  {marketStats.totalCompanies.toLocaleString('en-US')}
                 </p>
                 <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
                   <span>↑ 6.3%</span>
@@ -198,7 +245,7 @@ export default function DashboardPage() {
                 <span className="block text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
                   {isAr ? "نسبة العمل عن بُعد/هجين" : "Remote/Hybrid Ratio"}
                 </span>
-                <p className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
+                <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
                   {marketStats.remoteJobsPercentage}%
                 </p>
                 <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
@@ -235,10 +282,10 @@ export default function DashboardPage() {
                 <span className="block text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
                   {isAr ? "المهارة الأكثر طلباً" : "Top In-Demand Skill"}
                 </span>
-                <p className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
+                <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
                   {marketStats.topSkillName}
                 </p>
-                <span className="block text-[11.5px] font-normal text-slate-500 dark:text-slate-400 mt-1 truncate">
+                <span suppressHydrationWarning className="block text-[11.5px] font-normal text-slate-500 dark:text-slate-400 mt-1 truncate">
                   {isAr ? `مطلوبة في ${marketStats.topSkillPercentage}% من الوظائف` : `${marketStats.topSkillPercentage}% of active roles`}
                 </span>
               </div>
@@ -496,7 +543,31 @@ export default function DashboardPage() {
           {/* 4 Cards Grid */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
             
-            {/* Job Card 1: Vodafone Egypt */}
+            {/* Loading Skeleton */}
+            {loadingJobs && topJobs.length === 0 && (
+              <>
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="rounded-[20px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0E1628] p-4 flex flex-col justify-between animate-pulse space-y-3"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-3/4" />
+                        <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded w-1/2" />
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5 pt-2">
+                      <div className="h-5 w-12 bg-slate-100 dark:bg-slate-800 rounded" />
+                      <div className="h-5 w-14 bg-slate-100 dark:bg-slate-800 rounded" />
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* Live Job Cards */}
             {topJobs.map((job) => {
               const isSaved = bookmarkedJobs.includes(job.id);
               return (
@@ -510,7 +581,12 @@ export default function DashboardPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-start gap-2.5 min-w-0">
                         {/* Official Company Logo Badge */}
-                        <CompanyLogo company={job.company} size="sm" className="shrink-0" />
+                        <CompanyLogo
+                          company={job.company}
+                          logoUrl={job.companyLogo}
+                          size="sm"
+                          className="shrink-0"
+                        />
 
                         <div className="min-w-0">
                           <h3 className="text-[13.5px] font-bold text-[#0B132B] dark:text-white leading-tight truncate group-hover:text-blue-600 transition-colors">

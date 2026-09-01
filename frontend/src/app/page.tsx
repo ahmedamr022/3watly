@@ -17,6 +17,7 @@ import {
 import { HeroBackdrop } from "@/components/landing/HeroBackdrop";
 import { HeroVisual } from "@/components/landing/HeroVisual";
 import { FeatureStrip } from "@/components/landing/FeatureStrip";
+import { MarketTicker } from "@/components/landing/MarketTicker";
 import { Features } from "@/components/landing/Features";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { MarketInsights } from "@/components/landing/MarketInsights";
@@ -30,18 +31,20 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LandingPage() {
   const { isAr, t } = useLanguage();
-  const [activeNav, setActiveNav] = useState("jobs");
+  const [activeNav, setActiveNav] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const isClickScrollingRef = useRef(false);
 
   const navigationLinks = isAr
     ? [
-        { label: "الوظائف والفرص", href: "#features", id: "jobs", icon: <Briefcase className="w-4 h-4 text-slate-500" /> },
+        { label: "المميزات والوظائف", href: "#features", id: "features", icon: <Briefcase className="w-4 h-4 text-slate-500" /> },
+        { label: "كيف تعمل المنصة", href: "#how-it-works", id: "how-it-works", icon: <FileText className="w-4 h-4 text-slate-500" /> },
         { label: "مؤشرات السوق", href: "#insights", id: "insights", icon: <BarChart3 className="w-4 h-4 text-slate-500" /> },
       ]
     : [
-        { label: "Jobs", href: "#features", id: "jobs", icon: <Briefcase className="w-4 h-4 text-slate-500" /> },
+        { label: "Features", href: "#features", id: "features", icon: <Briefcase className="w-4 h-4 text-slate-500" /> },
+        { label: "How It Works", href: "#how-it-works", id: "how-it-works", icon: <FileText className="w-4 h-4 text-slate-500" /> },
         { label: "Market Insights", href: "#insights", id: "insights", icon: <BarChart3 className="w-4 h-4 text-slate-500" /> },
       ];
 
@@ -56,13 +59,20 @@ export default function LandingPage() {
 
       if (isClickScrollingRef.current) return;
 
+      // When at the top Hero section, no navbar link is active
+      if (window.scrollY < 320) {
+        setActiveNav("");
+        return;
+      }
+
       const sections = [
-        { id: "features", navId: "jobs" },
+        { id: "features", navId: "features" },
+        { id: "how-it-works", navId: "how-it-works" },
         { id: "insights", navId: "insights" },
-        { id: "how-it-works", navId: "resources" }
       ];
 
-      const scrollPos = window.scrollY + 200;
+      const scrollPos = window.scrollY + 250;
+      let matched = false;
       for (const section of sections) {
         const el = document.getElementById(section.id);
         if (el) {
@@ -70,9 +80,13 @@ export default function LandingPage() {
           const height = el.offsetHeight;
           if (scrollPos >= top && scrollPos < top + height) {
             setActiveNav(section.navId);
+            matched = true;
             break;
           }
         }
+      }
+      if (!matched && window.scrollY >= 320) {
+        setActiveNav("features");
       }
     };
 
@@ -119,59 +133,23 @@ export default function LandingPage() {
                   key={link.id}
                   href={link.href}
                   onClick={() => handleNavClick(link.id)}
-                  className={`flex items-center gap-2 py-2 transition-colors duration-200 ${
-                    isActive ? "text-blue-600 dark:text-blue-400 font-bold" : "hover:text-blue-600 dark:hover:text-white"
+                  className={`relative flex items-center gap-2 py-1.5 px-3 rounded-xl transition-all duration-200 ${
+                    isActive 
+                      ? "text-blue-600 dark:text-blue-400 font-bold bg-blue-50/80 dark:bg-blue-950/50 shadow-2xs" 
+                      : "hover:text-blue-600 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5"
                   }`}
                 >
                   <span className="opacity-80">{link.icon}</span>
                   <span>{link.label}</span>
+                  {isActive && (
+                    <motion.span
+                      layoutId="activeNavIndicator"
+                      className="absolute bottom-0 inset-x-3 h-[2px] bg-blue-600 dark:bg-blue-400 rounded-full"
+                    />
+                  )}
                 </a>
               );
             })}
-
-            {/* Resources Dropdown - Premium 3D */}
-            <div 
-              className="relative"
-              onMouseEnter={() => setResourcesOpen(true)}
-              onMouseLeave={() => setResourcesOpen(false)}
-            >
-              <button
-                type="button"
-                className={`flex items-center gap-1.5 py-2 transition-all duration-200 cursor-pointer ${
-                  resourcesOpen 
-                    ? 'text-blue-600 dark:text-blue-400 font-bold' 
-                    : 'hover:text-blue-600 dark:hover:text-white'
-                }`}
-              >
-                <span>{isAr ? "المصادر" : "Resources"}</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${resourcesOpen ? "rotate-180" : ""}`} />
-              </button>
-
-              <AnimatePresence>
-                {resourcesOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.97 }}
-                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute ltr:left-1/2 ltr:-translate-x-1/2 rtl:right-1/2 rtl:translate-x-1/2 top-10 w-56 rounded-2xl border border-white/20 dark:border-white/10 bg-white/95 dark:bg-[#0D1527]/95 backdrop-blur-2xl p-2.5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] z-50"
-                  >
-                    {/* Glossy top highlight */}
-                    <div className="absolute inset-x-0 top-0 h-[1px] rounded-t-2xl bg-gradient-to-r from-transparent via-white/60 dark:via-white/20 to-transparent" />
-                    
-                    <a
-                      href="#how-it-works"
-                      className="flex items-center gap-3 px-3.5 py-2.5 text-[13.5px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-950/40 dark:hover:to-indigo-950/40 rounded-xl transition-all duration-200 group"
-                    >
-                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
-                        <Play className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 fill-blue-600 dark:fill-blue-400" />
-                      </span>
-                      <span>{isAr ? "كيف تعمل المنصة" : "How It Works"}</span>
-                    </a>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
           </nav>
 
           {/* Right Action Controls: Language Toggle + Theme Toggle + Log In + Sign Up */}
@@ -357,6 +335,9 @@ export default function LandingPage() {
 
         </div>
       </section>
+
+      {/* Live Market Dynamic Horizontal Ticker */}
+      <MarketTicker />
 
       {/* ========================================================================= */}
       {/* 3. CORE FEATURES SECTION                                                 */}

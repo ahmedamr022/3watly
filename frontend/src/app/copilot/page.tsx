@@ -20,6 +20,7 @@ import { useClickOutside } from '@/hooks/useClickOutside';
 import { downloadFile } from '@/utils/marketData';
 import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ActiveCVBadge } from '@/components/cv/CVVersionManager';
 
 const arabicEmptyPrompts = [
   {
@@ -134,9 +135,12 @@ export default function CopilotPage() {
               <SparklesIcon className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                {isAr ? "محادثة المساعد المهني الذكي" : "AI Career Copilot"}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                  {isAr ? "محادثة المساعد المهني الذكي" : "AI Career Copilot"}
+                </h2>
+                <ActiveCVBadge pageName={isAr ? "المساعد الذكي" : "Copilot"} />
+              </div>
               <span className="text-xs text-slate-500 dark:text-slate-400">
                 {isAr ? "مبني على تحليل مئات الوظائف في السوق المصري" : "Grounded in verified Egyptian market jobs"}
               </span>

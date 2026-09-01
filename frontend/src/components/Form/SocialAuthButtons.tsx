@@ -1,12 +1,10 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
-import { GoogleAccountChooserModal } from '@/components/auth/GoogleAccountChooserModal';
-import { LinkedInAccountChooserModal } from '@/components/auth/LinkedInAccountChooserModal';
+import { Loader2 } from 'lucide-react';
 
 function GoogleMark() {
   return (
@@ -45,140 +43,73 @@ interface SocialAuthButtonsProps {
 }
 
 export function SocialAuthButtons({ googleLabel, linkedinLabel }: SocialAuthButtonsProps) {
-  const router = useRouter();
   const { isAr } = useLanguage();
-  const { signInWithGoogle, signInWithLinkedIn, loginWithSocialAccount } = useAuth();
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
-  const [showLinkedInModal, setShowLinkedInModal] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const { signInWithGoogle, signInWithLinkedIn } = useAuth();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isLinkedInLoading, setIsLinkedInLoading] = useState(false);
 
   const handleGoogleClick = async () => {
-    if (isRedirecting) return;
-    setIsRedirecting(true);
+    if (isGoogleLoading || isLinkedInLoading) return;
+    setIsGoogleLoading(true);
     try {
       const res = await signInWithGoogle();
-      if (res.redirected) {
-        return; // Redirecting to official Google OAuth screen
+      if (!res.success && res.error) {
+        toast.error(res.error);
       }
-      if (res.error) {
-        setShowGoogleModal(true);
-      }
-    } catch {
-      setShowGoogleModal(true);
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'فشل بدء تسجيل الدخول بواسطة Google' : 'Failed to sign in with Google'));
     } finally {
-      setIsRedirecting(false);
+      setIsGoogleLoading(false);
     }
   };
 
   const handleLinkedInClick = async () => {
-    if (isRedirecting) return;
-    setIsRedirecting(true);
+    if (isGoogleLoading || isLinkedInLoading) return;
+    setIsLinkedInLoading(true);
     try {
       const res = await signInWithLinkedIn();
-      if (res.redirected) {
-        return;
+      if (!res.success && res.error) {
+        toast.error(res.error);
       }
-      if (res.error) {
-        setShowLinkedInModal(true);
-      }
-    } catch {
-      setShowLinkedInModal(true);
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'فشل بدء تسجيل الدخول بواسطة LinkedIn' : 'Failed to sign in with LinkedIn'));
     } finally {
-      setIsRedirecting(false);
-    }
-  };
-
-  const handleSelectGoogleAccount = async (account: { name: string; email: string; avatarUrl?: string | null }) => {
-    setShowGoogleModal(false);
-    try {
-      const res = await loginWithSocialAccount({
-        fullName: account.name,
-        email: account.email,
-        avatarUrl: account.avatarUrl,
-        provider: 'google'
-      });
-
-      toast.success(
-        isAr
-          ? `تم تسجيل الدخول بنجاح بحساب Google: ${account.name}`
-          : `Signed in successfully with Google as ${account.name}`
-      );
-
-      if (res.onboardingCompleted) {
-        router.push('/dashboard');
-      } else {
-        router.push('/onboarding/career-path');
-      }
-    } catch {
-      toast.error(isAr ? 'حدث خطأ أثناء تسجيل الدخول.' : 'An error occurred during sign in.');
-    }
-  };
-
-  const handleSelectLinkedInAccount = async (account: { name: string; email: string; avatarUrl?: string | null }) => {
-    setShowLinkedInModal(false);
-    try {
-      const res = await loginWithSocialAccount({
-        fullName: account.name,
-        email: account.email,
-        avatarUrl: account.avatarUrl,
-        provider: 'linkedin'
-      });
-
-      toast.success(
-        isAr
-          ? `تم تسجيل الدخول بنجاح بحساب LinkedIn: ${account.name}`
-          : `Signed in successfully with LinkedIn as ${account.name}`
-      );
-
-      if (res.onboardingCompleted) {
-        router.push('/dashboard');
-      } else {
-        router.push('/onboarding/career-path');
-      }
-    } catch {
-      toast.error(isAr ? 'حدث خطأ أثناء تسجيل الدخول.' : 'An error occurred during sign in.');
+      setIsLinkedInLoading(false);
     }
   };
 
   const base =
-    'flex h-[48px] items-center justify-center gap-2.5 whitespace-nowrap rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-[#131C31] text-[13.5px] font-semibold text-[#1E293B] dark:text-white shadow-sm transition-all duration-150 ease-smooth hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-[#18243E] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer disabled:opacity-60';
+    'flex h-[48px] items-center justify-center gap-2.5 whitespace-nowrap rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0D1527] text-[13.5px] font-semibold text-[#1E293B] dark:text-white shadow-xs transition-all duration-150 ease-smooth hover:border-blue-300 dark:hover:border-blue-500/40 hover:bg-slate-50 dark:hover:bg-white/5 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed';
 
   return (
-    <>
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          type="button"
-          onClick={handleGoogleClick}
-          disabled={isRedirecting}
-          className={base}
-        >
+    <div className="grid grid-cols-2 gap-3">
+      <button
+        type="button"
+        onClick={handleGoogleClick}
+        disabled={isGoogleLoading || isLinkedInLoading}
+        className={base}
+      >
+        {isGoogleLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
+        ) : (
           <GoogleMark />
-          <span>{googleLabel}</span>
-        </button>
-        <button
-          type="button"
-          onClick={handleLinkedInClick}
-          disabled={isRedirecting}
-          className={base}
-        >
+        )}
+        <span>{isGoogleLoading ? (isAr ? 'جاري التحويل...' : 'Redirecting...') : googleLabel}</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={handleLinkedInClick}
+        disabled={isGoogleLoading || isLinkedInLoading}
+        className={base}
+      >
+        {isLinkedInLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
+        ) : (
           <LinkedInMark />
-          <span>{linkedinLabel}</span>
-        </button>
-      </div>
-
-      {/* Google Account Selection Modal */}
-      <GoogleAccountChooserModal
-        isOpen={showGoogleModal}
-        onClose={() => setShowGoogleModal(false)}
-        onSelectAccount={handleSelectGoogleAccount}
-      />
-
-      {/* LinkedIn Account Selection Modal */}
-      <LinkedInAccountChooserModal
-        isOpen={showLinkedInModal}
-        onClose={() => setShowLinkedInModal(false)}
-        onSelectAccount={handleSelectLinkedInAccount}
-      />
-    </>
+        )}
+        <span>{isLinkedInLoading ? (isAr ? 'جاري التحويل...' : 'Redirecting...') : linkedinLabel}</span>
+      </button>
+    </div>
   );
 }

@@ -11,6 +11,7 @@ import { BottomInsightsRow } from '@/components/skills/BottomInsightsRow';
 import { TargetRoleModal } from '@/components/skills/TargetRoleModal';
 import { ResourcesModal } from '@/components/skills/ResourcesModal';
 import type { PlannedSkill } from '@/types/skills';
+import { ActiveCVBadge } from '@/components/cv/CVVersionManager';
 import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -39,6 +40,11 @@ export default function SkillGapPage() {
       }
     >
       <div className="space-y-6 max-w-[1400px] mx-auto pb-12">
+        {/* Top Active CV Pill */}
+        <div className="flex items-center justify-between">
+          <ActiveCVBadge pageName={isAr ? "فجوة المهارات" : "Skill Gap"} />
+        </div>
+
         {/* 1. Top 4-Metric Strip */}
         <TopMetricsBanner plan={plan} onChangeTarget={() => setTargetOpen(true)} />
 

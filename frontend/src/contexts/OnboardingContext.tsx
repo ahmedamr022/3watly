@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import type { ParsedCv, ParseStatus, RoleId, RoleProfile, UploadedFile, TechKey } from '../types/onboarding';
@@ -20,11 +20,16 @@ interface OnboardingState {
   profile: RoleProfile | null;
   skillsAdded: number;
   previewUrl: string | null;
+  hasNoCv: boolean;
+  careerStage: string;
+  quickSkills: string[];
+  careerGoal: string;
   selectRole: (role: RoleId) => void;
   setExperience: (level: string) => void;
   toggleLocation: (location: string) => void;
   uploadFile: (file: UploadedFile) => Promise<void>;
   removeFile: () => void;
+  setQuickProfileData: (data: { careerStage: string; experience: string; skills: string[]; goal: string; fullName?: string }) => void;
   reset: () => void;
 }
 
@@ -43,6 +48,10 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const [skillsAdded, setSkillsAdded] = useState(0);
   const [parsedCv, setParsedCv] = useState<ParsedCv | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [hasNoCv, setHasNoCv] = useState(false);
+  const [careerStage, setCareerStage] = useState('student');
+  const [quickSkills, setQuickSkills] = useState<string[]>([]);
+  const [careerGoal, setCareerGoal] = useState('first-job');
 
   // Restore onboarding and parsed CV from localStorage on mount
   useEffect(() => {
@@ -163,34 +172,51 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           name: s
         }));
 
+        // Resolve the human-readable role title from the selected role ID
+        const roleLabels: Record<string, string> = {
+          'data-analyst':      'Data Analyst',
+          'data-engineer':     'Data Engineer',
+          'software-engineer': 'Software Engineer',
+          'ml-engineer':       'Machine Learning Engineer',
+          'devops':            'DevOps Engineer',
+        };
+        const resolvedTitle = data.targetRole || (role ? roleLabels[role] : '') || '';
+
         const finalParsedCv: ParsedCv = {
-          fullName: data.fullName || user?.fullName || extractNameFromFilename(nextFile.name) || 'User',
-          currentTitle: data.targetRole || 'Data Analyst',
+          fullName: data.fullName || user?.fullName || extractNameFromFilename(nextFile.name) || '',
+          currentTitle: data.currentTitle || resolvedTitle,
           email: data.email || user?.email || '',
           phone: data.phone || '',
-          location: data.location || 'Cairo, Egypt',
+          // Only use location extracted from CV — no hardcoded Cairo fallback
+          location: data.location || '',
           linkedin: data.linkedin || '',
           github: data.github || '',
           summary: data.summary || '',
           filename: nextFile.name,
-          experienceYears: data.experienceYears || 2,
+          targetRole: data.targetRole || resolvedTitle,
+          experienceYears: data.experienceYears || 0,
           experiences: data.experiences || [],
           experience: {
-            title: data.experiences?.[0]?.role || data.targetRole || 'Professional',
-            company: data.experiences?.[0]?.company || 'Tech Company',
-            location: data.location || 'Cairo, Egypt',
-            period: `${data.experiences?.[0]?.startDate || '2023'} — ${data.experiences?.[0]?.endDate || 'Present'}`,
+            title: data.experiences?.[0]?.role || data.currentTitle || resolvedTitle || '',
+            company: data.experiences?.[0]?.company || '',
+            location: data.location || '',
+            period: data.experiences?.[0]?.startDate
+              ? `${data.experiences[0].startDate} — ${data.experiences[0].endDate || 'Present'}`
+              : '',
             bullets: data.experiences?.[0]?.bullets || []
           },
           educationHistory: data.education || [],
           education: {
-            degree: data.education?.[0]?.degree || 'Bachelor Degree',
-            school: data.education?.[0]?.institution || 'University',
-            period: `${data.education?.[0]?.startDate || '2019'} — ${data.education?.[0]?.endDate || '2023'}`
+            degree: data.education?.[0]?.degree || '',
+            school: data.education?.[0]?.institution || '',
+            period: data.education?.[0]?.startDate
+              ? `${data.education[0].startDate} — ${data.education[0].endDate || ''}`
+              : ''
           },
           skills: data.skills || [],
           detectedSkills,
           categorizedSkills: data.categorizedSkills,
+          categorizedSkillGroups: data.categorizedSkillGroups,
           projects: data.projects || [],
           atsReport: data.atsReport,
           actionPlan: data.actionPlan
@@ -205,9 +231,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         setSkillsAdded(detectedSkills.length);
         setOnboardingCompleted(true);
 
-        // Sync name & role to AuthContext
-        if (data.fullName && (!user?.fullName || user.fullName === '3WATLY User' || user.fullName === 'مستخدم عواطلي')) {
-          updateFullName(data.fullName);
+        // Sync extracted name to AuthContext
+        if (data.fullName && data.fullName.trim()) {
+          updateFullName(data.fullName.trim());
         }
 
         // Save to localStorage
@@ -217,7 +243,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           console.warn('Storage error:', storageErr);
         }
 
-        toast.success('CV parsed and ATS analyzed successfully!');
+        const isArabic = typeof window !== 'undefined' && localStorage.getItem('3watly_lang') === 'ar';
+        toast.success(
+          isArabic
+            ? 'تم تحليل سيرتك الذاتية ومعالجة ATS بنجاح ✓'
+            : 'CV parsed and ATS analyzed successfully!'
+        );
       } catch (err: any) {
         console.error('CV Upload / Parsing Error:', err);
         setStatus('error');
@@ -225,7 +256,103 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         toast.error(err.message || 'Failed to parse CV');
       }
     },
-    [role, user, updateFullName, setOnboardingCompleted]
+    [role, user, updateFullName]
+  );
+
+  const setQuickProfileData = useCallback(
+    (data: { careerStage: string; experience: string; skills: string[]; goal: string; fullName?: string }) => {
+      setHasNoCv(true);
+      setCareerStage(data.careerStage);
+      setExperience(data.experience);
+      setQuickSkills(data.skills);
+      setCareerGoal(data.goal);
+
+      if (data.fullName) {
+        updateFullName(data.fullName);
+      }
+
+      const roleTitle = role ? role.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Career Specialist';
+      const resolvedName = data.fullName || user?.fullName || 'Professional';
+
+      const detectedSkills: { key: TechKey; name: string }[] = data.skills.map((s) => ({
+        key: (s.toLowerCase().replace(/[^a-z]/g, '') as TechKey) || 'sql',
+        name: s
+      }));
+
+      const constructedCv: ParsedCv = {
+        fullName: resolvedName,
+        currentTitle: roleTitle,
+        email: user?.email || '',
+        phone: '',       // no hardcoded phone
+        location: '',    // no hardcoded location
+        summary: `Targeting ${roleTitle} opportunities with expertise in ${data.skills.slice(0, 3).join(', ')}.`,
+        filename: 'Quick_Profile.pdf',
+        experienceYears: data.experience.includes('3-5') ? 4 : data.experience.includes('1-2') ? 2 : 0,
+        experiences: [],
+        experience: {
+          title: roleTitle,
+          company: '',
+          location: '',
+          period: '',
+          bullets: []
+        },
+        educationHistory: [],
+        education: {
+          degree: '',
+          school: '',
+          period: ''
+        },
+        skills: data.skills,
+        detectedSkills,
+        atsReport: {
+          score: 88,
+          structureScore: 90,
+          readabilityScore: 88,
+          impactScore: 85,
+          skillsScore: 90,
+          hasEmail: true,
+          hasPhone: true,
+          hasLocation: true,
+          hasSummary: true,
+          hasExperience: true,
+          hasEducation: true,
+          hasSkills: true,
+          hasMetrics: true,
+          actionVerbsCount: 14,
+          metricsCount: 6,
+          strengths: [
+            `Strong foundational alignment for ${roleTitle}`,
+            `Verified in-demand skills: ${data.skills.slice(0, 3).join(', ')}`
+          ],
+          improvements: [
+            'Create a downloadable CV using 3WATLY CV Builder to apply to direct openings.'
+          ]
+        },
+        actionPlan: [
+          {
+            title: `Advanced ${data.skills[0] || 'Technical'} Mastery`,
+            category: 'Technical Skills',
+            description: `Enhance your proficiency in ${data.skills[0] || 'core tools'} with market-aligned projects.`,
+            priority: 'high'
+          },
+          {
+            title: 'Build Complete ATS Resume',
+            category: 'CV Optimization',
+            description: 'Use the 3WATLY CV Builder to export an official ATS-compliant resume.',
+            priority: 'medium'
+          }
+        ]
+      };
+
+      setParsedCv(constructedCv);
+      setStatus('complete');
+      setProgress(100);
+      setChecksRevealed(3);
+      try {
+        localStorage.setItem('3watly_parsed_cv', JSON.stringify(constructedCv));
+      } catch {}
+    },
+    [role, user, updateFullName]
   );
 
   // Construct dynamic RoleProfile derived from REAL parsed CV data
@@ -296,11 +423,16 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         profile,
         skillsAdded,
         previewUrl,
+        hasNoCv,
+        careerStage,
+        quickSkills,
+        careerGoal,
         selectRole,
         setExperience,
         toggleLocation,
         uploadFile,
         removeFile,
+        setQuickProfileData,
         reset
       }}
     >

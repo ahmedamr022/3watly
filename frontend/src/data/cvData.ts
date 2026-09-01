@@ -134,24 +134,31 @@ export const TEMPLATES: {
   columns: number;
   description: string;
 }[] = [
-{
-  id: 'ats-classic',
-  name: 'ATS Classic',
-  columns: 1,
-  description: 'Single column, ruled headings — safest for parsers.'
-},
-{
-  id: 'modern-minimal',
-  name: 'Modern Minimal',
-  columns: 1,
-  description: 'Airy spacing with letterspaced headings.'
-},
-{
-  id: 'compact',
-  name: 'Compact',
-  columns: 1,
-  description: 'Tighter rhythm to fit more on one page.'
-}];
+  {
+    id: 'ats-classic',
+    name: 'ATS Friendly',
+    columns: 1,
+    description: 'Single-column template with blue accents, optimized for applicant tracking systems.'
+  },
+  {
+    id: 'compact',
+    name: 'Compact',
+    columns: 1,
+    description: 'Single column ATS friendly template with tight spacing.'
+  },
+  {
+    id: 'two-column',
+    name: 'Two Column',
+    columns: 2,
+    description: 'A two-column resume layout with sections side by side.'
+  },
+  {
+    id: 'simple',
+    name: 'Simple (Academic)',
+    columns: 1,
+    description: 'Traditional academic CV layout with labeled columns and horizontal rules.'
+  }
+];
 
 
 export const SECTION_META: Record<

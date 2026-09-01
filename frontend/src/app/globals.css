@@ -45,32 +45,103 @@
 }
 
 @page {
-  margin: 12mm;
+  size: A4 portrait;
+  margin: 14mm 16mm;
 }
+
 @media print {
+  /* ── Hide everything except the CV ── */
+  body > *,
+  #__next > * {
+    display: none !important;
+  }
+
+  /* Show only the Next.js root wrapper */
+  #__next {
+    display: block !important;
+  }
+
+  /* Show only the CV article itself */
+  .print-page,
+  .print-region,
+  .cv-scroll-viewport {
+    display: block !important;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* The .no-print-wrapper is the scroll container — keep it display:block
+     so its children (.print-page) are still rendered, but invisible itself */
+  .no-print-wrapper {
+    display: block !important;
+    overflow: visible !important;
+    max-height: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Hide everything marked no-print */
   .no-print {
     display: none !important;
   }
-  html, body {
+
+  /* Force light background & dark ink */
+  html,
+  body {
     background: #ffffff !important;
     color: #0f172a !important;
   }
-  .print-region {
-    padding: 0 !important;
-    margin: 0 !important;
-    background: #ffffff !important;
-    border-radius: 0 !important;
-  }
+
+  /* The CV article: white, no shadow, no rounding */
   .print-page {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    background: #ffffff !important;
     box-shadow: none !important;
     border: none !important;
-    max-width: none !important;
-    width: 100% !important;
-    background: #ffffff !important;
-    color: #0f172a !important;
+    border-radius: 0 !important;
+    font-family: Georgia, "Times New Roman", serif !important;
   }
+
+  /* Force every text node to black */
+  .print-page,
   .print-page * {
     color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Keep blue-ish accents (role title, company, links) readable */
+  .print-page [class*="text-blue"] {
+    color: #1d4ed8 !important;
+  }
+
+  /* Dividers */
+  .print-page [class*="border-b"] {
+    border-color: #cbd5e1 !important;
+  }
+
+  /* Bullet dots */
+  .print-page [class*="bg-blue"] {
+    background-color: #2563eb !important;
+  }
+
+  /* Hide lucide icons that are decoration-only (they add clutter) */
+  .print-icon {
+    display: none !important;
+  }
+
+  /* Make contact list tighter without icons */
+  .print-page header ul li {
+    gap: 0.25rem !important;
   }
 }
 
@@ -200,4 +271,95 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 }
 html.dark .scroll-slim {
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+/* ========================================================================= */
+/* ULTRA-SMOOTH TOAST NOTIFICATIONS (3WATLY CUSTOM THEME)                   */
+/* ========================================================================= */
+[data-sonner-toaster] {
+  font-family: inherit !important;
+}
+
+.custom-3watly-toast {
+  animation: toastPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+[data-sonner-toast][data-state="closed"],
+.custom-3watly-toast[data-removed="true"] {
+  animation: toastPopOut 0.25s cubic-bezier(0.4, 0, 1, 1) forwards !important;
+}
+
+@keyframes toastPopIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toastPopOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.92);
+  }
+}
+
+/* ========================================================================= */
+/* CV PREVIEW SCROLL VIEWPORT                                                */
+/* ========================================================================= */
+
+/*
+  The scroll wrapper caps at 80vh so a long CV scrolls nicely
+  inside the builder without pushing the page.
+  On print this element is set to overflow:visible / max-height:none
+  so the article always prints in full.
+*/
+.cv-scroll-viewport {
+  max-height: 82vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Transparent track – scrollbar floats on the document */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+  /* Smooth inner scroll */
+  scroll-behavior: smooth;
+  /* Give it a subtle inset shadow so content feels contained */
+  border-radius: 1rem;
+}
+
+/* Light-mode webkit scrollbar */
+.cv-scroll-viewport::-webkit-scrollbar {
+  width: 5px;
+}
+.cv-scroll-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+.cv-scroll-viewport::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 9999px;
+}
+.cv-scroll-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
+.cv-scroll-viewport::-webkit-scrollbar-button {
+  display: none !important;
+  height: 0 !important;
+}
+
+/* Dark-mode overrides */
+html.dark .cv-scroll-viewport {
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+html.dark .cv-scroll-viewport::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.13);
+}
+html.dark .cv-scroll-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
 }

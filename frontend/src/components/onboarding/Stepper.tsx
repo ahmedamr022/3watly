@@ -14,16 +14,16 @@ export function Stepper({ current, onStepSelect }: StepperProps) {
 
   const onboardingSteps = isAr
     ? [
-        { id: 1, label: 'المسار المستهدف', path: '/onboarding/career-path' },
-        { id: 2, label: 'رفع الـ CV', path: '/onboarding/cv-upload' },
-        { id: 3, label: 'مؤشرات الملف', path: '/onboarding/profile-insights' },
+        { id: 1, label: 'المسار المهني', path: '/onboarding/career-path' },
+        { id: 2, label: 'إعداد الملف', path: '/onboarding/cv-upload' },
+        { id: 3, label: 'الملف والتحليل', path: '/onboarding/profile-insights' },
         { id: 4, label: 'خطة الانطلاق', path: '/onboarding/recommendations' }
       ]
     : [
         { id: 1, label: 'Career Path', path: '/onboarding/career-path' },
-        { id: 2, label: 'CV Upload', path: '/onboarding/cv-upload' },
-        { id: 3, label: 'Profile Insights', path: '/onboarding/profile-insights' },
-        { id: 4, label: 'Action Plan', path: '/onboarding/recommendations' }
+        { id: 2, label: 'Get Started', path: '/onboarding/cv-upload' },
+        { id: 3, label: 'Profile', path: '/onboarding/profile-insights' },
+        { id: 4, label: 'Insights', path: '/onboarding/recommendations' }
       ];
 
   return (
@@ -82,7 +82,7 @@ export function Stepper({ current, onStepSelect }: StepperProps) {
                   className={`mx-3.5 hidden h-px w-10 sm:block lg:w-14 transition-colors duration-200 ${
                     step.id < current
                       ? 'bg-emerald-500/60'
-                      : 'bg-slate-200 dark:bg-[#0B1120]/10'
+                      : 'bg-slate-200 dark:bg-white/10'
                   }`}
                 />
               )}

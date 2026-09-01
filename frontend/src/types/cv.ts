@@ -1,10 +1,10 @@
 export type SectionId =
-'contact' |
-'summary' |
-'experience' |
-'education' |
-'projects' |
-'skills';
+  | 'contact'
+  | 'summary'
+  | 'experience'
+  | 'education'
+  | 'projects'
+  | 'skills';
 
 export interface Contact {
   fullName: string;
@@ -12,6 +12,8 @@ export interface Contact {
   phone: string;
   email: string;
   linkedin: string;
+  github?: string;
+  portfolio?: string;
   location: string;
 }
 
@@ -40,6 +42,8 @@ export interface ProjectItem {
   id: string;
   title: string;
   technologies: string[];
+  link?: string;
+  github?: string;
   bullets: string[];
 }
 
@@ -64,10 +68,21 @@ export interface CVData {
   skillsSummary: string | null;
 }
 
-export type TemplateId = 'ats-classic' | 'modern-minimal' | 'compact';
+export type TemplateId = 'ats-classic' | 'compact' | 'two-column' | 'simple' | 'modern-minimal';
 
 export type SaveStatus = 'saved' | 'saving';
 
 export type FixId = 'keywords' | 'metrics' | 'skills-summary';
 
 export type ScoreBand = 'excellent' | 'good' | 'average' | 'poor';
+
+export interface CVVersion {
+  id: string;
+  name: string;
+  targetRole: string;
+  cvData: CVData;
+  templateId: TemplateId;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+}

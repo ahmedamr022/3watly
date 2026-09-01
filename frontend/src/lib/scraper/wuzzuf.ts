@@ -97,16 +97,53 @@ function parseWorkType(rawText: string): { workType: string; isRemote: boolean }
   return { workType, isRemote };
 }
 
+const SCRAPER_SKILL_BLACKLIST = new Set([
+  'internship', 'intern', 'student', 'entry level', 'fresh graduate', 'fresher',
+  'it/software development', 'software development', 'it', 'engineering',
+  'research', 'operations', 'marketing', 'sales', 'human resources', 'administration',
+  'experienced', 'experienced / manager', 'manager', 'specialist', 'analyst',
+  'full time', 'part time', 'freelance', 'work from home', 'remote', 'hybrid', 'on-site',
+  'shift based', 'males only', 'females only', 'unspecified', 'education', 'training'
+]);
+
+const SCRAPER_SKILL_EXPANSIONS: Record<string, string> = {
+  'bi': 'Business Intelligence',
+  'ai': 'Artificial Intelligence',
+  'ml': 'Machine Learning',
+  'dl': 'Deep Learning',
+  'etl': 'ETL Pipelines',
+  'nlp': 'NLP',
+  'rest': 'REST APIs',
+  'db': 'Database Management'
+};
+
 function extractSkillsFromText(text: string, tags: string[]): string[] {
   const found = new Set<string>();
-  
+
+  // Filter raw tags: reject blacklisted words, category phrases, expand short tokens
   tags.forEach(tag => {
     const clean = tag.trim();
-    if (clean.length > 1 && clean.length < 30) {
+    const lower = clean.toLowerCase();
+    
+    if (SCRAPER_SKILL_EXPANSIONS[lower]) {
+      found.add(SCRAPER_SKILL_EXPANSIONS[lower]);
+      return;
+    }
+
+    if (
+      clean.length >= 2 &&
+      clean.length <= 30 &&
+      !SCRAPER_SKILL_BLACKLIST.has(lower) &&
+      !/^(intern|student|trainee|job|career|entry|graduate|experienced)/i.test(lower) &&
+      !/^\d+$/.test(clean) &&
+      clean.split(/\s+/).length <= 3
+    ) {
+      // Check if it matches or resembles a real technical skill
       found.add(clean);
     }
   });
 
+  // Extract from known skills dictionary
   KNOWN_SKILLS_KEYWORDS.forEach(skill => {
     const regex = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
     if (regex.test(text)) {
@@ -114,7 +151,64 @@ function extractSkillsFromText(text: string, tags: string[]): string[] {
     }
   });
 
-  return Array.from(found).slice(0, 10);
+  return Array.from(found).slice(0, 8);
+}
+
+function translateTitleToAr(title: string): string {
+  const t = title.toLowerCase();
+  let prefix = '';
+  if (t.includes('senior') || t.includes('lead') || t.includes('principal')) prefix = 'أول ';
+  if (t.includes('junior') || t.includes('entry')) prefix = 'مبتدئ ';
+  if (t.includes('fresh')) prefix = 'حديث التخرج ';
+
+  if (t.includes('data analyst') || t.includes('data analytics')) return `محلل بيانات ${prefix}`.trim();
+  if (t.includes('business intelligence') || t.includes('bi developer')) return `مطور ذكاء أعمال (BI) ${prefix}`.trim();
+  if (t.includes('data engineer')) return `مهندس بيانات ${prefix}`.trim();
+  if (t.includes('data scientist')) return `عالم بيانات ${prefix}`.trim();
+  if (t.includes('frontend') || t.includes('front-end') || t.includes('react')) return `مطور واجهات أمامية (Frontend) ${prefix}`.trim();
+  if (t.includes('backend') || t.includes('back-end') || t.includes('node') || t.includes('django')) return `مطور واجهات خلفية (Backend) ${prefix}`.trim();
+  if (t.includes('full stack') || t.includes('fullstack')) return `مطور برمجيات شامل (Full Stack) ${prefix}`.trim();
+  if (t.includes('devops') || t.includes('cloud')) return `مهندس DevOps وسحابيات ${prefix}`.trim();
+  if (t.includes('machine learning') || t.includes('ai engineer') || t.includes('deep learning')) return `مهندس ذكاء اصطناعي وتعلم آلي ${prefix}`.trim();
+  if (t.includes('product manager') || t.includes('product owner')) return `مدير منتجات رقمية ${prefix}`.trim();
+  if (t.includes('business analyst')) return `محلل نظم وأعمال ${prefix}`.trim();
+  if (t.includes('power bi')) return `مطور تقارير وذكاء أعمال Power BI ${prefix}`.trim();
+  if (t.includes('ui/ux') || t.includes('ux/ui') || t.includes('product designer')) return `مصمم واجهات وتجربة المستخدم (UI/UX) ${prefix}`.trim();
+  if (t.includes('flutter') || t.includes('mobile developer') || t.includes('ios') || t.includes('android')) return `مطور تطبيقات هواتف ${prefix}`.trim();
+  if (t.includes('qa') || t.includes('quality') || t.includes('software tester')) return `مهندس جودة واختبار برمجيات (QA) ${prefix}`.trim();
+  if (t.includes('scrum') || t.includes('project manager')) return `مدير مشاريع تقنية ${prefix}`.trim();
+  return title;
+}
+
+function translateLocationToAr(location: string): string {
+  const l = location.toLowerCase();
+  if (l.includes('sheikh zayed') || l.includes('zayed')) return 'الشيخ زايد، الجيزة';
+  if (l.includes('6th of october') || l.includes('october')) return 'السادس من أكتوبر، الجيزة';
+  if (l.includes('smart village')) return 'القرية الذكية، الجيزة';
+  if (l.includes('new cairo') || l.includes('tagamoa') || l.includes('5th settlement')) return 'القاهرة الجديدة، القاهرة';
+  if (l.includes('maadi')) return 'المعادي، القاهرة';
+  if (l.includes('nasr city')) return 'مدينة نصر، القاهرة';
+  if (l.includes('heliopolis') || l.includes('masr el gedida')) return 'مصر الجديدة، القاهرة';
+  if (l.includes('dokki')) return 'الدقي، الجيزة';
+  if (l.includes('mohandessin')) return 'المهندسين، الجيزة';
+  if (l.includes('giza')) return 'الجيزة، مصر';
+  if (l.includes('alexandria') || l.includes('alex')) return 'الإسكندرية، مصر';
+  if (l.includes('cairo')) return 'القاهرة، مصر';
+  if (l.includes('remote')) return 'عن بُعد (مصر)';
+  return location;
+}
+
+function estimateSalaryRange(seniority: string, isRemote: boolean): string {
+  if (isRemote) {
+    if (seniority === 'Fresh') return '$600 - $1,000 / mo';
+    if (seniority === 'Junior') return '$1,000 - $1,800 / mo';
+    if (seniority === 'Senior') return '$2,800 - $5,000 / mo';
+    return '$1,800 - $2,800 / mo';
+  }
+  if (seniority === 'Fresh') return '14,000 - 20,000 ج.م / شهرياً';
+  if (seniority === 'Junior') return '20,000 - 32,000 ج.م / شهرياً';
+  if (seniority === 'Senior') return '50,000 - 90,000 ج.م / شهرياً';
+  return '32,000 - 50,000 ج.م / شهرياً';
 }
 
 function parseRelativeDate(dateStr: string): string {
@@ -148,38 +242,59 @@ function parseRelativeDate(dateStr: string): string {
   return now.toISOString();
 }
 
+async function fetchWithRetry(url: string, maxRetries: number = 2): Promise<string | null> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers: BROWSER_HEADERS,
+        next: { revalidate: 0 },
+      });
+
+      if (response.status === 429) {
+        const waitMs = (attempt + 1) * 2500 + Math.floor(Math.random() * 1000);
+        console.warn(`[WuzzufScraper] Rate limited (429) on ${url.slice(0, 60)}... Backing off for ${waitMs}ms (attempt ${attempt + 1}/${maxRetries + 1})`);
+        await new Promise(r => setTimeout(r, waitMs));
+        continue;
+      }
+
+      if (!response.ok) {
+        console.warn(`[WuzzufScraper] HTTP ${response.status} fetching ${url.slice(0, 60)}`);
+        return null;
+      }
+
+      return await response.text();
+    } catch (e: any) {
+      if (attempt === maxRetries) {
+        console.warn(`[WuzzufScraper] Network error on ${url.slice(0, 60)}:`, e.message);
+        return null;
+      }
+      await new Promise(r => setTimeout(r, 1500));
+    }
+  }
+  return null;
+}
+
+/**
+ * Scrape a single search query on Wuzzuf (with pagination & jitter support)
+ */
 async function scrapeWuzzufQuery(query: string, maxPages: number = 2): Promise<ScrapedJob[]> {
   const jobs: ScrapedJob[] = [];
 
   for (let page = 0; page < maxPages; page++) {
-    const url = `https://wuzzuf.net/search/jobs/?a=hpb&q=${encodeURIComponent(query)}&start=${page}`;
+    const url = `https://wuzzuf.net/search/jobs/?q=${encodeURIComponent(query)}&a=hpb&start=${page}`;
     
+    const html = await fetchWithRetry(url, 2);
+    if (!html) continue;
+
     try {
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
-        },
-        next: { revalidate: 0 },
-      });
-
-      if (!response.ok) {
-        console.warn(`[WuzzufScraper] HTTP ${response.status} fetching query: "${query}" page: ${page}`);
-        continue;
-      }
-
-      const html = await response.text();
       const $ = cheerio.load(html);
-
       const cards = $('div[class*="css-1gatmva"], div[class*="css-pkv5jc"], div.css-1gatmva, div.css-pkv5jc, div.job-card');
       
       cards.each((_, element) => {
         try {
           const card = $(element);
           
+          // 1. Job Title & URL
           const titleLink = card.find('h2 a, a[class*="css-o171kl"], a.css-o171kl').first();
           const title = titleLink.text().trim();
           let applyUrl = titleLink.attr('href') || '';
@@ -189,18 +304,45 @@ async function scrapeWuzzufQuery(query: string, maxPages: number = 2): Promise<S
             applyUrl = `https://wuzzuf.net${applyUrl}`;
           }
 
-          const companyElem = card.find('a[class*="css-17s97q8"], a.css-17s97q8, div[class*="css-d7j1kk"] a, .company-name').first();
-          let company = companyElem.text().trim();
-          if (company.endsWith('-')) {
-            company = company.slice(0, -1).trim();
+          // 2. Company Name Extraction (3-layer fallback: Link text -> Alt text -> Career URL regex)
+          let company = card.find('a[href*="/jobs/careers/"], a.css-ipsyv7, a[class*="css-ipsyv7"], a[class*="css-17s97q8"]').first().text().trim();
+          if (!company || company.length < 2) {
+            const alt = card.find('img[alt*="Jobs and Careers"]').attr('alt') || '';
+            if (alt) {
+              company = alt.replace(/^Jobs and Careers at /i, '').replace(/ Egypt$/i, '').trim();
+            }
           }
-          if (!company) company = 'Confidential Employer';
+          if (!company || company.length < 2) {
+            const careerHref = card.find('a[href*="/jobs/careers/"]').attr('href') || '';
+            const match = careerHref.match(/careers\/(.*?)(?:-Egypt)?-\d+/);
+            if (match && match[1]) {
+              company = decodeURIComponent(match[1].replace(/-/g, ' '));
+            }
+          }
+          if (!company || company.length < 2) {
+            company = card.text().includes('Confidential') ? 'Confidential' : 'Confidential Employer';
+          }
+          company = company
+            .replace(/\s*[-–—]\s*(?:New Cairo|Cairo|Giza|Alexandria|Smart Village|Maadi|Nasr City|6th of October|Dokki|Heliopolis|Egypt|مصر).*$/i, '')
+            .replace(/\s*\((?:New Cairo|Cairo|Giza|Alexandria|Smart Village|Maadi|Nasr City|6th of October|Dokki|Heliopolis|Egypt|مصر)[^)]*\)/i, '')
+            .replace(/[-–—]$/, '')
+            .trim();
 
-          const locationElem = card.find('span[class*="css-5wys0k"], span.css-5wys0k, .job-location').first();
-          const location = locationElem.text().trim() || 'Cairo, Egypt';
+          // 3. Company Logo Extraction (Direct CDN URL)
+          const logoImg = card.find('img[src*="company_logo"], img[class*="css-1in28d3"], a[href*="/jobs/careers/"] img, img[class*="css-128m8ex"]').first();
+          let companyLogo = logoImg.attr('src') || logoImg.attr('data-src') || null;
+          if (companyLogo && (companyLogo.startsWith('data:') || companyLogo.includes('placeholder') || companyLogo.includes('default'))) {
+            companyLogo = null;
+          }
 
+          // 4. Location
+          const locElem = card.find('span[class*="css-16x61xq"], span[class*="css-5wys0k"], .job-location').first();
+          let location = locElem.text().trim().replace(/<!-- -->/g, '').replace(/\s+/g, ' ');
+          if (!location) location = 'Cairo, Egypt';
+
+          // 5. Work Type & Seniority Pills
           const badgeTexts: string[] = [];
-          card.find('span[class*="css-1ve4b75"], span[class*="css-y4nlo8"], .css-1ve4b75, .css-y4nlo8, a[class*="css-o171kl"]').each((_, badge) => {
+          card.find('span[class*="css-1ve4b75"], span[class*="css-y4nlo8"], span[class*="eoyjyou0"], a[href*="Full-Time"], a[href*="Part-Time"], a[href*="Remote"], a[href*="On-Site"], a[href*="Hybrid"]').each((_, badge) => {
             badgeTexts.push($(badge).text().trim());
           });
           const allBadgesStr = badgeTexts.join(' ');
@@ -208,47 +350,57 @@ async function scrapeWuzzufQuery(query: string, maxPages: number = 2): Promise<S
           const { workType, isRemote } = parseWorkType(allBadgesStr + ' ' + location);
           const seniority = parseSeniority(allBadgesStr + ' ' + title);
 
+          // 6. Skill tags
           const skillTags: string[] = [];
-          card.find('a[class*="css-5x9545"], a.css-5x9545, div[class*="css-y4nlo8"] a').each((_, tag) => {
-            skillTags.push($(tag).text().trim());
+          card.find('a[class*="css-5x9pm1"], a[class*="css-5x9545"], div[class*="css-y4nlo8"] a, a[href*="-Jobs-in-Egypt"]').each((_, tag) => {
+            const txt = $(tag).text().replace(/^[·\s]+/, '').trim();
+            if (txt && !txt.includes('Full Time') && !txt.includes('On-site') && !txt.includes('Hybrid') && !txt.includes('Remote') && !txt.includes('Yrs of Exp')) {
+              skillTags.push(txt);
+            }
           });
 
-          const dateElem = card.find('div[class*="css-do2t5m"], div[class*="css-4c4ojb"], .css-do2t5m, .css-4c4ojb').first();
+          // 7. Posted date
+          const dateElem = card.find('div[class*="css-1jldrig"], div[class*="css-do2t5m"], div[class*="css-4c4ojb"]').first();
           const postedAgoStr = dateElem.text().trim();
           const postedAt = parseRelativeDate(postedAgoStr);
 
+          // Extract skills
           const skills = extractSkillsFromText(title + ' ' + allBadgesStr + ' ' + skillTags.join(' '), skillTags);
 
-          const logoImg = card.find('img[class*="css-128m8ex"], img.css-128m8ex, img').first();
-          let companyLogo = logoImg.attr('src') || null;
-          if (companyLogo && companyLogo.startsWith('data:')) companyLogo = null;
-
           const jobId = generateJobId(applyUrl);
+
+          const titleAr = translateTitleToAr(title);
+          const locationAr = translateLocationToAr(location);
+          const salary = estimateSalaryRange(seniority, isRemote);
 
           jobs.push({
             id: jobId,
             title,
-            title_ar: title,
+            title_ar: titleAr,
             company,
             company_ar: company,
             company_logo: companyLogo,
             location,
-            location_ar: location,
+            location_ar: locationAr,
             work_type: workType,
             is_remote: isRemote,
             seniority,
-            salary_range: 'Competitive (EGP)',
+            salary_range: salary,
             required_skills: skills,
-            description: `Exciting opportunity for a ${title} at ${company} in ${location}. Join a growing team working with modern technologies.`,
-            requirements: `Relevant experience in ${skills.slice(0, 3).join(', ')}. Strong analytical and problem-solving skills.`,
+            description: `فرصة عمل ممتازة لمنصب ${title} في شركة ${company} (${location}). بيئة عمل متطورة تركز على أحدث التقنيات والنمو المهني.`,
+            requirements: `• إتقان أدوات وتقنيات: ${skills.slice(0, 4).join(', ')}.\n• خبرة عملية مثبتة في نفس التخصص.\n• مهارات تحليلية وتفكير نقدي وحل المشكلات.\n• قدرة على العمل الجماعي والتواصل الفعال.`,
             apply_url: applyUrl,
             source: 'wuzzuf',
             posted_at: postedAt
           });
-        } catch (cardErr) {}
+        } catch (cardErr) {
+          // Ignore individual card parse errors and continue
+        }
       });
 
-      await new Promise(r => setTimeout(r, 600));
+      // Polite randomized delay between pages
+      const pageDelay = 1200 + Math.floor(Math.random() * 600);
+      await new Promise(r => setTimeout(r, pageDelay));
     } catch (queryErr) {
       console.warn(`[WuzzufScraper] Error during scraping query: "${query}"`, queryErr);
     }

@@ -1,21 +1,19 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Decor } from '@/components/brand/Decor';
-import { FeatureList } from '@/components/brand/FeatureList';
-import { Illustration } from '@/components/brand/Illustration';
-import { Logo } from '@/components/brand/Logo';
-import { SecurityNote } from '@/components/brand/SecurityNote';
+import { AuthSidePanel } from '@/components/brand/AuthSidePanel';
 import { Sparkle } from '@/components/brand/Sparkle';
-import { Underline } from '@/components/brand/Underline';
 import { Checkbox } from '@/components/Form/Checkbox';
+import { Divider } from '@/components/Form/Divider';
+import { SocialAuthButtons } from '@/components/Form/SocialAuthButtons';
 import { SubmitButton } from '@/components/Form/SubmitButton';
 import { TextField } from '@/components/Form/TextField';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
-import { loginFeatures } from '@/data/features';
+import { TopToast } from '@/components/ui/TopToast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -28,27 +26,48 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(true);
   const { user, login } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [topError, setTopError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ email?: boolean; password?: boolean }>({});
 
-  // If already logged in, redirect based on onboarding completion status
+  // Restore remembered email on mount if available
   useEffect(() => {
-    if (user) {
-      if (user.onboardingCompleted) {
-        router.push('/dashboard');
-      } else {
-        router.push('/onboarding/career-path');
+    try {
+      const savedEmail = localStorage.getItem('3watly_remember_email');
+      if (savedEmail) {
+        setEmail(savedEmail);
+        setRemember(true);
       }
+    } catch {}
+  }, []);
+
+  // Auto-dismiss top error after 4 seconds
+  useEffect(() => {
+    if (topError) {
+      const timer = setTimeout(() => {
+        setTopError(null);
+      }, 4000);
+      return () => clearTimeout(timer);
     }
-  }, [user, router]);
+  }, [topError]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!email || !password) {
-      toast.error(isAr ? "يرجى ملء جميع الحقول المطلوبة." : "Please fill in all required fields.");
+    const newErrors: { email?: boolean; password?: boolean } = {};
+
+    if (!email.trim()) newErrors.email = true;
+    if (!password.trim()) newErrors.password = true;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setTopError(isAr ? "يرجى ملء جميع الحقول المطلوبة للمتابعة." : "Please fill in all required fields to continue.");
       return;
     }
+
+    setErrors({});
+    setTopError(null);
     setIsSubmitting(true);
     try {
-      const res = await login(email, password);
+      const res = await login(email.trim(), password, remember);
       if (res.success) {
         toast.success(isAr ? "تم تسجيل الدخول بنجاح!" : "Logged in successfully!");
         if (res.onboardingCompleted) {
@@ -57,10 +76,12 @@ export default function LoginPage() {
           router.push('/onboarding/career-path');
         }
       } else {
-        toast.error(res.error || (isAr ? "فشل تسجيل الدخول. يرجى التحقق من البيانات." : "Login failed. Please check your credentials."));
+        const msg = res.error || (isAr ? "بيانات الدخول غير صحيحة. يرجى التحقق من البريد وكلمة المرور." : "Invalid credentials. Please check your email and password.");
+        setTopError(msg);
+        setErrors({ email: true, password: true });
       }
     } catch {
-      toast.error(isAr ? "حدث خطأ أثناء تسجيل الدخول." : "An error occurred during login.");
+      setTopError(isAr ? "حدث خطأ غير متوقع أثناء تسجيل الدخول." : "An unexpected error occurred during login.");
     } finally {
       setIsSubmitting(false);
     }
@@ -70,7 +91,14 @@ export default function LoginPage() {
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[#F8FAFC] dark:bg-[#060913] text-[#1E293B] dark:text-[#F8FAFC] flex flex-col justify-between">
       <Decor />
 
-      {/* Floating Language & Theme Toggles in Top Corner */}
+      {/* Floating Top-Center Notification */}
+      <TopToast
+        message={topError}
+        type="error"
+        onClose={() => setTopError(null)}
+      />
+
+      {/* Floating Language & Theme Toggles */}
       <div className="absolute top-6 ltr:right-6 rtl:left-6 lg:top-8 lg:ltr:right-10 lg:rtl:left-10 z-30 flex items-center gap-2.5">
         <LanguageToggle />
         <ThemeToggle />
@@ -78,132 +106,112 @@ export default function LoginPage() {
 
       {/* Main Grid Content */}
       <main className="relative z-10 mx-auto grid w-full max-w-[1360px] grid-cols-1 items-center gap-12 px-6 py-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-16 lg:px-12 lg:py-16">
-        {/* Left Column: Brand & Features */}
-        <section className="flex flex-col">
-          <Link href="/" className="inline-block w-fit transition-transform hover:scale-105">
-            <Logo size="md" />
-          </Link>
+        
+        {/* Left Column: Modern AuthSidePanel */}
+        <AuthSidePanel mode="login" />
 
-          <h1 className="mt-8 text-[34px] sm:text-[44px] font-black leading-[1.15] tracking-tight text-[#0B132B] dark:text-white">
-            {isAr ? (
-              <>
-                قرارات مهنية أذكى
-                <br />
-                تبدأ من{' '}
-                <span className="relative inline-block bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">
-                  هنا
-                  <Underline className="absolute -bottom-2 left-0 h-[11px] w-full" />
-                </span>
-              </>
-            ) : (
-              <>
-                Smarter Career
-                <br />
-                Decisions Start{' '}
-                <span className="relative inline-block bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">
-                  Here
-                  <Underline className="absolute -bottom-2 left-0 h-[11px] w-full" />
-                </span>
-              </>
-            )}
-          </h1>
-
-          <p className="mt-4 max-w-[26rem] text-[15px] font-normal leading-[1.65] text-[#5B6579] dark:text-slate-300">
-            {isAr 
-              ? "سجّل دخولك لمتابعة خطتك المهنية وسد فجوات مهاراتك والوصول لأحدث وظائف السوق المصري."
-              : "Log in to your account and continue building a career you’re proud of."}
-          </p>
-
-          <div className="mt-8">
-            <FeatureList features={loginFeatures} />
-          </div>
-
-          <div className="mt-8 flex items-center justify-start">
-            <Illustration className="h-auto w-full max-w-[290px]" />
-          </div>
-
-          <div className="mt-6 border-t border-slate-200/70 dark:border-white/10 pt-4">
-            <SecurityNote
-              align="left"
-              subtext={isAr ? "بياناتك مشفرة ومحمية تماماً ولا نشاركها مع أي طرف ثالث." : "We never share your information with third parties."}
-            />
-          </div>
-        </section>
-
-        {/* Right Column: Auth Form Card (Clean Login: Email & Password Only) */}
+        {/* Right Column: Auth Form Card */}
         <section className="w-full flex justify-center lg:justify-end">
-          <div className="w-full max-w-[540px] rounded-[28px] border border-slate-100 dark:border-white/10 bg-white dark:bg-[#0D1527] p-7 sm:p-10 shadow-[0_20px_50px_rgba(27,45,105,0.08)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_20px_rgba(99,102,241,0.06)]">
+          <div className="w-full max-w-[520px] rounded-[28px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0D1527] p-7 sm:p-10 shadow-[0_20px_50px_rgba(27,45,105,0.08)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_20px_rgba(99,102,241,0.06)]">
             <div className="flex flex-col items-center text-center">
-              <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-950/80 flex items-center justify-center border border-blue-100 dark:border-blue-500/20">
-                <Sparkle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/80 flex items-center justify-center border border-blue-100 dark:border-blue-500/20 text-blue-600 dark:text-blue-400">
+                <Sparkle className="h-6 w-6" />
               </div>
               <h2 className="mt-3 text-[26px] font-black leading-tight tracking-tight text-[#0B132B] dark:text-white">
-                {isAr ? "مرحباً بعودتك" : "Welcome Back"}
+                {isAr ? "تسجيل الدخول" : "Welcome Back"}
               </h2>
-              <p className="mt-1 text-[13.5px] font-normal text-[#5B6579] dark:text-slate-400">
-                {isAr ? "سجّل دخولك لحسابك للمتابعة" : "Log in to your account to continue"}
+              <p className="mt-1 text-[13.5px] font-normal text-slate-500 dark:text-slate-400">
+                {isAr ? "سجّل دخولك لحسابك لمتابعة خطتك المهنية" : "Log in to your account to continue"}
               </p>
             </div>
 
+            {/* Google & LinkedIn OAuth Buttons */}
+            <div className="mt-6">
+              <SocialAuthButtons
+                googleLabel={isAr ? "حساب Google" : "Google"}
+                linkedinLabel={isAr ? "حساب LinkedIn" : "LinkedIn"}
+              />
+            </div>
+
+            <div className="my-5">
+              <Divider label={isAr ? "أو باستخدام البريد الإلكتروني" : "or continue with email"} />
+            </div>
+
             <form
-              className="mt-7 space-y-4"
+              className="space-y-4"
               onSubmit={handleSubmit}
             >
               <TextField
                 id="email"
                 label={isAr ? "البريد الإلكتروني" : "Email Address"}
-                placeholder={isAr ? "أدخل بريدك الإلكتروني" : "Enter your email address"}
+                placeholder={isAr ? "name@example.com" : "name@example.com"}
                 icon="mail"
                 type="email"
                 autoComplete="email"
                 value={email}
-                onChange={setEmail}
+                onChange={(val) => {
+                  setEmail(val);
+                  if (errors.email) setErrors((prev) => ({ ...prev, email: false }));
+                }}
+                hasError={errors.email}
               />
 
-              <TextField
-                id="password"
-                label={isAr ? "كلمة المرور" : "Password"}
-                placeholder={isAr ? "أدخل كلمة المرور" : "Enter your password"}
-                icon="lock"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={setPassword}
-              />
+              <div>
+                <TextField
+                  id="password"
+                  label={isAr ? "كلمة المرور" : "Password"}
+                  placeholder={isAr ? "••••••••" : "••••••••"}
+                  icon="lock"
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(val) => {
+                    setPassword(val);
+                    if (errors.password) setErrors((prev) => ({ ...prev, password: false }));
+                  }}
+                  hasError={errors.password}
+                />
 
-              <div className="flex items-center justify-between pt-1">
-                <Checkbox id="remember" checked={remember} onChange={setRemember}>
-                  {isAr ? "تذكر بياناتي" : "Remember me"}
-                </Checkbox>
-                <a
-                  href="#"
-                  className="text-[13px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  {isAr ? "نسيت كلمة المرور؟" : "Forgot password?"}
-                </a>
+                <div className="mt-2.5 flex items-center justify-between text-[12.5px]">
+                  <Checkbox
+                    id="remember"
+                    label={isAr ? "تذكرني على هذا الجهاز" : "Remember me"}
+                    checked={remember}
+                    onChange={setRemember}
+                  />
+
+                  <Link
+                    href="/forgot-password"
+                    className="font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                  >
+                    {isAr ? "نسيت كلمة المرور؟" : "Forgot Password?"}
+                  </Link>
+                </div>
               </div>
 
               <div className="pt-2">
-                <SubmitButton 
-                  label={isSubmitting ? (isAr ? "جاري الدخول..." : "Logging In...") : (isAr ? "تسجيل الدخول" : "Log In")} 
+                <SubmitButton
+                  loading={isSubmitting}
+                  label={isAr ? "تسجيل الدخول الآن ⚡" : "Log In Now ⚡"}
                 />
               </div>
-            </form>
 
-            <p className="mt-6 text-center text-[14px] font-normal text-[#5B6579] dark:text-slate-400">
-              {isAr ? "ليس لديك حساب؟ " : "Don’t have an account? "}
-              <Link
-                href="/signup"
-                className="font-bold text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                {isAr ? "أنشئ حساباً جديداً" : "Sign up"}
-              </Link>
-            </p>
+              <p className="text-center text-[13px] text-slate-500 dark:text-slate-400 pt-3">
+                {isAr ? "ليس لديك حساب بعد؟" : "Don't have an account yet?"}{' '}
+                <Link
+                  href="/signup"
+                  className="font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-colors"
+                >
+                  {isAr ? "إنشاء حساب جديد مجاناً" : "Sign Up for Free"}
+                </Link>
+              </p>
+            </form>
           </div>
         </section>
+
       </main>
 
-      <footer className="relative z-10 py-4 text-center text-[12px] text-slate-400 dark:text-slate-500">
+      <footer className="relative z-10 py-6 text-center text-[12px] text-slate-400 dark:text-slate-500 font-medium">
         {t('footerRights')}
       </footer>
     </div>

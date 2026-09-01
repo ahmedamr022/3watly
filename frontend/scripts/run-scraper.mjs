@@ -1,15 +1,9 @@
-﻿import * as cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xwkkwmplohwsnwxjxusx.supabase.co';
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!SERVICE_ROLE_KEY) {
-  console.error('❌ Error: SUPABASE_SERVICE_ROLE_KEY environment variable is required.');
-  process.exit(1);
-}
-
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false }
 });
@@ -29,8 +23,9 @@ const BROWSER_HEADERS = {
 
 const SEARCH_QUERIES = [
   'data analyst', 'business intelligence', 'data engineer', 'data scientist',
-  'python', 'sql', 'frontend', 'react', 'backend', 'node', 'full stack',
-  'machine learning', 'devops', 'product manager', 'business analyst', 'power bi'
+  'python', 'sql developer', 'frontend developer', 'react', 'backend developer',
+  'node.js', 'full stack developer', 'machine learning', 'devops', 'product manager',
+  'business analyst', 'power bi developer', 'flutter developer', 'ui ux designer'
 ];
 
 const KNOWN_SKILLS = [
@@ -40,7 +35,8 @@ const KNOWN_SKILLS = [
   'React', 'Next.js', 'TypeScript', 'JavaScript', 'Node.js', 'Express',
   'FastAPI', 'Django', 'Flask', 'Java', 'Spring Boot', 'C#', '.NET', 'PHP',
   'Laravel', 'Airflow', 'Kafka', 'dbt', 'Snowflake', 'BigQuery', 'ETL',
-  'Data Modeling', 'Data Warehousing', 'Machine Learning', 'TensorFlow', 'PyTorch'
+  'Data Modeling', 'Data Warehousing', 'Machine Learning', 'TensorFlow', 'PyTorch',
+  'Flutter', 'React Native', 'Figma', 'UI/UX', 'Agile', 'Scrum', 'Jira'
 ];
 
 function generateJobId(url) {
@@ -64,6 +60,63 @@ function parseWorkType(str) {
   return { workType, isRemote };
 }
 
+function translateTitleToAr(title) {
+  const t = title.toLowerCase();
+  let prefix = '';
+  if (t.includes('senior') || t.includes('lead') || t.includes('principal')) prefix = 'أول ';
+  if (t.includes('junior') || t.includes('entry')) prefix = 'مبتدئ ';
+  if (t.includes('fresh')) prefix = 'حديث التخرج ';
+
+  if (t.includes('data analyst') || t.includes('data analytics')) return `محلل بيانات ${prefix}`.trim();
+  if (t.includes('business intelligence') || t.includes('bi developer')) return `مطور ذكاء أعمال (BI) ${prefix}`.trim();
+  if (t.includes('data engineer')) return `مهندس بيانات ${prefix}`.trim();
+  if (t.includes('data scientist')) return `عالم بيانات ${prefix}`.trim();
+  if (t.includes('frontend') || t.includes('front-end') || t.includes('react')) return `مطور واجهات أمامية (Frontend) ${prefix}`.trim();
+  if (t.includes('backend') || t.includes('back-end') || t.includes('node') || t.includes('django')) return `مطور واجهات خلفية (Backend) ${prefix}`.trim();
+  if (t.includes('full stack') || t.includes('fullstack')) return `مطور برمجيات شامل (Full Stack) ${prefix}`.trim();
+  if (t.includes('devops') || t.includes('cloud')) return `مهندس DevOps وسحابيات ${prefix}`.trim();
+  if (t.includes('machine learning') || t.includes('ai engineer') || t.includes('deep learning')) return `مهندس ذكاء اصطناعي وتعلم آلي ${prefix}`.trim();
+  if (t.includes('product manager') || t.includes('product owner')) return `مدير منتجات رقمية ${prefix}`.trim();
+  if (t.includes('business analyst')) return `محلل نظم وأعمال ${prefix}`.trim();
+  if (t.includes('power bi')) return `مطور تقارير وذكاء أعمال Power BI ${prefix}`.trim();
+  if (t.includes('ui/ux') || t.includes('ux/ui') || t.includes('product designer')) return `مصمم واجهات وتجربة المستخدم (UI/UX) ${prefix}`.trim();
+  if (t.includes('flutter') || t.includes('mobile developer') || t.includes('ios') || t.includes('android')) return `مطور تطبيقات هواتف ${prefix}`.trim();
+  if (t.includes('qa') || t.includes('quality') || t.includes('software tester')) return `مهندس جودة واختبار برمجيات (QA) ${prefix}`.trim();
+  if (t.includes('scrum') || t.includes('project manager')) return `مدير مشاريع تقنية ${prefix}`.trim();
+  return title;
+}
+
+function translateLocationToAr(location) {
+  const l = location.toLowerCase();
+  if (l.includes('sheikh zayed') || l.includes('zayed')) return 'الشيخ زايد، الجيزة';
+  if (l.includes('6th of october') || l.includes('october')) return 'السادس من أكتوبر، الجيزة';
+  if (l.includes('smart village')) return 'القرية الذكية، الجيزة';
+  if (l.includes('new cairo') || l.includes('tagamoa') || l.includes('5th settlement')) return 'القاهرة الجديدة، القاهرة';
+  if (l.includes('maadi')) return 'المعادي، القاهرة';
+  if (l.includes('nasr city')) return 'مدينة نصر، القاهرة';
+  if (l.includes('heliopolis') || l.includes('masr el gedida')) return 'مصر الجديدة، القاهرة';
+  if (l.includes('dokki')) return 'الدقي، الجيزة';
+  if (l.includes('mohandessin')) return 'المهندسين، الجيزة';
+  if (l.includes('giza')) return 'الجيزة، مصر';
+  if (l.includes('alexandria') || l.includes('alex')) return 'الإسكندرية، مصر';
+  if (l.includes('cairo')) return 'القاهرة، مصر';
+  if (l.includes('remote')) return 'عن بُعد (مصر)';
+  return location;
+}
+
+function estimateSalary(seniority, isRemote) {
+  if (isRemote) {
+    if (seniority === 'Fresh') return '$600 - $1,000 / mo';
+    if (seniority === 'Junior') return '$1,000 - $1,800 / mo';
+    if (seniority === 'Senior') return '$2,800 - $5,000 / mo';
+    return '$1,800 - $2,800 / mo';
+  }
+  if (seniority === 'Fresh') return '14,000 - 20,000 ج.م / شهرياً';
+  if (seniority === 'Junior') return '20,000 - 32,000 ج.م / شهرياً';
+  if (seniority === 'Senior') return '50,000 - 90,000 ج.م / شهرياً';
+  return '32,000 - 50,000 ج.م / شهرياً';
+}
+
 function extractSkills(text, tags = []) {
   const set = new Set(tags.map(t => t.trim()).filter(t => t.length > 1));
   KNOWN_SKILLS.forEach(k => {
@@ -74,6 +127,26 @@ function extractSkills(text, tags = []) {
   return Array.from(set).slice(0, 10);
 }
 
+async function fetchWithRetry(url, maxRetries = 2) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch(url, { headers: BROWSER_HEADERS });
+      if (res.status === 429) {
+        const waitMs = (attempt + 1) * 3000 + Math.floor(Math.random() * 1000);
+        console.warn(`[WuzzufScraper] ⏳ 429 received. Backing off for ${waitMs}ms (attempt ${attempt + 1}/${maxRetries + 1})...`);
+        await new Promise(r => setTimeout(r, waitMs));
+        continue;
+      }
+      if (!res.ok) return null;
+      return await res.text();
+    } catch (e) {
+      if (attempt === maxRetries) return null;
+      await new Promise(r => setTimeout(r, 1500));
+    }
+  }
+  return null;
+}
+
 async function scrapeWuzzuf() {
   console.log('🚀 [3WATLY Cloud Scraper] Starting crawl of Wuzzuf Egypt & Global Tech postings...');
   const allJobs = new Map();
@@ -81,15 +154,12 @@ async function scrapeWuzzuf() {
   for (const q of SEARCH_QUERIES) {
     for (let page = 0; page <= 2; page++) {
       const url = `https://wuzzuf.net/search/jobs/?q=${encodeURIComponent(q)}&a=hpb&start=${page}`;
-      try {
-        const res = await fetch(url, { headers: BROWSER_HEADERS });
-        if (!res.ok) {
-          console.warn(`⚠️ [Wuzzuf] HTTP ${res.status} on "${q}" page ${page}`);
-          continue;
-        }
+      const html = await fetchWithRetry(url, 2);
+      if (!html) continue;
 
-        const html = await res.text();
+      try {
         const $ = cheerio.load(html);
+        $('style, script').remove();
 
         const cards = $('div[class*="css-1gatmva"], div[class*="css-pkv5jc"], div.css-1gatmva, div.css-pkv5jc');
         cards.each((_, el) => {
@@ -102,45 +172,77 @@ async function scrapeWuzzuf() {
             if (!title || !applyUrl) return;
             if (applyUrl.startsWith('/')) applyUrl = 'https://wuzzuf.net' + applyUrl;
 
-            const compElem = card.find('a[class*="css-17s97q8"], div[class*="css-d7j1kk"] a').first();
-            let company = compElem.text().trim().replace(/-$/, '').trim() || 'Confidential Employer';
+            // Company Name Extraction (3-layer fallback: Link text -> Alt text -> Career URL regex)
+            let company = card.find('a[href*="/jobs/careers/"], a.css-ipsyv7, a[class*="css-ipsyv7"], a[class*="css-17s97q8"]').first().text().trim();
+            if (!company || company.length < 2) {
+              const alt = card.find('img[alt*="Jobs and Careers"]').attr('alt') || '';
+              if (alt) {
+                company = alt.replace(/^Jobs and Careers at /i, '').replace(/ Egypt$/i, '').trim();
+              }
+            }
+            if (!company || company.length < 2) {
+              const careerHref = card.find('a[href*="/jobs/careers/"]').attr('href') || '';
+              const match = careerHref.match(/careers\/(.*?)(?:-Egypt)?-\d+/);
+              if (match && match[1]) {
+                company = decodeURIComponent(match[1].replace(/-/g, ' '));
+              }
+            }
+            if (!company || company.length < 2) {
+              company = card.text().includes('Confidential') ? 'Confidential' : 'Confidential Employer';
+            }
+            company = company.replace(/-$/, '').trim();
 
-            const locElem = card.find('span[class*="css-5wys0k"]').first();
-            const location = locElem.text().trim() || 'Cairo, Egypt';
+            // Company Logo (Direct CDN URL)
+            const logoImg = card.find('img[src*="company_logo"], img[class*="css-1in28d3"], a[href*="/jobs/careers/"] img, img[class*="css-128m8ex"]').first();
+            let companyLogo = logoImg.attr('src') || logoImg.attr('data-src') || null;
+            if (companyLogo && (companyLogo.startsWith('data:') || companyLogo.includes('placeholder') || companyLogo.includes('default'))) {
+              companyLogo = null;
+            }
 
+            // Location
+            const locElem = card.find('span[class*="css-16x61xq"], span[class*="css-5wys0k"], .job-location').first();
+            let location = locElem.text().trim().replace(/<!-- -->/g, '').replace(/\s+/g, ' ');
+            if (!location) location = 'Cairo, Egypt';
+
+            // Badges
             const badges = [];
-            card.find('span[class*="css-1ve4b75"], span[class*="css-y4nlo8"], a[class*="css-o171kl"]').each((_, b) => badges.push($(b).text().trim()));
+            card.find('span[class*="css-1ve4b75"], span[class*="css-y4nlo8"], span[class*="eoyjyou0"], a[href*="Full-Time"], a[href*="Part-Time"], a[href*="Remote"], a[href*="On-Site"], a[href*="Hybrid"]').each((_, b) => badges.push($(b).text().trim()));
             const badgeStr = badges.join(' ');
 
             const { workType, isRemote } = parseWorkType(badgeStr + ' ' + location);
             const seniority = parseSeniority(badgeStr + ' ' + title);
 
+            // Skills
             const tags = [];
-            card.find('a[class*="css-5x9545"], div[class*="css-y4nlo8"] a').each((_, t) => tags.push($(t).text().trim()));
+            card.find('a[class*="css-5x9pm1"], a[class*="css-5x9545"], div[class*="css-y4nlo8"] a, a[href*="-Jobs-in-Egypt"]').each((_, t) => {
+              const txt = $(t).text().replace(/^[·\s]+/, '').trim();
+              if (txt && !txt.includes('Full Time') && !txt.includes('On-site') && !txt.includes('Hybrid') && !txt.includes('Remote') && !txt.includes('Yrs of Exp')) {
+                tags.push(txt);
+              }
+            });
 
             const skills = extractSkills(title + ' ' + badgeStr + ' ' + tags.join(' '), tags);
-
-            const logoImg = card.find('img[class*="css-128m8ex"]').first();
-            let companyLogo = logoImg.attr('src') || null;
-            if (companyLogo && companyLogo.startsWith('data:')) companyLogo = null;
+            const titleAr = translateTitleToAr(title);
+            const locationAr = translateLocationToAr(location);
+            const salary = estimateSalary(seniority, isRemote);
 
             const id = generateJobId(applyUrl);
             allJobs.set(id, {
               id,
               title,
-              title_ar: title,
+              title_ar: titleAr,
               company,
               company_ar: company,
               company_logo: companyLogo,
               location,
-              location_ar: location,
+              location_ar: locationAr,
               work_type: workType,
               is_remote: isRemote,
               seniority,
-              salary_range: 'Competitive (EGP)',
+              salary_range: salary,
               required_skills: skills,
-              description: `فرصة عمل متميزة لمنصب ${title} في شركة ${company} (${location}). بيئة عمل احترافية مع فرص للتطور والنمو.`,
-              requirements: `خبرة عملية في ${skills.slice(0, 4).join(', ')}. مهارات تحليلية وتواصل قوية.`,
+              description: `فرصة عمل متميزة لمنصب ${title} في شركة ${company} (${location}). بيئة عمل متطورة تركز على أحدث التقنيات والنمو المهني.`,
+              requirements: `• إتقان أدوات وتقنيات: ${skills.slice(0, 4).join(', ')}.\n• خبرة عملية مثبتة في نفس التخصص.\n• مهارات تحليلية وتفكير نقدي وحل المشكلات.\n• قدرة على العمل الجماعي والتواصل الفعال.`,
               apply_url: applyUrl,
               source: 'wuzzuf',
               posted_at: new Date().toISOString(),
@@ -149,16 +251,17 @@ async function scrapeWuzzuf() {
           } catch (err) {}
         });
 
-        await new Promise(r => setTimeout(r, 450));
+        console.log(`✅ Scraped "${q}" (page ${page + 1}) → Total unique: ${allJobs.size}`);
+        await new Promise(r => setTimeout(r, 1400 + Math.floor(Math.random() * 600)));
       } catch (err) {
         console.warn(`Error on query "${q}":`, err.message);
       }
     }
   }
 
-  // Remotive Remote Data & Software jobs
+  // Remotive Remote Tech jobs
   try {
-    const remotiveCategories = ['data', 'software-dev'];
+    const remotiveCategories = ['data', 'software-dev', 'qa', 'devops'];
     for (const cat of remotiveCategories) {
       const res = await fetch(`https://remotive.com/api/remote-jobs?category=${cat}&limit=30`);
       if (res.ok) {
@@ -167,10 +270,11 @@ async function scrapeWuzzuf() {
           json.jobs.slice(0, 25).forEach(j => {
             const id = generateJobId(j.url);
             const skills = extractSkills(j.title + ' ' + (j.tags || []).join(' ') + ' ' + (j.description || ''), j.tags || []);
+            const seniority = parseSeniority(j.title);
             allJobs.set(id, {
               id,
               title: j.title,
-              title_ar: j.title,
+              title_ar: translateTitleToAr(j.title),
               company: j.company_name,
               company_ar: j.company_name,
               company_logo: j.company_logo || null,
@@ -178,11 +282,11 @@ async function scrapeWuzzuf() {
               location_ar: 'عن بُعد (عالمي / مصر)',
               work_type: 'Remote',
               is_remote: true,
-              seniority: parseSeniority(j.title),
-              salary_range: j.salary || 'Competitive USD / EGP',
+              seniority,
+              salary_range: j.salary || estimateSalary(seniority, true),
               required_skills: skills,
               description: j.description ? j.description.slice(0, 1000).replace(/<[^>]+>/g, '') : `Remote position for ${j.title} at ${j.company_name}.`,
-              requirements: `Skills required: ${skills.slice(0, 5).join(', ')}.`,
+              requirements: `• Required stack: ${skills.slice(0, 5).join(', ')}.\n• Self-starter with proven track record in remote environments.\n• Strong verbal and written communication skills.`,
               apply_url: j.url,
               source: 'remotive',
               posted_at: j.publication_date || new Date().toISOString(),
@@ -204,10 +308,12 @@ async function scrapeWuzzuf() {
     const { error } = await supabase.from('jobs').upsert(chunk, { onConflict: 'id' });
     if (!error) {
       upsertedCount += chunk.length;
+    } else {
+      console.error('Supabase batch error:', error.message);
     }
   }
 
-  console.log(`\n🎉 DONE! ${upsertedCount} live jobs successfully synced to Supabase database!`);
+  console.log(`\n🎉 Successfully synced ${upsertedCount} live jobs into Supabase!`);
 }
 
 scrapeWuzzuf();

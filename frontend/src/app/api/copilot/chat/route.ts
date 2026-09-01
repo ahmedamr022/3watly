@@ -50,10 +50,21 @@ export async function POST(request: NextRequest) {
       'المستخدم';
 
     // -----------------------------------------------------------------------
-    // Step 2 — Retrieve the user's latest CV
+    // Step 2 — Retrieve the user's latest CV / Active CV Profile
     // -----------------------------------------------------------------------
     let cvContext = '';
-    if (supabase && effectiveUserId && !effectiveUserId.startsWith('guest')) {
+    if (body.activeCv) {
+      const acv = body.activeCv;
+      cvContext = `
+[User Active CV Profile - ${acv.fullName || userName}]
+- Target Role / Headline: ${acv.currentTitle || acv.targetRole || 'Data Analyst'}
+- Verified Technical Skills: ${Array.isArray(acv.skills) ? acv.skills.join(', ') : 'None'}
+- Professional Summary: ${acv.summary || 'None'}
+- Experiences & Internships: ${Array.isArray(acv.experiences) ? JSON.stringify(acv.experiences.map((e: any) => ({ role: e.role, company: e.company, dates: `${e.startDate} - ${e.endDate}`, bullets: e.bullets }))).slice(0, 1000) : 'None'}
+- Education: ${Array.isArray(acv.educationHistory || acv.education) ? JSON.stringify(acv.educationHistory || acv.education).slice(0, 500) : 'None'}
+- Real Projects: ${Array.isArray(acv.projects) ? JSON.stringify(acv.projects.map((p: any) => ({ title: p.title, tech: p.technologies, bullets: p.bullets }))).slice(0, 1000) : 'None'}
+`;
+    } else if (supabase && effectiveUserId && !effectiveUserId.startsWith('guest')) {
       try {
         const { data: cvDoc } = await supabase
           .from('cv_documents')

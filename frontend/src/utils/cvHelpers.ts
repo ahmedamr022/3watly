@@ -5,27 +5,31 @@ export function uid(prefix = 'id'): string {
 }
 
 const MONTHS = [
-'Jan',
-'Feb',
-'Mar',
-'Apr',
-'May',
-'Jun',
-'Jul',
-'Aug',
-'Sep',
-'Oct',
-'Nov',
-'Dec'];
+  'Jan', 'January',
+  'Feb', 'February',
+  'Mar', 'March',
+  'Apr', 'April',
+  'May',
+  'Jun', 'June',
+  'Jul', 'July',
+  'Aug', 'August',
+  'Sep', 'September',
+  'Oct', 'October',
+  'Nov', 'November',
+  'Dec', 'December'
+];
 
+export const MONTH_OPTIONS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+];
 
-export const MONTH_OPTIONS = MONTHS;
-
-/** A parser-safe date looks like "Mar 2024" (or is an open-ended "Present"). */
+/** A parser-safe date looks like "Mar 2024", "September 2022", "2024", or "Present". */
 export function isCleanDate(value: string): boolean {
   const v = value.trim();
-  if (v === '' || v === 'Present') return true;
-  return new RegExp(`^(${MONTHS.join('|')})\\s\\d{4}$`).test(v);
+  if (v === '' || v === 'Present' || /present|now|حالياً/i.test(v)) return true;
+  if (/^\d{4}(\s*[-–—]\s*\d{4})?$/.test(v)) return true;
+  return new RegExp(`^(${MONTHS.join('|')})\\s+\\d{4}$`, 'i').test(v);
 }
 
 export function hasMetric(text: string): boolean {

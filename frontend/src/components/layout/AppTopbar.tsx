@@ -318,18 +318,6 @@ export function AppTopbar({
                     className="hidden"
                   />
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      fileInputRef.current?.click();
-                      setUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer text-left rtl:text-right"
-                  >
-                    <Camera className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    <span>{isAr ? "تغيير الصورة الشخصية" : "Change Profile Photo"}</span>
-                  </button>
-
                   <Link
                     href="/career"
                     onClick={() => setUserMenuOpen(false)}

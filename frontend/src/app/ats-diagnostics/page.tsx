@@ -10,6 +10,7 @@ import { ParserCard } from "@/components/ats/ParserCard";
 import { KeywordCard } from "@/components/ats/KeywordCard";
 import { FixesCard } from "@/components/ats/FixesCard";
 import { ReuploadModal } from "@/components/ats/ReuploadModal";
+import { ActiveCVBadge } from "@/components/cv/CVVersionManager";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -63,10 +64,13 @@ export default function ATSDiagnosticsPage() {
         {/* Top Actions Row */}
         <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
           <div>
-            <h2 className="text-[17px] font-bold text-slate-900 dark:text-white">
-              {isAr ? "فحص مطابقة الـ ATS" : "ATS Compatibility Scan"}
-            </h2>
-            <p className="text-[12.5px] text-slate-500 dark:text-slate-400 mt-0.5">
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-[17px] font-bold text-slate-900 dark:text-white">
+                {isAr ? "فحص مطابقة الـ ATS" : "ATS Compatibility Scan"}
+              </h2>
+              <ActiveCVBadge pageName={isAr ? "فحص الـ ATS" : "ATS Diagnostics"} />
+            </div>
+            <p className="text-[12.5px] text-slate-500 dark:text-slate-400 mt-1">
               {isAr
                 ? `تم فحص سيرتك الذاتية لـ ${analysis.keywords.role} في مصر (آخر فحص منذ لحظات)`
                 : `Evaluated for ${analysis.keywords.role} roles in Egypt (checked moments ago)`}

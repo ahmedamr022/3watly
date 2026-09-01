@@ -16,13 +16,16 @@ import { useCV } from "@/contexts/CVContext";
 import { TEMPLATES } from "@/data/cvData";
 import { EditorPanel } from "@/components/cv/EditorPanel";
 import { CVPreview } from "@/components/cv/CVPreview";
+import { CVVersionSelector } from "@/components/cv/CVVersionManager";
 import type { TemplateId } from "@/types/cv";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { exportCvToPdf } from "@/utils/pdfExport";
 
 export default function CVBuilderPage() {
   const {
+    cv,
     saveStatus,
     template,
     setTemplate,
@@ -34,6 +37,7 @@ export default function CVBuilderPage() {
   } = useCV();
   const { isAr } = useLanguage();
   const [previewMode, setPreviewMode] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -47,23 +51,55 @@ export default function CVBuilderPage() {
     return () => document.removeEventListener("keydown", onKey);
   }, [undo, redo]);
 
-  const downloadPdf = () => {
-    toast.success(
+  const downloadPdf = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    toast.loading(
       isAr
-        ? "جاري فتح نافذة الطباعة — احفظ المستند كملف PDF."
-        : "Opening your print dialog — save as PDF to finish."
+        ? "جاري تجهيز وتصدير السيرة الذاتية كملف PDF..."
+        : "Generating ATS-compliant PDF file...",
+      { id: "export-pdf" }
     );
-    window.setTimeout(() => window.print(), 350);
+
+    try {
+      const fileName = cv.contact.fullName
+        ? `${cv.contact.fullName.replace(/\s+/g, '_')}_Resume.pdf`
+        : 'Resume.pdf';
+
+      await exportCvToPdf('cv-paper-root', fileName);
+
+      toast.success(
+        isAr
+          ? "تم تحميل السيرة الذاتية بنجاح! 🎉"
+          : "Resume PDF downloaded successfully! 🎉",
+        { id: "export-pdf" }
+      );
+    } catch (err: any) {
+      console.error('PDF direct export failed, falling back to print:', err);
+      toast.info(
+        isAr
+          ? "جاري فتح نافذة الحفظ كـ PDF..."
+          : "Opening print dialog...",
+        { id: "export-pdf" }
+      );
+      window.setTimeout(() => window.print(), 350);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const templateOptions = TEMPLATES.map((item) => ({
     id: item.id,
     label: isAr
       ? item.id === 'ats-classic'
-        ? 'كلاسيكي ATS (موصى به)'
-        : item.id === 'modern-minimal'
-        ? 'عصري بسيط (Modern Minimal)'
-        : 'مدمج ومكثف (Compact)'
+        ? 'ATS Friendly (موصى به)'
+        : item.id === 'compact'
+        ? 'Compact (مدمج لصفحة واحدة)'
+        : item.id === 'two-column'
+        ? 'Two Column (تخطيط عمودين)'
+        : item.id === 'simple'
+        ? 'Simple (أكاديمي كلاسيكي)'
+        : item.name
       : item.name
   }));
 
@@ -81,8 +117,10 @@ export default function CVBuilderPage() {
         {/* Top Actions & Toolbar */}
         <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
           
-          {/* Status badge */}
-          <div className="flex items-center gap-3">
+          {/* Multi-CV Version Selector & Status badge */}
+          <div className="flex flex-wrap items-center gap-3">
+            <CVVersionSelector />
+
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12.5px] font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/30"
               aria-live="polite"
@@ -173,11 +211,16 @@ export default function CVBuilderPage() {
             {/* Download PDF Button */}
             <button
               type="button"
+              disabled={isExporting}
               onClick={downloadPdf}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#1B57E0] hover:bg-blue-700 px-4 py-2 text-[13px] font-bold text-white transition-all cursor-pointer shadow-md shadow-blue-600/20"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1B57E0] hover:bg-blue-700 disabled:opacity-60 px-4 py-2 text-[13px] font-bold text-white transition-all cursor-pointer shadow-md shadow-blue-600/20"
             >
-              <DownloadIcon className="h-4 w-4" aria-hidden="true" />
-              <span>{isAr ? "تحميل PDF" : "Download PDF"}</span>
+              {isExporting ? (
+                <Loader2Icon className="h-4 w-4 animate-spin text-white" aria-hidden="true" />
+              ) : (
+                <DownloadIcon className="h-4 w-4" aria-hidden="true" />
+              )}
+              <span>{isExporting ? (isAr ? "جاري التحميل..." : "Exporting...") : (isAr ? "تحميل PDF" : "Download PDF")}</span>
             </button>
           </div>
         </div>

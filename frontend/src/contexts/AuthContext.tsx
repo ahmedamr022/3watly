@@ -20,8 +20,9 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; onboardingCompleted?: boolean }>;
+  login: (email: string, password: string, remember?: boolean) => Promise<{ success: boolean; error?: string; onboardingCompleted?: boolean }>;
   signup: (fullName: string, email: string, password: string) => Promise<{ success: boolean; error?: string; onboardingCompleted?: boolean }>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   signInWithGoogle: () => Promise<{ success: boolean; error?: string; redirected?: boolean }>;
   signInWithLinkedIn: () => Promise<{ success: boolean; error?: string; redirected?: boolean }>;
   loginWithSocialAccount: (account: { fullName: string; email: string; avatarUrl?: string | null; provider?: 'google' | 'linkedin' }) => Promise<{ success: boolean; onboardingCompleted?: boolean }>;
@@ -207,13 +208,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [saveUserState]);
 
-  // Email & Password Login
-  const login = async (email: string, password: string) => {
+  // Email & Password Login with explicit Remember Me support
+  const login = async (email: string, password: string, remember: boolean = true) => {
     try {
+      const cleanEmail = email.trim().toLowerCase();
       const supabase = createClient();
       if (supabase) {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
+          email: cleanEmail,
           password
         });
 
@@ -252,13 +254,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           const userData: User = {
             id: data.user.id,
-            email: data.user.email || email,
+            email: data.user.email || cleanEmail,
             fullName,
             avatarUrl,
             token: data.session?.access_token,
             onboardingCompleted
           };
-          saveUserState(userData);
+
+          // Remember Me Logic:
+          if (remember) {
+            saveUserState(userData);
+            try {
+              localStorage.setItem('3watly_remember_email', cleanEmail);
+            } catch {}
+          } else {
+            setUser(userData);
+            try {
+              sessionStorage.setItem('3watly_user', JSON.stringify(userData));
+              localStorage.removeItem('3watly_remember_email');
+            } catch {}
+          }
+
           return { success: true, onboardingCompleted };
         }
         if (error) {
@@ -269,6 +285,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: false, error: 'Supabase is not configured.' };
     } catch (err: any) {
       return { success: false, error: err?.message || 'An unexpected error occurred.' };
+    }
+  };
+
+  // Password Reset Link
+  const resetPassword = async (email: string) => {
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      const supabase = createClient();
+      if (supabase) {
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: `${origin}/forgot-password?mode=reset`,
+        });
+        if (error) {
+          return { success: false, error: error.message };
+        }
+        return { success: true };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Failed to send reset email.' };
     }
   };
 
@@ -610,6 +647,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         login,
         signup,
+        resetPassword,
         signInWithGoogle,
         signInWithLinkedIn,
         loginWithSocialAccount,

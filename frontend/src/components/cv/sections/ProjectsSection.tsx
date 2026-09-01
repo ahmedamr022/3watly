@@ -66,25 +66,56 @@ export function ProjectsSection() {
         }>
         
           <input
-          value={item.title}
-          aria-label={`Project ${index + 1} title`}
-          placeholder="Sales Analytics Dashboard"
-          onChange={(event) =>
-          patch(item.id, { title: event.target.value }, 'title')
-          }
-          className={CONTROL_CLASS} />
-        
+            value={item.title}
+            aria-label={`Project ${index + 1} title`}
+            placeholder="Axon: End-to-End Alzheimer's Detection System"
+            onChange={(event) =>
+              patch(item.id, { title: event.target.value }, 'title')
+            }
+            className={CONTROL_CLASS}
+          />
 
-          <div className="mt-4">
-            <TagInput
-            label="Technologies Used"
-            tags={item.technologies}
-            emptyHint="No tools added yet."
-            onChange={(technologies) =>
-            patch(item.id, { technologies }, 'tech')
-            } />
-          
+          {/* Project Links (GitHub & Live Demo) */}
+          <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            <div>
+              <label className="block text-[11.5px] font-medium text-slate-500 mb-1">
+                GitHub Repository URL (optional)
+              </label>
+              <input
+                value={item.github || ''}
+                placeholder="https://github.com/user/repo"
+                onChange={(event) =>
+                  patch(item.id, { github: event.target.value }, 'github')
+                }
+                className={CONTROL_CLASS}
+              />
+            </div>
+            <div>
+              <label className="block text-[11.5px] font-medium text-slate-500 mb-1">
+                Live Demo / App URL (optional)
+              </label>
+              <input
+                value={item.link || ''}
+                placeholder="https://huggingface.co/spaces/..."
+                onChange={(event) =>
+                  patch(item.id, { link: event.target.value }, 'link')
+                }
+                className={CONTROL_CLASS}
+              />
+            </div>
           </div>
+
+          <div className="mt-3">
+            <TagInput
+              label="Technologies Used"
+              tags={item.technologies}
+              emptyHint="No tools added yet."
+              onChange={(technologies) =>
+                patch(item.id, { technologies }, 'tech')
+              }
+            />
+          </div>
+
 
           <div className="mb-2 mt-4 flex items-center justify-between gap-3">
             <p className="text-[13px] font-medium text-slate-600">

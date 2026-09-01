@@ -5,29 +5,7 @@ export type RoleId =
 'ml-engineer' |
 'devops';
 
-export type TechKey =
-'python' |
-'sql' |
-'pandas' |
-'powerbi' |
-'excel' |
-'viz' |
-'statistics' |
-'problem' |
-'docker' |
-'kubernetes' |
-'spark' |
-'airflow' |
-'react' |
-'typescript' |
-'node' |
-'git' |
-'tensorflow' |
-'pytorch' |
-'sklearn' |
-'cloud' |
-'terminal' |
-'api';
+export type TechKey = string;
 
 export type Impact = 'High' | 'Medium' | 'Low';
 
@@ -86,6 +64,7 @@ export interface ParsedCv {
   github?: string;
   summary: string;
   filename?: string;
+  targetRole?: string;
   experienceYears?: number;
   experiences?: Array<{
     id: string;
@@ -129,6 +108,12 @@ export interface ParsedCv {
     title: string;
     description: string;
     technologies: string[];
+    bullets?: string[];
+  }>;
+  categorizedSkillGroups?: Array<{
+    id: string;
+    label: string;
+    skills: string[];
   }>;
   atsReport?: {
     score: number;

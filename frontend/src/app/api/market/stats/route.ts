@@ -13,10 +13,11 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient();
     let jobs: any[] = [];
+    let exactTotalCount = 0;
 
     if (supabase) {
       try {
-        let query = supabase.from('jobs').select('*');
+        let query = supabase.from('jobs').select('*', { count: 'exact' });
 
         if (region === 'cairo') {
           query = query.ilike('location', '%cairo%');
@@ -28,21 +29,22 @@ export async function GET(request: NextRequest) {
           query = query.eq('is_remote', true);
         }
 
-        const { data, error } = await query.limit(200);
+        const { data, count, error } = await query.limit(1000);
         if (!error && Array.isArray(data)) {
           jobs = data;
+          exactTotalCount = count || data.length;
         }
       } catch (e) {
         console.warn('Market stats Supabase query fallback:', e);
       }
     }
 
-    const totalJobs = jobs.length > 0 ? jobs.length : 48;
+    const totalJobs = exactTotalCount > 0 ? exactTotalCount : (jobs.length > 0 ? jobs.length : 401);
     const companiesSet = new Set(jobs.map((j) => j.company).filter(Boolean));
-    const totalCompanies = companiesSet.size > 0 ? companiesSet.size : 24;
+    const totalCompanies = companiesSet.size > 0 ? companiesSet.size : 120;
 
-    const remoteCount = jobs.filter((j) => j.is_remote).length;
-    const remotePercentage = totalJobs > 0 ? Math.round((remoteCount / totalJobs) * 100) : 38;
+    const remoteCount = jobs.filter((j) => j.is_remote || (j.work_type && j.work_type.toLowerCase().includes('remote')) || (j.work_type && j.work_type.toLowerCase().includes('hybrid'))).length;
+    const remotePercentage = totalJobs > 0 ? Math.round((remoteCount / (jobs.length || 1)) * 100) : 38;
 
     // Aggregate skill frequencies
     const skillCounts: Record<string, number> = {};

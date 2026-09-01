@@ -134,6 +134,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       isStreamingRef.current = true;
 
       try {
+        let activeCvPayload: any = undefined;
+        try {
+          const raw = localStorage.getItem('3watly_parsed_cv');
+          if (raw) activeCvPayload = JSON.parse(raw);
+        } catch {}
+
         const response = await fetch('/api/copilot/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -141,12 +147,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             message: trimmed,
             attachment,
             userId: user?.id,
+            activeCv: activeCvPayload,
             user: user
               ? {
                   id: user.id,
                   email: user.email,
                   fullName: user.fullName,
-                  targetRole: user.targetRole,
+                  targetRole: activeCvPayload?.targetRole || user.targetRole,
                 }
               : undefined,
           }),

@@ -47,7 +47,16 @@ export default function CompletePage() {
 
             <dl className="mt-8 grid grid-cols-1 gap-3 text-left rtl:text-right sm:grid-cols-3">
               {[
-                { label: isAr ? 'المسار المستهدف' : 'Target role', value: selected?.title ?? '—' },
+                { 
+                  label: isAr ? 'المسار المستهدف' : 'Target role', 
+                  value: isAr 
+                    ? (role === 'software-engineer' ? 'مهندس برمجيات' 
+                      : role === 'data-engineer' ? 'مهندس بيانات'
+                      : role === 'ml-engineer' ? 'مهندس تعلم آلي'
+                      : role === 'devops' ? 'أخصائي DevOps'
+                      : 'محلل بيانات')
+                    : (selected?.title ?? 'Data Analyst') 
+                },
                 { label: isAr ? 'مستوى الخبرة' : 'Experience', value: experience },
                 { label: isAr ? 'نسبة الجاهزية' : 'Overall match', value: profile ? `${profile.scores.overall}%` : '84%' }
               ].map((item) => (

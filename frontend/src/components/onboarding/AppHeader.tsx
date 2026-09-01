@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDownIcon, LogOutIcon, RotateCcwIcon } from 'lucide-react';
+import { ChevronDownIcon, LogOutIcon, RotateCcwIcon, User } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -17,18 +17,24 @@ import { LanguageToggle } from '@/components/ui/LanguageToggle';
 
 export function AppHeader() {
   const router = useRouter();
-  const { reset } = useOnboarding();
+  const { reset, parsedCv } = useOnboarding();
   const { isAr } = useLanguage();
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
 
-  const resolvedFullName = resolveDisplayName({
-    fullName: user?.fullName,
-    email: user?.email,
-    isAr
-  });
-  const displayName = formatTopbarName(resolvedFullName, isAr);
+  // Check if real user name has been established
+  const realName = parsedCv?.fullName || user?.fullName;
+  const hasKnownName = Boolean(
+    realName &&
+    realName !== 'User' &&
+    realName !== 'Professional' &&
+    realName !== 'Ahmed H.' &&
+    realName.trim().length > 0
+  );
+
+  const resolvedFullName = hasKnownName ? realName! : '';
+  const displayName = hasKnownName ? formatTopbarName(resolvedFullName, isAr) : '';
 
   React.useEffect(() => {
     if (!menuOpen) return;
@@ -86,25 +92,33 @@ export function AppHeader() {
           {/* Theme Switcher */}
           <ThemeToggle />
 
-          {/* User Profile Dropdown */}
+          {/* User Profile Dropdown (Only shows name when real name exists) */}
           <div className="relative" ref={menuRef}>
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
               aria-expanded={menuOpen}
               aria-haspopup="menu"
-              className="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-2 transition-colors duration-150 ease-smooth hover:bg-slate-100 dark:hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer"
+              className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors duration-150 ease-smooth hover:bg-slate-100 dark:hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer"
             >
-              <UserAvatar
-                avatarUrl={user?.avatarUrl}
-                name={resolvedFullName}
-                size="sm"
-              />
-              <span className="hidden text-[13.5px] font-medium text-[#0B132B] dark:text-white sm:block max-w-[120px] truncate">
-                {displayName}
-              </span>
+              {hasKnownName ? (
+                <>
+                  <UserAvatar
+                    avatarUrl={user?.avatarUrl}
+                    name={resolvedFullName}
+                    size="sm"
+                  />
+                  <span className="hidden text-[13px] font-bold text-slate-800 dark:text-white sm:block max-w-[120px] truncate">
+                    {displayName}
+                  </span>
+                </>
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400">
+                  <User className="w-4 h-4" />
+                </div>
+              )}
               <ChevronDownIcon
-                className={`h-4 w-4 text-slate-400 dark:text-slate-500 transition-transform duration-200 ease-smooth ${menuOpen ? 'rotate-180' : ''}`}
+                className={`h-3.5 w-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 ease-smooth ${menuOpen ? 'rotate-180' : ''}`}
                 strokeWidth={2}
                 aria-hidden="true"
               />
