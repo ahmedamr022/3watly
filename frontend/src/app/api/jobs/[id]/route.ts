@@ -38,12 +38,13 @@ function timeAgo(dateStr: string | null): { en: string; ar: string } {
     if (hours === 1) return { en: '1h ago', ar: 'منذ ساعة' };
     if (hours === 2) return { en: '2h ago', ar: 'منذ ساعتين' };
     if (hours < 24) return { en: `${hours}h ago`, ar: `منذ ${hours} ساعة` };
-    const days = Math.floor(hours / 24);
-    if (days === 1) return { en: '1d ago', ar: 'منذ يوم' };
+    const days = Math.round(hours / 24);
+    if (days <= 1) return { en: '1d ago', ar: 'منذ يوم' };
     if (days === 2) return { en: '2d ago', ar: 'منذ يومين' };
+    if (days <= 10) return { en: `${days}d ago`, ar: `منذ ${days} أيام` };
     if (days <= 30) return { en: `${days}d ago`, ar: `منذ ${days} يوم` };
-    const months = Math.floor(days / 30);
-    if (months === 1) return { en: '1mo ago', ar: 'منذ شهر' };
+    const months = Math.round(days / 30);
+    if (months <= 1) return { en: '1mo ago', ar: 'منذ شهر' };
     if (months === 2) return { en: '2mo ago', ar: 'منذ شهرين' };
     return { en: `${months}mo ago`, ar: `منذ ${months} أشهر` };
   } catch {

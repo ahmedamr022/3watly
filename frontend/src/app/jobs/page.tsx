@@ -141,7 +141,7 @@ function JobsPageContent() {
     setLoadingLive(true);
     const params = new URLSearchParams();
     params.set('sortBy', sortBy);
-    params.set('limit', '200');
+    params.set('limit', '1000');
     if (userSkills.length > 0) params.set('skills', userSkills.join(','));
     if (targetRole) params.set('targetRole', targetRole);
 

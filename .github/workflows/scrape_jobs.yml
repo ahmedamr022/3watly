@@ -1,4 +1,4 @@
-﻿name: 3WATLY Automatic Egyptian Job Market Scraper
+name: 3WATLY Automatic Egyptian Job Market Scraper
 
 on:
   schedule:
@@ -27,10 +27,6 @@ jobs:
       - name: Run Wuzzuf Scraper & Update Supabase
         working-directory: ./frontend
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://xwkkwmplohwsnwxjxusx.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: |
-          node -e "
-            const { runWuzzufScraper } = require('./dist_scraper/wuzzuf.js');
-            // Or trigger via curl/endpoint
-          " || echo "Scraper workflow executed"
+        run: node scripts/run-scraper-v2.mjs

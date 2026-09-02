@@ -79,9 +79,9 @@ export default function MarketPage() {
   const stats: StatSet = liveStats?.stats
     ? {
         ...computedStats,
-        jobs: Math.max(computedStats.jobs, liveStats.stats.totalJobs),
-        companies: Math.max(computedStats.companies, liveStats.stats.totalCompanies),
-        remote: liveStats.stats.remoteJobsPercentage || computedStats.remote,
+        jobs: liveStats.stats.totalJobs || computedStats.jobs,
+        companies: liveStats.stats.totalCompanies || computedStats.companies,
+        remote: liveStats.stats.remoteJobsPercentage ?? computedStats.remote,
         topSkill: liveStats.stats.topSkillName
           ? { name: liveStats.stats.topSkillName, share: liveStats.stats.topSkillPercentage }
           : computedStats.topSkill,
