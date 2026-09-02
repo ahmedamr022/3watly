@@ -222,6 +222,35 @@ export default function CVBuilderPage() {
           </div>
         </div>
 
+        {/* Empty CV / New User Onboarding Banner */}
+        {(!cv.contact.fullName && cv.experience.length === 0 && cv.education.length === 0) && (
+          <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white font-black shadow-md text-lg">
+                ✨
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  {isAr ? "مرحباً بك في منشئ السيرة الذاتية الذكي!" : "Welcome to Smart CV Builder!"}
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                  {isAr 
+                    ? "قالبك فارغ وجاهز لبناء أول سيرة ذاتية لك. ابدأ بإدخال بياناتك من اللوحة، أو ارفع ملف سيرة ذاتية لاستخراجها تلقائياً."
+                    : "Your canvas is clean and ready. Start adding your details, or upload a resume file to auto-fill."}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href="/onboarding/cv-upload"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-50 dark:hover:bg-white/15 text-xs font-bold text-[#1B57E0] dark:text-[#60A5FA] border border-slate-200/80 dark:border-white/10 transition-all shadow-xs"
+              >
+                <span>{isAr ? "📄 رفع سيرة ذاتية سابقة" : "📄 Upload Existing Resume"}</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Builder Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           

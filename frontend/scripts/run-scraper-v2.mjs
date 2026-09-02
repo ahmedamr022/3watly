@@ -192,17 +192,11 @@ function parseWorkType(text) {
   if (/remote|work from home|عن بعد/.test(t)) return { workType: 'Remote', isRemote: true };
   return { workType: 'On-site', isRemote: false };
 }
-function estimateSalary(seniority, isRemote) {
-  if (isRemote) {
-    if (seniority === 'Fresh') return '$600 – $1,000 / mo';
-    if (seniority === 'Junior') return '$1,000 – $1,800 / mo';
-    if (seniority === 'Senior') return '$2,800 – $5,000 / mo';
-    return '$1,800 – $2,800 / mo';
-  }
-  if (seniority === 'Fresh') return '14,000 – 20,000 ج.م / شهرياً';
-  if (seniority === 'Junior') return '20,000 – 32,000 ج.م / شهرياً';
-  if (seniority === 'Senior') return '50,000 – 90,000 ج.م / شهرياً';
-  return '32,000 – 50,000 ج.م / شهرياً';
+function extractSalaryFromCardText(cardText) {
+  if (!cardText) return 'تحدد أثناء المقابلة';
+  const match = cardText.match(/(\d[\d,]*\s*(?:to|-|–)\s*\d[\d,]*\s*(?:EGP|USD|EUR|ج\.م|\$)[^\n•,]*)/i);
+  if (match) return match[1].trim();
+  return 'تحدد أثناء المقابلة';
 }
 function parseRelativeDate(text) {
   if (!text?.trim()) return null;
@@ -536,7 +530,7 @@ async function scrapeQuery(query, maxPages = 2) {
             company_logo: logo,
             location, location_ar: translateLocation(location),
             work_type: workType, is_remote: isRemote,
-            seniority, salary_range: estimateSalary(seniority, isRemote),
+            seniority, salary_range: extractSalaryFromCardText($card.text()),
             required_skills: verifiedFromTags,
             inferred_skills: inferredSkills,
             preferred_skills: [],

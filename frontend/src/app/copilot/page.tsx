@@ -80,6 +80,7 @@ export default function CopilotPage() {
   const { isAr } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useClickOutside<HTMLDivElement>(menuOpen, () => setMenuOpen(false));
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const [activeCvStats, setActiveCvStats] = useState<{
@@ -104,9 +105,49 @@ export default function CopilotPage() {
     } catch {}
   }, []);
 
+  // Dedicated scroll helper: locks scroll directly to bottom of container
+  const scrollToBottom = React.useCallback((behavior: 'auto' | 'smooth' = 'smooth') => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior,
+      });
+    }
+    endRef.current?.scrollIntoView({ behavior, block: 'end' });
+  }, []);
+
+  // When messages change or model is thinking, smoothly scroll down
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [messages.length, isThinking]);
+    scrollToBottom('smooth');
+  }, [messages.length, isThinking, scrollToBottom]);
+
+  // When component mounts or finishes loading, guarantee bottom position immediately
+  useEffect(() => {
+    if (!isLoading) {
+      scrollToBottom('auto');
+      const t1 = setTimeout(() => scrollToBottom('auto'), 60);
+      const t2 = setTimeout(() => scrollToBottom('auto'), 200);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    }
+  }, [isLoading, scrollToBottom]);
+
+  // Auto-lock to bottom when user re-focuses tab or returns to page
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        scrollToBottom('auto');
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onVisibility);
+    };
+  }, [scrollToBottom]);
 
   const copyConversation = async () => {
     setMenuOpen(false);
@@ -157,33 +198,58 @@ export default function CopilotPage() {
       showSearch={false}
     >
       <div className="mx-auto flex h-[calc(100vh-210px)] max-w-[1100px] flex-col rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-xs">
-        {/* Header Bar */}
-        <header className="flex shrink-0 items-center justify-between border-b border-slate-100 dark:border-white/5 px-6 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20">
-              <SparklesIcon className="h-5 w-5" />
+        {/* Header Bar - Enhanced with Official 3D Logo & Dynamic Active CV Banner */}
+        <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] px-6 py-3.5">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Official 3D Logo Avatar with Active Pulse */}
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/10 via-blue-600/15 to-emerald-500/10 p-1 border border-blue-500/20 shadow-xs">
+              <img
+                src="/logo.png"
+                alt="3WATLY Copilot"
+                className="h-full w-full object-contain drop-shadow-sm"
+              />
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border-2 border-white dark:border-[#0B1120]"></span>
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-[15px] font-black tracking-tight text-slate-900 dark:text-white">
                   {isAr ? "محادثة المساعد المهني الذكي" : "AI Career Copilot"}
                 </h2>
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-500/30 px-2 py-0.5 text-[10.5px] font-bold text-blue-700 dark:text-blue-300">
+                  <SparklesIcon className="h-3 w-3" />
+                  Gemini 3
+                </span>
                 <ActiveCVBadge pageName={isAr ? "المساعد الذكي" : "Copilot"} />
               </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                {isAr ? "مبني على تحليل مئات الوظائف في السوق المصري" : "Grounded in verified Egyptian market jobs"}
-              </span>
+              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11.5px] text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                  {isAr ? "مبني على تحليل مئات الوظائف في السوق المصري" : "Grounded in live Egyptian market jobs"}
+                </span>
+                {activeCvStats.role && (
+                  <>
+                    <span>•</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[220px]">
+                      {activeCvStats.role}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 shrink-0 ltr:ml-auto rtl:mr-auto">
             <button
               type="button"
               onClick={async () => {
                 await resetChat();
                 toast.success(isAr ? 'تم بدء محادثة جديدة' : 'Started a new chat');
               }}
-              className="flex h-9 items-center gap-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0F172A] px-3.5 text-xs font-semibold text-blue-600 dark:text-blue-400 transition-colors hover:bg-blue-50 dark:hover:bg-blue-950/30 cursor-pointer shadow-2xs"
+              className="flex h-9 items-center gap-1.5 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white px-3.5 text-xs font-bold transition-all cursor-pointer shadow-xs hover:shadow-md active:scale-98"
             >
               <PlusCircleIcon className="h-4 w-4" />
               <span>{isAr ? "محادثة جديدة" : "New Chat"}</span>
@@ -234,8 +300,11 @@ export default function CopilotPage() {
           </div>
         </header>
 
-        {/* Scrollable Messages Area */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 scroll-slim space-y-4">
+        {/* Scrollable Messages Area with scrollContainerRef */}
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto px-6 py-5 scroll-slim space-y-4"
+        >
           {isLoading ? (
             <div className="flex h-full items-center justify-center py-16">
               <Loader2Icon className="h-6 w-6 animate-spin text-blue-600 dark:text-blue-400" />

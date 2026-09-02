@@ -277,8 +277,12 @@ function mapRowToJobItem(row: any, userSkills: string[], targetRole: string = ''
     employmentTypeAr: 'دوام كامل',
     seniority: senior,
     seniorityAr: seniorityArMap[senior] || 'متوسط',
-    salaryRange: row.salary_range || 'Competitive (EGP)',
-    salaryRangeAr: row.salary_range || 'راتب تنافسي',
+    salaryRange: (row.salary_range && row.salary_range !== 'تحدد أثناء المقابلة' && !/competitive|confidential|غير معلن|تنافسي|32,000|50,000|14,000|20,000|\$1,800|\$2,800/i.test(row.salary_range))
+      ? row.salary_range
+      : 'Disclosed upon interview',
+    salaryRangeAr: (row.salary_range && row.salary_range !== 'تحدد أثناء المقابلة' && !/competitive|confidential|غير معلن|تنافسي|32,000|50,000|14,000|20,000|\$1,800|\$2,800/i.test(row.salary_range))
+      ? row.salary_range
+      : 'تحدد أثناء المقابلة',
     matchScore,
     postedAgo: posted.en,
     postedAgoAr: posted.ar,

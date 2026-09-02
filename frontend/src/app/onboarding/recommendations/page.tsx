@@ -100,14 +100,30 @@ export default function RecommendationsPage() {
     };
   });
 
+  const [liveJobs, setLiveJobs] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    fetch('/api/jobs?limit=6')
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d?.jobs) && d.jobs.length > 0) {
+          setLiveJobs(d.jobs);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Calculate genuine match score for every job based on actual user skills overlap
-  const rankedJobs = mockJobsList.map(job => {
-    const reqSkills = (job.matchedSkills || []).map(s => s.name.toLowerCase());
-    const matchedCount = reqSkills.filter(rs => 
+  const sourceJobs = liveJobs.length > 0 ? liveJobs : mockJobsList;
+  const rankedJobs = sourceJobs.map(job => {
+    const rawSkills = Array.isArray(job.matchedSkills) 
+      ? job.matchedSkills.map((s: any) => (typeof s === 'string' ? s : s.name).toLowerCase())
+      : (Array.isArray(job.required_skills) ? job.required_skills.map((s: string) => s.toLowerCase()) : []);
+    const matchedCount = rawSkills.filter((rs: string) => 
       userSkills.some(us => us.includes(rs) || rs.includes(us))
     ).length;
 
-    const overlapRatio = reqSkills.length > 0 ? matchedCount / reqSkills.length : 0.8;
+    const overlapRatio = rawSkills.length > 0 ? matchedCount / rawSkills.length : 0.8;
     const calculatedMatch = Math.min(98, Math.max(72, Math.round(atsScore * 0.6 + overlapRatio * 40)));
 
     return {

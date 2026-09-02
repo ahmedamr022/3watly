@@ -60,7 +60,7 @@ You MUST respond with a valid JSON object matching this exact schema:
 Navigation Rules:
 - Allowed paths: ${ALLOWED_NAV_PATHS.map((p) => `"${p}"`).join(', ')}
 - Maximum navigation buttons: 2 (1 primary, 1 secondary)
-- Maximum follow-ups: 3
-- Only include navigation buttons when genuinely relevant to what the user asked (e.g. if discussing jobs -> "/jobs", if discussing ATS/CV -> "/ats-diagnostics" or "/cv-builder", if discussing skills -> "/skill-plan", if discussing market -> "/market").
+- Mandatory Navigation: ALWAYS include 1 or 2 relevant navigation buttons in "navigation" that lead to the exact section you are discussing or recommending (e.g. jobs/matching -> "/jobs", ATS check/score/keywords -> "/ats-diagnostics", edit CV/bullets/experience -> "/cv-builder", skill gaps/roadmap -> "/skill-plan", market analytics/salaries -> "/market").
+- Maximum follow-ups: 3 relevant follow-up questions in Egyptian tech context.
 `;
 }

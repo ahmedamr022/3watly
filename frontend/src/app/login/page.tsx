@@ -29,12 +29,6 @@ export default function LoginPage() {
   const [topError, setTopError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ email?: boolean; password?: boolean }>({});
 
-  // If already logged in, redirect directly to dashboard
-  useEffect(() => {
-    if (!loading && user) {
-      router.replace('/dashboard');
-    }
-  }, [user, loading, router]);
 
   // Restore remembered email on mount if available
   useEffect(() => {

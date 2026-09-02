@@ -11,6 +11,7 @@ import React, {
 } from 'react';
 import { AssistantPayload } from '../data/chat';
 import { useAuth } from './AuthContext';
+import { inferNavigationButtons } from '@/lib/copilot/navigation';
 import { toast } from 'sonner';
 
 export type Feedback = 'up' | 'down' | null;
@@ -58,18 +59,36 @@ const formatTime = (date?: string | Date) => {
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const cached = localStorage.getItem('3watly_copilot_chat_history');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  });
   const [isThinking, setIsThinking] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isSendingRef = useRef(false);
 
-  // Load conversation history from Supabase on mount
+  // Sync rich messages (with navigation and follow-ups) to localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (messages.length > 0) {
+        const toSave = messages.filter((m) => !m.pending);
+        localStorage.setItem('3watly_copilot_chat_history', JSON.stringify(toSave));
+      }
+    } catch {}
+  }, [messages]);
+
+  // Load conversation history from Supabase on mount while preserving rich buttons
   const loadMessages = useCallback(async () => {
-    if (!user) {
-      setMessages([]);
-      return;
-    }
+    if (!user) return;
 
     setIsLoading(true);
     setError(null);
@@ -80,18 +99,48 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.messages) && data.messages.length > 0) {
-          const formatted: ChatMessage[] = data.messages.map((m: any) => ({
-            id: m.id || `msg-${Date.now()}-${Math.random()}`,
-            role: m.role,
-            text: m.content,
-            content: m.content,
-            time: formatTime(m.created_at),
-            feedback: m.feedback || null,
-            created_at: m.created_at,
-          }));
+          // Read local cache to retain rich buttons and followUps
+          const localMap = new Map<string, ChatMessage>();
+          try {
+            const cached = localStorage.getItem('3watly_copilot_chat_history');
+            if (cached) {
+              const list: ChatMessage[] = JSON.parse(cached);
+              list.forEach((m) => {
+                if (m.content) localMap.set(m.content.trim(), m);
+              });
+            }
+          } catch {}
+
+          const formatted: ChatMessage[] = data.messages.map((m: any) => {
+            const content = (m.content || '').trim();
+            const matchedLocal = localMap.get(content);
+            const defaultNav = inferNavigationButtons(content);
+
+            return {
+              id: m.id || `msg-${Date.now()}-${Math.random()}`,
+              role: m.role,
+              text: m.content,
+              content: m.content,
+              time: formatTime(m.created_at),
+              feedback: m.feedback || null,
+              created_at: m.created_at,
+              navigation:
+                matchedLocal?.navigation && matchedLocal.navigation.length > 0
+                  ? matchedLocal.navigation
+                  : m.role === 'assistant'
+                  ? defaultNav
+                  : [],
+              followUps:
+                matchedLocal?.followUps && matchedLocal.followUps.length > 0
+                  ? matchedLocal.followUps
+                  : [],
+            };
+          });
+
           setMessages(formatted);
-        } else {
-          setMessages([]);
+          try {
+            localStorage.setItem('3watly_copilot_chat_history', JSON.stringify(formatted));
+          } catch {}
         }
       }
     } catch (e: any) {
@@ -246,6 +295,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setIsThinking(false);
     isSendingRef.current = false;
     setMessages([]);
+
+    try {
+      localStorage.removeItem('3watly_copilot_chat_history');
+    } catch {}
 
     try {
       const q = user?.id || user?.email ? `?userId=${encodeURIComponent(user.id || user.email)}` : '';

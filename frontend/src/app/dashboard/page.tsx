@@ -25,7 +25,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ApiService } from '@/services/api';
 import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-import { mockJobsList } from '@/data/jobs';
 import { useCV } from '@/contexts/CVContext';
 
 export default function DashboardPage() {
@@ -34,73 +33,74 @@ export default function DashboardPage() {
   const { analysis } = useCV();
 
   const [userParsedCv, setUserParsedCv] = useState<any>(null);
-  const [liveJobs, setLiveJobs] = useState<any[]>([]);
-  const [loadingJobs, setLoadingJobs] = useState(true);
-  const [marketStats, setMarketStats] = useState({
-    totalJobs: 401,
-    totalCompanies: 120,
-    remoteJobsPercentage: 38,
-    topSkillName: 'SQL',
-    topSkillPercentage: 81,
+  const [liveJobs, setLiveJobs] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('3watly_dashboard_jobs');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return [];
+  });
+  const [loadingJobs, setLoadingJobs] = useState(liveJobs.length === 0);
+
+  const [marketStats, setMarketStats] = useState<any>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('3watly_market_stats');
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
   });
 
   React.useEffect(() => {
     let mounted = true;
 
-    // 1. Immediately hydrate client state from storage (safe inside useEffect post-hydration)
+    // 1. Immediately hydrate client CV from storage
     try {
       const savedCv = localStorage.getItem('3watly_parsed_cv');
       if (savedCv) setUserParsedCv(JSON.parse(savedCv));
-
-      const cachedJobs = sessionStorage.getItem('3watly_dashboard_jobs');
-      if (cachedJobs) {
-        const parsedJobs = JSON.parse(cachedJobs);
-        if (Array.isArray(parsedJobs) && parsedJobs.length > 0) {
-          setLiveJobs(parsedJobs);
-          setLoadingJobs(false);
-        }
-      }
-
-      const cachedStats = sessionStorage.getItem('3watly_market_stats');
-      if (cachedStats) {
-        setMarketStats(JSON.parse(cachedStats));
-      }
     } catch {}
 
-    // 2. Refresh live data from API in background
-    ApiService.getJobs({ limit: '6' }).then((res: any) => {
-      if (mounted && res && (Array.isArray(res) || Array.isArray(res.jobs))) {
-        const data = Array.isArray(res) ? res : res.jobs;
-        if (data.length > 0) {
+    // 2. Parallel background fetch for jobs + market stats (super fast lean endpoint)
+    Promise.all([
+      ApiService.getJobs({ limit: '6' }).catch(() => null),
+      fetch('/api/market/stats').then((r) => r.json()).catch(() => null),
+    ]).then(([jobsRes, statsRes]) => {
+      if (!mounted) return;
+
+      if (jobsRes) {
+        const data = Array.isArray(jobsRes) ? jobsRes : jobsRes.jobs;
+        if (Array.isArray(data) && data.length > 0) {
           setLiveJobs(data);
           try {
-            sessionStorage.setItem('3watly_dashboard_jobs', JSON.stringify(data));
+            localStorage.setItem('3watly_dashboard_jobs', JSON.stringify(data));
           } catch {}
         }
       }
-    }).catch(() => {})
-      .finally(() => {
-        if (mounted) setLoadingJobs(false);
-      });
 
-    fetch('/api/market/stats')
-      .then((res) => res.json())
-      .then((data) => {
-        if (mounted && data?.stats) {
-          const stats = {
-            totalJobs: data.stats.totalJobs || 401,
-            totalCompanies: data.stats.totalCompanies || 120,
-            remoteJobsPercentage: data.stats.remoteJobsPercentage || 38,
-            topSkillName: data.stats.topSkillName || 'SQL',
-            topSkillPercentage: data.stats.topSkillPercentage || 81,
-          };
-          setMarketStats(stats);
-          try {
-            sessionStorage.setItem('3watly_market_stats', JSON.stringify(stats));
-          } catch {}
-        }
-      })
-      .catch(() => {});
+      if (statsRes?.stats) {
+        const stats = {
+          totalJobs: statsRes.stats.totalJobs,
+          totalCompanies: statsRes.stats.totalCompanies,
+          remoteJobsPercentage: statsRes.stats.remoteJobsPercentage,
+          topSkillName: statsRes.stats.topSkillName || 'SQL',
+          topSkillPercentage: statsRes.stats.topSkillPercentage || 82,
+        };
+        setMarketStats(stats);
+        try {
+          localStorage.setItem('3watly_market_stats', JSON.stringify(stats));
+        } catch {}
+      }
+    }).finally(() => {
+      if (mounted) {
+        setLoadingJobs(false);
+      }
+    });
 
     return () => { mounted = false; };
   }, []);
@@ -170,7 +170,9 @@ export default function DashboardPage() {
                   {isAr ? "إجمالي الوظائف المحللة" : "Total Analyzed Jobs"}
                 </span>
                 <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
-                  {marketStats.totalJobs.toLocaleString('en-US')}
+                  {marketStats ? marketStats.totalJobs.toLocaleString('en-US') : (
+                    <span className="inline-block h-7 w-20 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
+                  )}
                 </p>
                 <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
                   <span>↑ 8%</span>
@@ -207,7 +209,9 @@ export default function DashboardPage() {
                   {isAr ? "الشركات الموظفة" : "Hiring Companies"}
                 </span>
                 <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
-                  {marketStats.totalCompanies.toLocaleString('en-US')}
+                  {marketStats ? marketStats.totalCompanies.toLocaleString('en-US') : (
+                    <span className="inline-block h-7 w-16 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
+                  )}
                 </p>
                 <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
                   <span>↑ 6.3%</span>
@@ -244,7 +248,9 @@ export default function DashboardPage() {
                   {isAr ? "نسبة العمل عن بُعد/هجين" : "Remote/Hybrid Ratio"}
                 </span>
                 <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
-                  {marketStats.remoteJobsPercentage}%
+                  {marketStats ? `${marketStats.remoteJobsPercentage}%` : (
+                    <span className="inline-block h-7 w-14 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
+                  )}
                 </p>
                 <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
                   <span>↑ 4.7%</span>
@@ -281,10 +287,12 @@ export default function DashboardPage() {
                   {isAr ? "المهارة الأكثر طلباً" : "Top In-Demand Skill"}
                 </span>
                 <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
-                  {marketStats.topSkillName}
+                  {marketStats ? marketStats.topSkillName : (
+                    <span className="inline-block h-7 w-16 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
+                  )}
                 </p>
                 <span suppressHydrationWarning className="block text-[11.5px] font-normal text-slate-500 dark:text-slate-400 mt-1 truncate">
-                  {isAr ? `مطلوبة في ${marketStats.topSkillPercentage}% من الوظائف` : `${marketStats.topSkillPercentage}% of active roles`}
+                  {marketStats ? (isAr ? `مطلوبة في ${marketStats.topSkillPercentage}% من الوظائف` : `${marketStats.topSkillPercentage}% of active roles`) : ''}
                 </span>
               </div>
             </div>
@@ -413,8 +421,8 @@ export default function DashboardPage() {
                 </h3>
                 <p suppressHydrationWarning className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
                   {isAr
-                    ? `هاتان هما أكثر مهارتين ذات تأثير مرتفع تنقصان ملفك مقارنة بـ ${marketStats.totalJobs} وظيفة نشطة في سوق العمل المصري.`
-                    : `These are the two highest-impact skills missing from your profile based on ${marketStats.totalJobs} active job postings.`}
+                    ? `هاتان هما أكثر مهارتين ذات تأثير مرتفع تنقصان ملفك مقارنة بـ ${marketStats?.totalJobs || 413} وظيفة نشطة في سوق العمل المصري.`
+                    : `These are the two highest-impact skills missing from your profile based on ${marketStats?.totalJobs || 413} active job postings.`}
                 </p>
               </div>
             </div>

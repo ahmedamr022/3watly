@@ -24,12 +24,6 @@ export default function SignUpPage() {
   const { isAr, t } = useLanguage();
   const { user, loading, signup } = useAuth();
   
-  // If already logged in, redirect directly to dashboard
-  useEffect(() => {
-    if (!loading && user) {
-      router.replace('/dashboard');
-    }
-  }, [user, loading, router]);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');

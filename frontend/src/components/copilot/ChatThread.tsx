@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { ChatMessage, Feedback, ChatNavigationItem } from '../../contexts/ChatContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { inferNavigationButtons } from '@/lib/copilot/navigation';
 import { RichText } from './RichText';
 import { RoadmapCard } from './RoadmapCard';
 
@@ -135,10 +136,16 @@ function AssistantCard({
   onFeedback: (id: string, value: Feedback) => void;
   onSendMessage?: (text: string) => void;
 }) {
+  const { isAr } = useLanguage();
   const textContent = message.text || message.content || '';
   const payload = message.payload;
   const navigation = message.navigation || [];
   const followUps = message.followUps || [];
+
+  // Intelligently ensure navigation buttons are ALWAYS present on every assistant message
+  const effectiveNavigation = (navigation && navigation.length > 0)
+    ? navigation
+    : inferNavigationButtons(textContent, isAr);
 
   const copy = async () => {
     try {
@@ -201,11 +208,11 @@ function AssistantCard({
           </div>
         )}
 
-        {/* Navigation Action Buttons */}
-        {navigation.length > 0 && (
+        {/* Navigation Action Buttons - Guaranteed on every message */}
+        {effectiveNavigation.length > 0 && (
           <div className="pt-2">
             <div className="flex flex-wrap items-center gap-2.5">
-              {navigation.map((nav, idx) => (
+              {effectiveNavigation.map((nav, idx) => (
                 <NavigationButton key={idx} item={nav} />
               ))}
             </div>

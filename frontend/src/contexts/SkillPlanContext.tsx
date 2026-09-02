@@ -34,17 +34,42 @@ const SkillPlanContext = createContext<SkillPlanContextValue | null>(null);
 
 export function SkillPlanProvider({
   children
-
-
-}: {children: React.ReactNode;}) {
+}: { children: React.ReactNode }) {
   const { cv, update } = useCV();
   const [roleId, setRoleIdState] = useState(DEFAULT_ROLE_ID);
-  const [statuses, setStatuses] = useState<Record<string, SkillStatus>>({});
-  const [actionProgress, setActionProgress] = useState<
-    Record<string, number[]>>(
-    {});
+  const [statuses, setStatuses] = useState<Record<string, SkillStatus>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('3watly_skill_statuses');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return {};
+  });
+  const [actionProgress, setActionProgress] = useState<Record<string, number[]>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('3watly_skill_actions');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return {};
+  });
   const [sortMode, setSortMode] = useState<SortMode>('impact');
   const [weeklyHours, setWeeklyHours] = useState(6);
+
+  // Sync to localStorage on change
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('3watly_skill_statuses', JSON.stringify(statuses));
+    } catch {}
+  }, [statuses]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('3watly_skill_actions', JSON.stringify(actionProgress));
+    } catch {}
+  }, [actionProgress]);
 
   const plan = useMemo(
     () =>

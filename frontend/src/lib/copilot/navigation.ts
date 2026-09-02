@@ -76,3 +76,68 @@ export function sanitizeNavPath(path: string): AllowedNavigationPath | null {
   if (clean.startsWith('/setting')) return '/settings';
   return null;
 }
+
+export function inferNavigationButtons(
+  text: string,
+  isAr: boolean = true
+): Array<{ path: AllowedNavigationPath; label: string; priority: 'primary' | 'secondary' }> {
+  if (!text) return [];
+  const t = text.toLowerCase();
+  const buttons: Array<{ path: AllowedNavigationPath; label: string; priority: 'primary' | 'secondary' }> = [];
+
+  const mentionsJobs = /وظائف|وظيفة|شاغر|شواغر|تقديم|شركات|تطابق|match|فرص|شركة|job|hiring|company/i.test(t);
+  const mentionsATS = /ats|سيرة|سيرتك|cv|فحص|توافق|تنسيق|صياغة|معدل|resume/i.test(t);
+  const mentionsSkills = /مهارة|مهارات|فجوة|تعلم|كورسات|مسار|دورات|skill|learn|course|gap/i.test(t);
+  const mentionsCVEdit = /تعديل|إضافة|محرر|أقسام|خبرات|مشاريع|builder|edit cv/i.test(t);
+  const mentionsMarket = /سوق|رواتب|راتب|طلب|نمو|إحصائيات|market|salary|trend/i.test(t);
+
+  if (mentionsJobs) {
+    buttons.push({
+      path: '/jobs',
+      label: isAr ? 'استعراض الوظائف المطابقة' : 'Explore Matching Jobs',
+      priority: 'primary',
+    });
+  }
+
+  if (mentionsATS) {
+    buttons.push({
+      path: '/ats-diagnostics',
+      label: isAr ? 'فحص السيرة الذاتية (ATS)' : 'Check ATS Score',
+      priority: buttons.length === 0 ? 'primary' : 'secondary',
+    });
+  } else if (mentionsSkills) {
+    buttons.push({
+      path: '/skill-plan',
+      label: isAr ? 'خطة سد الفجوة المهارية' : 'View Skill Plan',
+      priority: buttons.length === 0 ? 'primary' : 'secondary',
+    });
+  } else if (mentionsCVEdit) {
+    buttons.push({
+      path: '/cv-builder',
+      label: isAr ? 'محرر السيرة الذاتية' : 'Open CV Builder',
+      priority: buttons.length === 0 ? 'primary' : 'secondary',
+    });
+  } else if (mentionsMarket) {
+    buttons.push({
+      path: '/market',
+      label: isAr ? 'تحليلات السوق والرواتب' : 'Market & Salary Insights',
+      priority: buttons.length === 0 ? 'primary' : 'secondary',
+    });
+  }
+
+  // Fallback guarantee: always provide at least 1 relevant button
+  if (buttons.length === 0) {
+    buttons.push({
+      path: '/jobs',
+      label: isAr ? 'استعراض الوظائف المطابقة' : 'Explore Matching Jobs',
+      priority: 'primary',
+    });
+    buttons.push({
+      path: '/ats-diagnostics',
+      label: isAr ? 'فحص الـ ATS' : 'ATS Diagnostics',
+      priority: 'secondary',
+    });
+  }
+
+  return buttons.slice(0, 2);
+}

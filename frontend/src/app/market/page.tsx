@@ -50,7 +50,15 @@ export default function MarketPage() {
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [selectedSkill, setSelectedSkill] = useState<string>('SQL');
   const [exporting, setExporting] = useState<boolean>(false);
-  const [liveStats, setLiveStats] = useState<any>(null);
+  const [liveStats, setLiveStats] = useState<any>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('3watly_market_live_stats');
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
 
   // Fetch live market stats from /api/market/stats
   useEffect(() => {
@@ -64,6 +72,9 @@ export default function MarketPage() {
       .then((data) => {
         if (data && data.stats) {
           setLiveStats(data);
+          try {
+            localStorage.setItem('3watly_market_live_stats', JSON.stringify(data));
+          } catch {}
         }
       })
       .catch(() => {});

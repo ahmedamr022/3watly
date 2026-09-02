@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowRight, 
@@ -31,12 +32,30 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function LandingPage() {
+  const router = useRouter();
   const { isAr, t } = useLanguage();
   const { user } = useAuth();
   const [activeNav, setActiveNav] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const isClickScrollingRef = useRef(false);
+
+  const handleLoginClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const hasSavedAccount =
+      !!user ||
+      (typeof window !== 'undefined' &&
+        (!!localStorage.getItem('3watly_user') ||
+          !!localStorage.getItem('3watly_token') ||
+          document.cookie.includes('sb-') ||
+          document.cookie.includes('supabase')));
+
+    if (hasSavedAccount) {
+      router.push('/dashboard');
+    } else {
+      router.push('/login');
+    }
+  };
 
   const navigationLinks = isAr
     ? [
@@ -154,15 +173,16 @@ export default function LandingPage() {
             <ThemeToggle />
 
             {/* Right Action Controls: Log In + Sign Up Free */}
-            <Link 
-              href={user ? "/dashboard" : "/login"} 
-              className="text-[14px] font-bold text-[#1E293B] dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 px-2 py-1.5 transition-colors"
+            <button
+              type="button"
+              onClick={handleLoginClick}
+              className="text-[14px] font-bold text-[#1E293B] dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 px-2 py-1.5 transition-colors cursor-pointer"
             >
               {isAr ? "تسجيل الدخول" : "Log In"}
-            </Link>
+            </button>
 
             <Link 
-              href={user ? "/dashboard" : "/signup"} 
+              href="/signup" 
               className="px-4 sm:px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13.5px] font-bold shadow-md shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all duration-200"
             >
               {isAr ? "أنشئ حسابك مجاناً" : "Sign Up Free"}

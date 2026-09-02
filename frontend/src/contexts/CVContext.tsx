@@ -151,7 +151,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
       // 2. If no versions stored yet, create primary version from parsed onboarding CV or draft
       if (initialVersionsList.length === 0) {
         let baseCv = initialCV;
-        let baseRole = 'Data Analyst';
+        let baseRole = '';
 
         try {
           const parsedOnboarding = localStorage.getItem('3watly_parsed_cv');
@@ -169,7 +169,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
                   location: exp.location || p.location || '',
                   bullets: Array.isArray(exp.bullets) ? exp.bullets : []
                 }))
-              : initialCV.experience;
+              : [];
 
             const rawEduList = Array.isArray(p.education) && p.education.length > 0
               ? p.education
@@ -185,7 +185,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
                   location: edu.location || p.location || '',
                   major: edu.major || ''
                 }))
-              : initialCV.education;
+              : [];
 
             const adaptedProjects = Array.isArray(p.projects) && p.projects.length > 0
               ? p.projects.map((proj: any, idx: number) => ({
@@ -198,9 +198,9 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
                     ? proj.bullets
                     : (proj.description ? [proj.description] : [])
                 }))
-              : initialCV.projects;
+              : [];
 
-            let adaptedSkills = initialCV.skills;
+            let adaptedSkills: import('../types/cv').SkillGroup[] = [];
             if (Array.isArray(p.categorizedSkillGroups) && p.categorizedSkillGroups.length > 0) {
               adaptedSkills = p.categorizedSkillGroups.map((g: any, idx: number) => ({
                 id: g.id || `skill-g-${idx + 1}`,
@@ -254,18 +254,18 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
             baseCv = {
               ...initialCV,
               contact: {
-                fullName: p.fullName || initialCV.contact.fullName,
-                jobTitle: p.currentTitle || p.targetRole || initialCV.contact.jobTitle,
-                email: p.email || initialCV.contact.email,
-                phone: p.phone || initialCV.contact.phone,
-                location: p.location || initialCV.contact.location,
-                linkedin: p.linkedin || initialCV.contact.linkedin,
-                github: p.github || initialCV.contact.github || '',
-                portfolio: p.portfolio || initialCV.contact.portfolio || '',
+                fullName: p.fullName || user?.fullName || '',
+                jobTitle: p.currentTitle || p.targetRole || '',
+                email: p.email || user?.email || '',
+                phone: p.phone || '',
+                location: p.location || '',
+                linkedin: p.linkedin || '',
+                github: p.github || '',
+                portfolio: p.portfolio || '',
                 socialLinks: parsedSocialLinks
               },
-              summary: p.summary || initialCV.summary,
-              skillsSummary: initialCV.skillsSummary || '',
+              summary: p.summary || '',
+              skillsSummary: '',
               experience: adaptedExperience,
               education: adaptedEducation,
               projects: adaptedProjects,
@@ -274,7 +274,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
               hiddenSections: []
             };
 
-            baseRole = p.targetRole || p.currentTitle || 'Data Analyst';
+            baseRole = p.targetRole || p.currentTitle || '';
           }
         } catch (e) {
           console.warn('Fallback initialization:', e);
@@ -282,8 +282,10 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
         const defaultVersion: CVVersion = {
           id: 'ver-primary',
-          name: baseCv.contact.jobTitle ? `${baseCv.contact.jobTitle} (الأساسية)` : 'النسخة الأساسية (Data Analyst)',
-          targetRole: baseRole,
+          name: baseCv.contact.jobTitle 
+            ? `${baseCv.contact.jobTitle} (الأساسية)` 
+            : (baseCv.contact.fullName ? `سيرة ${baseCv.contact.fullName}` : 'سيرتي الذاتية الأولى'),
+          targetRole: baseRole || 'مساري المستهدف',
           cvData: baseCv,
           templateId: 'ats-classic',
           createdAt: new Date().toISOString(),

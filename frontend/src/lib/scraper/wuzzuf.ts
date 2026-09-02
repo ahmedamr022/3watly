@@ -339,17 +339,13 @@ function parseWorkType(text: string): { workType: string; isRemote: boolean } {
   return { workType: 'On-site', isRemote: false };
 }
 
-function estimateSalaryRange(seniority: string, isRemote: boolean): string {
-  if (isRemote) {
-    if (seniority === 'Fresh') return '$600 – $1,000 / mo';
-    if (seniority === 'Junior') return '$1,000 – $1,800 / mo';
-    if (seniority === 'Senior') return '$2,800 – $5,000 / mo';
-    return '$1,800 – $2,800 / mo';
+function extractSalaryRange(text: string): string {
+  if (!text) return 'تحدد أثناء المقابلة';
+  const match = text.match(/(\d[\d,]*\s*(?:to|-|–)\s*\d[\d,]*\s*(?:EGP|USD|EUR|ج\.م|\$)[^\n•,]*)/i);
+  if (match) {
+    return match[1].trim();
   }
-  if (seniority === 'Fresh') return '14,000 – 20,000 ج.م / شهرياً';
-  if (seniority === 'Junior') return '20,000 – 32,000 ج.م / شهرياً';
-  if (seniority === 'Senior') return '50,000 – 90,000 ج.م / شهرياً';
-  return '32,000 – 50,000 ج.م / شهرياً';
+  return 'تحدد أثناء المقابلة';
 }
 
 /** Parse a relative date string. Returns null if unknown — NEVER returns new Date() as fake */
@@ -859,7 +855,7 @@ async function scrapeWuzzufQuery(query: string, maxPages = 2): Promise<ScrapedJo
             work_type: workType,
             is_remote: isRemote,
             seniority,
-            salary_range: estimateSalaryRange(seniority, isRemote),
+            salary_range: extractSalaryRange($card.text()),
             required_skills: verifiedFromTags,
             inferred_skills: inferredSkillNames,
             preferred_skills: [],

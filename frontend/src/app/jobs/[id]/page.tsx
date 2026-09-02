@@ -56,7 +56,6 @@ import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-import { mockJobsList } from '@/data/jobs';
 import type { JobItem } from '@/data/jobs';
 
 export default function JobDetailsPage() {
@@ -70,6 +69,7 @@ export default function JobDetailsPage() {
   const jobId = params?.id as string;
   // Start with empty placeholder — real data replaces it on load. Content is only rendered when !loadingJob && !notFound
   const [job, setJob] = useState<JobItem>({} as JobItem);
+  const [similarJobs, setSimilarJobs] = useState<JobItem[]>([]);
   const [loadingJob, setLoadingJob] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -84,10 +84,7 @@ export default function JobDetailsPage() {
             if (data?.job) {
               setJob(data.job);
             } else {
-              // Try finding in mock list as last resort
-              const found = mockJobsList.find((j) => j.id === jobId);
-              if (found) setJob(found);
-              else setNotFound(true);
+              setNotFound(true);
             }
           }
         })
@@ -98,6 +95,16 @@ export default function JobDetailsPage() {
         .finally(() => {
           if (mounted) setLoadingJob(false);
         });
+
+      // Fetch live similar jobs
+      fetch(`/api/jobs?limit=6`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (mounted && Array.isArray(data?.jobs)) {
+            setSimilarJobs(data.jobs.filter((j: any) => String(j.id) !== String(jobId)).slice(0, 3));
+          }
+        })
+        .catch(() => {});
     }
     return () => {
       mounted = false;
@@ -223,12 +230,20 @@ export default function JobDetailsPage() {
               <span>•</span>
               <span>{job.applicantsCount} {isAr ? "متقدمين" : "applicants"}</span>
               <span>•</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200">
-                {isAr ? job.salaryRangeAr : job.salaryRange}
-              </span>
-              <span className="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-[#0B1120]/5 text-[10.5px] text-slate-400">
-                {isAr ? "تقدير معلن" : "Disclosed estimate"}
-              </span>
+              {(job.salaryRangeAr === 'تحدد أثناء المقابلة' || job.salaryRange === 'Disclosed upon interview') ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">
+                  🤝 {isAr ? 'يتحدد أثناء المقابلة' : 'Disclosed upon interview'}
+                </span>
+              ) : (
+                <>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400">
+                    💰 {isAr ? job.salaryRangeAr : job.salaryRange}
+                  </span>
+                  <span className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/30 text-[10.5px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                    {isAr ? 'معلن' : 'Disclosed'}
+                  </span>
+                </>
+              )}
             </div>
 
             {/* Pill Tags Row */}
@@ -934,37 +949,43 @@ export default function JobDetailsPage() {
             {/* TAB 3: SIMILAR JOBS TAB (FULL WIDTH 100%) */}
             {activeTab === 'similar' && (
               <div className="space-y-3.5 w-full">
-                {mockJobsList.filter(j => j.id !== jobId).map((similarJob) => (
-                  <div
-                    key={similarJob.id}
-                    className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-xs hover:border-blue-500/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="flex items-center gap-4 min-w-0">
-                      <CompanyLogo company={similarJob.company} size="md" />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Link href={`/jobs/${similarJob.id}`} className="text-[15px] font-bold text-[#0B132B] dark:text-white hover:text-blue-600">
-                            {isAr ? similarJob.titleAr : similarJob.title}
-                          </Link>
-                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#12B76A] font-bold text-[11px]">
-                            {similarJob.matchScore}% {isAr ? "مطابقة" : "Match"}
-                          </span>
-                        </div>
-                        <p className="text-[12px] text-slate-400 mt-0.5">
-                          {isAr ? similarJob.companyAr : similarJob.company} • {isAr ? similarJob.locationAr : similarJob.location} • {isAr ? similarJob.salaryRangeAr : similarJob.salaryRange}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Link
-                      href={`/jobs/${similarJob.id}`}
-                      className="px-5 py-2.5 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white text-[13px] font-bold shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5 shrink-0"
+                {similarJobs.length > 0 ? (
+                  similarJobs.map((similarJob) => (
+                    <div
+                      key={similarJob.id}
+                      className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-xs hover:border-blue-500/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
-                      <span>{isAr ? "عرض التفاصيل والتوافق" : "View Role & Fit"}</span>
-                      <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
-                    </Link>
+                      <div className="flex items-center gap-4 min-w-0">
+                        <CompanyLogo company={similarJob.company} size="md" />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Link href={`/jobs/${similarJob.id}`} className="text-[15px] font-bold text-[#0B132B] dark:text-white hover:text-blue-600">
+                              {isAr ? similarJob.titleAr : similarJob.title}
+                            </Link>
+                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#12B76A] font-bold text-[11px]">
+                              {similarJob.matchScore || 85}% {isAr ? "مطابقة" : "Match"}
+                            </span>
+                          </div>
+                          <p className="text-[12px] text-slate-400 mt-0.5">
+                            {isAr ? similarJob.companyAr : similarJob.company} • {isAr ? similarJob.locationAr : similarJob.location} • {isAr ? similarJob.salaryRangeAr : similarJob.salaryRange}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Link
+                        href={`/jobs/${similarJob.id}`}
+                        className="px-5 py-2.5 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white text-[13px] font-bold shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5 shrink-0"
+                      >
+                        <span>{isAr ? "عرض التفاصيل والتوافق" : "View Role & Fit"}</span>
+                        <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
+                      </Link>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center text-sm text-slate-400">
+                    {isAr ? "لا توجد وظائف مشابهة إضافية حالياً" : "No similar jobs available currently"}
                   </div>
-                ))}
+                )}
               </div>
             )}
 

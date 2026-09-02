@@ -28,9 +28,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { ActiveCVBadge } from '@/components/cv/CVVersionManager';
-import { mockDashboardData, mockJobsList, JobItem } from '@/data/jobs';
+import { mockDashboardData, JobItem } from '@/data/jobs';
 import { ApplyModal } from '@/components/jobs/ApplyModal';
 
 function JobsPageContent() {
@@ -38,10 +39,20 @@ function JobsPageContent() {
   const searchParams = useSearchParams();
   const queryParam = searchParams.get('q') || searchParams.get('keyword') || '';
   const { isAr } = useLanguage();
-  const { parsedCv, profile } = useOnboarding();
+  const { profile } = useOnboarding();
+  const { user } = useAuth();
+  const [parsedCv, setParsedCv] = useState<any>(null);
   const [keyword, setKeyword] = useState(queryParam);
   const [locationQuery, setLocationQuery] = useState('');
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
+
+  // Read parsed CV from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('3watly_parsed_cv');
+      if (saved) setParsedCv(JSON.parse(saved));
+    } catch {}
+  }, []);
 
   // User skills & target role for personalized feed matching
   const userSkills = useMemo(() => {
@@ -53,10 +64,21 @@ function JobsPageContent() {
     return parsedCv?.targetRole || profile?.targetRoles?.[0]?.title || 'Data Analyst';
   }, [parsedCv, profile]);
 
-  // — Live jobs from Supabase only —
-  const [jobs, setJobs] = useState<JobItem[]>([]);
-  const [totalJobs, setTotalJobs] = useState(0);
-  const [loadingLive, setLoadingLive] = useState(true);
+  // — Live jobs from Supabase only with instant cache hydration —
+  const [jobs, setJobs] = useState<JobItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem('3watly_jobs_feed');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return [];
+  });
+  const [totalJobs, setTotalJobs] = useState(jobs.length);
+  const [loadingLive, setLoadingLive] = useState(jobs.length === 0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Filter states (default 0 = show all jobs sorted by best match to user profile)
@@ -148,17 +170,17 @@ function JobsPageContent() {
     fetch(`/api/jobs?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => {
-        const source: JobItem[] = (data && Array.isArray(data.jobs) && data.jobs.length > 0)
-          ? data.jobs
-          : mockJobsList;
+        const source: JobItem[] = (data && Array.isArray(data.jobs)) ? data.jobs : [];
         const filtered = applyAllFilters(source);
         setJobs(filtered);
         setTotalJobs(filtered.length);
+        try {
+          sessionStorage.setItem('3watly_jobs_feed', JSON.stringify(filtered));
+        } catch {}
       })
       .catch(() => {
-        const filtered = applyAllFilters(mockJobsList);
-        setJobs(filtered);
-        setTotalJobs(filtered.length);
+        setJobs([]);
+        setTotalJobs(0);
       })
       .finally(() => {
         setLoadingLive(false);
@@ -628,9 +650,15 @@ function JobsPageContent() {
 
                         {/* Salary and employment type pill */}
                         <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
-                            {isAr ? job.salaryRangeAr : `${job.salaryRange} / month`}
-                          </span>
+                          {(job.salaryRangeAr === 'تحدد أثناء المقابلة' || job.salaryRange === 'Disclosed upon interview') ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800/80 text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">
+                              🤝 {isAr ? 'يتحدد أثناء المقابلة' : 'Disclosed upon interview'}
+                            </span>
+                          ) : (
+                            <span className="text-[13px] font-bold text-emerald-700 dark:text-emerald-400">
+                              💰 {isAr ? job.salaryRangeAr : job.salaryRange}
+                            </span>
+                          )}
                           <span className="px-2.5 py-0.5 rounded-full bg-[#E8F8F0] dark:bg-emerald-950/60 text-[11.5px] font-bold text-[#12B76A]">
                             {isAr ? job.employmentTypeAr : job.employmentType}
                           </span>
