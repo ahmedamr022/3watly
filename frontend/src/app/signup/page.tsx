@@ -22,8 +22,15 @@ import { toast } from 'sonner';
 export default function SignUpPage() {
   const router = useRouter();
   const { isAr, t } = useLanguage();
-  const { user, signup } = useAuth();
+  const { user, loading, signup } = useAuth();
   
+  // If already logged in, redirect directly to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard');
+    }
+  }, [user, loading, router]);
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -304,7 +311,7 @@ export default function SignUpPage() {
               <div className="pt-2">
                 <SubmitButton
                   loading={isSubmitting}
-                  label={isAr ? "إنشاء حسابي مجاناً ⚡" : "Create Account for Free ⚡"}
+                  label={isAr ? "إنشاء حسابي مجاناً" : "Create Free Account"}
                 />
               </div>
 

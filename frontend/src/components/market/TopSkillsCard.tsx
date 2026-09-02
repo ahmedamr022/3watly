@@ -58,14 +58,14 @@ export function TopSkillsCard({ skills, ranking, selected, onSelect }: TopSkills
                 <button
                   type="button"
                   onClick={() => onSelect(skill.name)}
-                  className={`w-full flex items-center gap-3 py-1 px-2 rounded-xl transition-all cursor-pointer ${
+                  className={`w-full flex items-center gap-3 py-1.5 px-2 rounded-xl transition-all cursor-pointer ${
                     isActive ? 'bg-blue-50/70 dark:bg-blue-950/40' : 'hover:bg-slate-50 dark:hover:bg-white/[0.03]'
                   }`}
                 >
-                  {/* Bulletproof SVG Skill Icon + Name */}
-                  <div className="flex w-[120px] shrink-0 items-center gap-2">
-                    <SkillIcon skillId={skill.name} size="sm" className="!h-6 !w-6 !rounded-md" />
-                    <span className={`text-[13.5px] font-bold truncate ${
+                  {/* Icon + Name — flexible width, no truncate */}
+                  <div className="flex min-w-0 w-[150px] shrink-0 items-center gap-2">
+                    <SkillIcon skillId={skill.name} size="sm" className="!h-6 !w-6 !rounded-md shrink-0" />
+                    <span className={`text-[12.5px] font-bold leading-snug break-words ${
                       isActive ? 'text-[#1B57E0] dark:text-[#60A5FA]' : 'text-slate-800 dark:text-slate-200'
                     }`}>
                       {skill.name}
@@ -81,7 +81,7 @@ export function TopSkillsCard({ skills, ranking, selected, onSelect }: TopSkills
                   </div>
 
                   {/* Percentage Value */}
-                  <span className="w-10 text-right rtl:text-left text-[12.5px] font-bold text-slate-700 dark:text-slate-300">
+                  <span className="w-10 shrink-0 text-right rtl:text-left text-[12.5px] font-bold text-slate-700 dark:text-slate-300">
                     {skill.value}%
                   </span>
                 </button>

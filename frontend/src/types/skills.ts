@@ -14,6 +14,7 @@ export interface SkillResource {
   kind: ResourceKind;
   hours: number;
   free: boolean;
+  url?: string;
 }
 
 export interface SkillDefinition {
@@ -44,8 +45,11 @@ export interface RoleSkillRef {
 export interface RoleDefinition {
   id: string;
   name: string;
+  nameAr?: string;
   city: string;
+  cityAr?: string;
   blurb: string;
+  blurbAr?: string;
   openJobs: number;
   salaryEgpK: number;
   yoyGrowth: number;

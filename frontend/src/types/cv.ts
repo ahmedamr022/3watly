@@ -6,15 +6,34 @@ export type SectionId =
   | 'projects'
   | 'skills';
 
+export type SocialPlatform =
+  | 'LinkedIn'
+  | 'GitHub'
+  | 'Twitter'
+  | 'Portfolio'
+  | 'Dribbble'
+  | 'Medium'
+  | 'Dev.to'
+  | 'Personal'
+  | 'Other';
+
+export interface SocialLink {
+  id: string;
+  platform: SocialPlatform;
+  url: string;
+  customLabel?: string;
+}
+
 export interface Contact {
   fullName: string;
   jobTitle: string;
   phone: string;
   email: string;
+  location: string;
   linkedin: string;
   github?: string;
   portfolio?: string;
-  location: string;
+  socialLinks?: SocialLink[];
 }
 
 export interface ExperienceItem {

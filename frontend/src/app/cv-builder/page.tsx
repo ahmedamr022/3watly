@@ -56,8 +56,8 @@ export default function CVBuilderPage() {
     setIsExporting(true);
     toast.loading(
       isAr
-        ? "جاري تجهيز وتصدير السيرة الذاتية كملف PDF..."
-        : "Generating ATS-compliant PDF file...",
+        ? "جاري تجهيز وتحميل ملف الـ PDF مباشرة..."
+        : "Generating and downloading your PDF...",
       { id: "export-pdf" }
     );
 
@@ -66,23 +66,20 @@ export default function CVBuilderPage() {
         ? `${cv.contact.fullName.replace(/\s+/g, '_')}_Resume.pdf`
         : 'Resume.pdf';
 
-      await exportCvToPdf('cv-paper-root', fileName);
+      await exportCvToPdf('cv-paper-root', fileName, cv, template);
 
       toast.success(
         isAr
-          ? "تم تحميل السيرة الذاتية بنجاح! 🎉"
-          : "Resume PDF downloaded successfully! 🎉",
+          ? "تم تحميل ملف السيرة الذاتية مباشرة بنجاح! 🎉"
+          : "Resume PDF downloaded directly to your device! 🎉",
         { id: "export-pdf" }
       );
     } catch (err: any) {
-      console.error('PDF direct export failed, falling back to print:', err);
-      toast.info(
-        isAr
-          ? "جاري فتح نافذة الحفظ كـ PDF..."
-          : "Opening print dialog...",
+      console.error('PDF export failed:', err);
+      toast.error(
+        isAr ? "حدث خطأ أثناء التصدير، يرجى المحاولة مرة أخرى" : "Export failed, please try again.",
         { id: "export-pdf" }
       );
-      window.setTimeout(() => window.print(), 350);
     } finally {
       setIsExporting(false);
     }

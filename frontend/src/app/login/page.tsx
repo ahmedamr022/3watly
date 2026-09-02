@@ -24,10 +24,17 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
-  const { user, login } = useAuth();
+  const { user, loading, login } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [topError, setTopError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ email?: boolean; password?: boolean }>({});
+
+  // If already logged in, redirect directly to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard');
+    }
+  }, [user, loading, router]);
 
   // Restore remembered email on mount if available
   useEffect(() => {
@@ -192,7 +199,7 @@ export default function LoginPage() {
               <div className="pt-2">
                 <SubmitButton
                   loading={isSubmitting}
-                  label={isAr ? "تسجيل الدخول الآن ⚡" : "Log In Now ⚡"}
+                  label={isAr ? "تسجيل الدخول" : "Log In"}
                 />
               </div>
 

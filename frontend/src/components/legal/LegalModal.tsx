@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShieldCheck, FileText, CheckCircle2, Lock } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -15,6 +15,26 @@ interface LegalModalProps {
 
 export function LegalModal({ isOpen, type, onClose }: LegalModalProps) {
   const { isAr } = useLanguage();
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [agreedPrivacy, setAgreedPrivacy] = useState(false);
+
+  useEffect(() => {
+    try {
+      setAgreedTerms(localStorage.getItem('3watly_agreed_terms') === 'true');
+      setAgreedPrivacy(localStorage.getItem('3watly_agreed_privacy') === 'true');
+    } catch {}
+  }, [isOpen]);
+
+  const handleAgree = () => {
+    try {
+      localStorage.setItem(`3watly_agreed_${type}`, 'true');
+      if (type === 'terms') setAgreedTerms(true);
+      else setAgreedPrivacy(true);
+    } catch {}
+    onClose();
+  };
+
+  const isCurrentAgreed = type === 'terms' ? agreedTerms : agreedPrivacy;
 
   // Close on Escape key
   useEffect(() => {
@@ -223,13 +243,24 @@ export function LegalModal({ isOpen, type, onClose }: LegalModalProps) {
                 <span>{isAr ? "وثيقة رسمية معتمدة" : "Verified Security Protocol"}</span>
               </div>
 
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
-              >
-                {isAr ? "فهمت وموافق ✓" : "I Understand & Agree ✓"}
-              </button>
+              {isCurrentAgreed ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[12.5px] font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer shadow-2xs"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span>{isAr ? "تمت الموافقة مسبقاً ✓" : "Already Agreed ✓"}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleAgree}
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer active:scale-98"
+                >
+                  {isAr ? "فهمت وموافق ✓" : "I Understand & Agree ✓"}
+                </button>
+              )}
             </div>
 
           </motion.div>

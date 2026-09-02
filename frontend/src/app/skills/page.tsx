@@ -59,7 +59,7 @@ export default function SkillGapPage() {
         </div>
 
         {/* 3. Bottom Row: Market Insights + CTA Banner */}
-        <BottomInsightsRow />
+        <BottomInsightsRow onOpenTargetRole={() => setTargetOpen(true)} />
       </div>
 
       {/* Target Role Selector Modal */}

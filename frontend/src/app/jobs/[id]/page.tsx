@@ -9,7 +9,8 @@ import {
   ArrowRight,
   Bookmark, 
   Share2, 
-  Zap, 
+  Zap,
+  ExternalLink, 
   MapPin, 
   Clock, 
   Users, 
@@ -111,105 +112,60 @@ export default function JobDetailsPage() {
     }
   };
 
-  // Specific, 100% accurate company locations, Google Maps embeds, and verified details
+  const getDepartmentForRole = (title: string, isArLang: boolean) => {
+    const t = (title || '').toLowerCase();
+    if (/data|analytics|bi\b|scientist|power bi/i.test(t)) return isArLang ? "تحليل وهندسة البيانات" : "Data & Analytics";
+    if (/frontend|backend|full.?stack|react|node|developer|software/i.test(t)) return isArLang ? "تطوير وهندسة البرمجيات" : "Software Engineering";
+    if (/devops|cloud|sre|infrastructure/i.test(t)) return isArLang ? "الحوسبة السحابية و DevOps" : "Cloud & DevOps";
+    if (/product|scrum|agile/i.test(t)) return isArLang ? "إدارة المنتجات والتحول الرقمي" : "Product & Project Management";
+    if (/qa|quality|testing/i.test(t)) return isArLang ? "اختبار وضمان جودة البرمجيات" : "Quality Assurance";
+    if (/ui|ux|design/i.test(t)) return isArLang ? "تصميم الواجهات وتجربة المستخدم" : "UI/UX & Product Design";
+    if (/ai|machine learning|deep learning/i.test(t)) return isArLang ? "الذكاء الاصطناعي والتعلم الآلي" : "AI & Machine Learning";
+    return isArLang ? "قطاع التكنولوجيا والتحول الرقمي" : "Technology & Digital";
+  };
+
   const getCompanyDetails = (comp: string, loc?: string) => {
     const norm = (comp || '').toLowerCase().trim();
     const effectiveLoc = loc || job?.location || 'Cairo, Egypt';
-    const cleanComp = comp ? comp.replace(/-\s*Egypt$/i, '').replace(/-\s*Saudi Arabia$/i, '').replace(/-$/, '').trim() : 'Company';
+    const cleanComp = comp ? comp.replace(/-\s*Egypt$/i, '').replace(/-\s*Saudi Arabia$/i, '').replace(/-$/, '').trim() : (isAr ? 'جهة العمل' : 'Employer');
 
-    // 1. Geography & Country Detection
-    const isSaudi = /saudi|riyadh|jeddah|dammam|khobar|السعودية|الرياض|جدة|الدمام|الخبر/i.test(effectiveLoc);
-    const isUAE = /uae|dubai|abu dhabi|sharjah|الإمارات|دبي|أبوظبي|الشارقة/i.test(effectiveLoc);
-    const isEgypt = /egypt|cairo|giza|alex|zayed|october|maadi|dokki|nasr|tagamoa|settlement|مصر|القاهرة|الجيزة|الإسكندرية|زايد|أكتوبر|المعادي|الدقي/i.test(effectiveLoc) || (!isSaudi && !isUAE);
-
-    let countryName = isAr ? 'السوق المصري' : 'Egypt';
-    let countryScope = isAr ? 'في مصر' : 'in Egypt';
-    let fullAddress = `${effectiveLoc}، جمهورية مصر العربية`;
-    let phone = '+20 2 (خط مباشر موحد)';
-    let hours = isAr ? 'الأحد – الخميس، 9:00 ص – 5:00 م' : 'Sun – Thu, 9:00 AM – 5:00 PM';
-    let regionDomain = 'eg';
-
-    if (isSaudi) {
-      countryName = isAr ? 'المملكة العربية السعودية' : 'Saudi Arabia';
-      countryScope = isAr ? 'في المملكة العربية السعودية' : 'in Saudi Arabia';
-      fullAddress = `${effectiveLoc}، المملكة العربية السعودية`;
-      phone = '+966 11 (الرقم الموحد المباشر)';
-      hours = isAr ? 'الأحد – الخميس، 8:00 ص – 4:30 م' : 'Sun – Thu, 8:00 AM – 4:30 PM';
-      regionDomain = 'sa';
-    } else if (isUAE) {
-      countryName = isAr ? 'دولة الإمارات العربية المتحدة' : 'UAE';
-      countryScope = isAr ? 'في الإمارات' : 'in the UAE';
-      fullAddress = `${effectiveLoc}, United Arab Emirates`;
-      phone = '+971 4 (Direct Line)';
-      hours = isAr ? 'الاثنين – الجمعة، 9:00 ص – 5:00 م' : 'Mon – Fri, 9:00 AM – 5:00 PM';
-      regionDomain = 'ae';
-    }
+    const isSaudi = /saudi|riyadh|jeddah|dammam|khobar|السعودية/i.test(effectiveLoc);
+    const isUAE = /uae|dubai|abu dhabi|sharjah|الإمارات/i.test(effectiveLoc);
+    const countryName = isSaudi ? (isAr ? 'المملكة العربية السعودية' : 'Saudi Arabia') : isUAE ? (isAr ? 'الإمارات' : 'UAE') : (isAr ? 'مصر' : 'Egypt');
 
     if (norm.includes('vodafone')) {
       return {
         name: isAr ? 'فودافون مصر' : 'Vodafone Egypt',
         countryName,
-        countryScope,
-        address: isAr ? 'مبنى C3، القرية الذكية، الكيلو 28 طريق مصر-إسكندرية الصحراوي، الجيزة' : 'Building C3, Smart Village, KM 28 Cairo-Alex Desert Road, Giza, Egypt',
-        hours: isAr ? 'الأحد – الخميس، 9:00 ص – 6:00 م' : 'Sun – Thu, 9:00 AM – 6:00 PM',
+        address: isAr ? 'مبنى C3، القرية الذكية، الكيلو 28 طريق مصر-إسكندرية الصحراوي، الجيزة' : 'Building C3, Smart Village, Giza, Egypt',
+        hours: isAr ? 'الأحد – الخميس، 9:00 ص – 5:00 م' : 'Sun – Thu, 9:00 AM – 5:00 PM',
         phone: '+20 2 3535 5555',
         website: 'www.vodafone.com.eg',
+        isExternalSearch: false,
         mapEmbedUrl: 'https://maps.google.com/maps?q=30.0768,31.0188+(Vodafone+Egypt+Head+Office)&z=16&output=embed',
-        googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=30.0768,31.0188',
-        hqImage: '/companies/vodafone-hq.jpg',
-        hqTitle: 'Vodafone Smart Village HQ',
+        googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Vodafone+Egypt+Smart+Village',
+        hqTitle: isAr ? 'المقر الرئيسي لفودافون مصر' : 'Vodafone Egypt HQ',
         hqLocation: isAr ? 'القرية الذكية، الجيزة' : 'Smart Village, Giza',
-        rating: 4.4,
-        reviewsCount: 482,
-        recommendRatio: 89,
-        ceoApproval: 92,
-        yearsInMarket: 26,
-        usersCount: '44M+',
-        employeesCount: '10,000+',
-        foundingYear: 1998
+        isVerifiedEmployer: true,
       };
     }
 
-    // Hash for consistent deterministic variation per company
-    const hash = cleanComp.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    const yearsInMarket = 6 + (hash % 18);
-    const employeesCount = (350 + ((hash * 17) % 4500)).toLocaleString('en-US');
-    const usersCount = (1 + (hash % 8)) + 'M+';
-    const rating = (4.0 + ((hash % 8) / 10)).toFixed(1);
-    const reviewsCount = 45 + (hash % 220);
-    const recommendRatio = 82 + (hash % 14);
-    const ceoApproval = 86 + (hash % 11);
-    const foundingYear = new Date().getFullYear() - yearsInMarket;
-
-    // Build query for Google Maps
-    const queryAddress = `${cleanComp} ${effectiveLoc}`.trim();
-    const encodedQuery = encodeURIComponent(queryAddress);
-
-    // Clean website URL
-    const slug = cleanComp.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const cleanWebsite = `www.${slug || 'company'}.${regionDomain}`;
+    const encodedQuery = encodeURIComponent(`${cleanComp} ${effectiveLoc}`);
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${cleanComp} Egypt`)}`;
 
     return {
       name: cleanComp,
       countryName,
-      countryScope,
-      address: fullAddress,
-      hours,
-      phone,
-      website: cleanWebsite,
-      mapEmbedUrl: `https://maps.google.com/maps?q=${encodedQuery}&z=14&output=embed`,
+      address: `${effectiveLoc}، ${countryName}`,
+      hours: isAr ? 'ساعات العمل بحسب نظام الشركة' : 'Standard business hours',
+      phone: isAr ? 'التواصل عبر طلب التقديم الرسمي' : 'Contact via application',
+      website: searchUrl,
+      isExternalSearch: true,
+      mapEmbedUrl: `https://maps.google.com/maps?q=${encodedQuery}&z=13&output=embed`,
       googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodedQuery}`,
-      hqImage: null,
-      hqTitle: `${cleanComp} Campus`,
+      hqTitle: cleanComp,
       hqLocation: effectiveLoc,
-      rating: parseFloat(rating),
-      reviewsCount,
-      recommendRatio,
-      ceoApproval,
-      yearsInMarket,
-      usersCount,
-      employeesCount,
-      foundingYear
+      isVerifiedEmployer: cleanComp !== 'Confidential' && cleanComp !== 'Confidential Employer',
     };
   };
 
@@ -217,17 +173,13 @@ export default function JobDetailsPage() {
 
   const tabs = isAr
     ? [
-        { id: 'overview', label: 'نظرة عامة' },
-        { id: 'company', label: 'عن الشركة' },
-        { id: 'benefits', label: 'المزايا' },
-        { id: 'reviews', label: 'التقييمات' },
+        { id: 'overview', label: 'نظرة عامة والمهام' },
+        { id: 'company', label: 'عن جهة العمل وموقعها' },
         { id: 'similar', label: 'وظائف مشابهة' }
       ]
     : [
-        { id: 'overview', label: 'Overview' },
-        { id: 'company', label: 'About Company' },
-        { id: 'benefits', label: 'Benefits' },
-        { id: 'reviews', label: 'Reviews' },
+        { id: 'overview', label: 'Overview & Requirements' },
+        { id: 'company', label: 'Company & Location' },
         { id: 'similar', label: 'Similar Jobs' }
       ];
 
@@ -299,13 +251,16 @@ export default function JobDetailsPage() {
 
         {/* Action Buttons */}
         <div className="flex sm:flex-col items-center sm:items-end gap-2.5 shrink-0">
-          <button
-            type="button"
-            onClick={handleApply}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white font-bold text-[13.5px] shadow-md shadow-blue-600/25 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+          <a
+            href={job.applyUrl || (job as any).apply_url || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setApplied(true)}
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-[13.5px] shadow-md shadow-blue-600/30 hover:shadow-blue-600/45 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
           >
-            <span>{applied ? (isAr ? "تم التقديم ✓" : "Applied ✓") : (isAr ? "التقديم الفوري الآن ⚡" : "Apply Now ⚡")}</span>
-          </button>
+            <ExternalLink className="w-4 h-4 opacity-90" />
+            <span>{applied ? (isAr ? "تم التقديم بنجاح ✓" : "Applied ✓") : (isAr ? "التقديم الفوري الآن ↗" : "Apply Now ↗")}</span>
+          </a>
 
           <button
             type="button"
@@ -590,7 +545,7 @@ export default function JobDetailsPage() {
       {!loadingJob && job.id && !notFound && (
       <div className="space-y-4 max-w-[1440px] mx-auto pb-8">
         
-        {/* 1. TOP BREADCRUMB & ACTIONS */}
+        {/* 1. TOP BREADCRUMB */}
         <div className="flex items-center justify-between">
           <Link
             href="/jobs"
@@ -599,21 +554,6 @@ export default function JobDetailsPage() {
             <ArrowLeft className={`w-4 h-4 ${isAr ? "rotate-180" : ""}`} />
             <span>{isAr ? "العودة إلى قائمة الوظائف" : "Back to Jobs"}</span>
           </Link>
-
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={handleApply}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-[13px] transition-all cursor-pointer ${
-                applied
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/25'
-              }`}
-            >
-              <Zap className="w-4 h-4 fill-white" />
-              <span>{applied ? (isAr ? "تم التقديم بنجاح ✓" : "Applied ✓") : (isAr ? "التقديم الآن ↗" : "Apply Now ↗")}</span>
-            </button>
-          </div>
         </div>
 
         {/* ========================================================================= */}
@@ -721,7 +661,7 @@ export default function JobDetailsPage() {
                       </div>
                       <div>
                         <span className="block text-[10.5px] text-slate-400">{isAr ? "القسم أو الإدارة" : "Department"}</span>
-                        <p className="text-[12.5px] font-bold text-[#0B132B] dark:text-white">{isAr ? job.departmentAr : job.department}</p>
+                        <p className="text-[12.5px] font-bold text-[#0B132B] dark:text-white">{getDepartmentForRole(job.title, isAr)}</p>
                       </div>
                     </div>
 
@@ -778,84 +718,71 @@ export default function JobDetailsPage() {
             {/* TAB 2: ABOUT COMPANY (FULL WIDTH 100%) */}
             {activeTab === 'company' && (
               <div className="space-y-4 w-full">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
                   
-                  {/* Left Card */}
+                  {/* Left Card: Company Profile & Verification */}
                   <div className="lg:col-span-6 rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs flex flex-col justify-between space-y-5">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-[18px] font-bold text-[#0B132B] dark:text-white">
-                          {isAr ? `عن ${companyDetails.name}` : `About ${companyDetails.name}`}
-                        </h2>
-                        <span className="h-4 w-4 rounded-full bg-[#1B57E0] text-white flex items-center justify-center text-[9px] font-black">
-                          ✓
-                        </span>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <CompanyLogo
+                          company={job.company}
+                          logoUrl={(job as any).companyLogo || (job as any).company_logo}
+                          size="md"
+                          className="shrink-0"
+                        />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h2 className="text-[18px] font-black text-[#0B132B] dark:text-white">
+                              {isAr ? `عن ${companyDetails.name}` : `About ${companyDetails.name}`}
+                            </h2>
+                            {companyDetails.isVerifiedEmployer && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-[10.5px] font-bold border border-blue-200/60 dark:border-blue-500/30">
+                                <ShieldCheck className="w-3 h-3" />
+                                {isAr ? "جهة عمل نشطة" : "Active Employer"}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            {isAr ? `مقر العمل: ${job.locationAr || job.location}` : `Location: ${job.location}`}
+                          </p>
+                        </div>
                       </div>
 
-                      <p className="mt-2.5 text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                      <p className="text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                         {isAr
-                          ? `${companyDetails.name} هي إحدى كبرى المؤسسات والشركات الرائدة في قطاعها بـ${companyDetails.countryName}، وتقدم بيئة عمل احترافية تدعم الابتكار والتحول الرقمي المستمر وتطوير الكفاءات.`
-                          : `${companyDetails.name} is a leading enterprise in ${companyDetails.countryName}, providing a modern environment fostering innovation, digital growth, and top talent enablement.`}
+                          ? `فرصة عمل معلنة ومُحققة عبر منصة التوظيف الرسمية لمنصب ${job.titleAr || job.title} لدى ${companyDetails.name} في ${companyDetails.countryName}. بيئة العمل تتبع نظام ${job.workTypeAr} وتتطلب مهارات أساسية في التخصص.`
+                          : `Verified job posting for ${job.title} at ${companyDetails.name} in ${companyDetails.countryName}. Work arrangement is ${job.workType} and requires relevant technical domain expertise.`}
                       </p>
 
-                      {/* 4 Metric Cards */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-                        <div className="p-3 rounded-2xl bg-white dark:bg-[#0B1120]/[0.02] border border-slate-200/80 dark:border-white/10 shadow-2xs">
-                          <span className="text-[17px] font-black text-[#0B132B] dark:text-white block leading-tight">{companyDetails.yearsInMarket}+</span>
-                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block mt-0.5">{isAr ? `سنة ${companyDetails.countryScope}` : `Years ${companyDetails.countryScope}`}</span>
-                          <span className="text-[10px] text-slate-400 block">{isAr ? "خبرة بالسوق" : "Market Presence"}</span>
+                      {/* 4 Verified Fact Cards */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#070B14] border border-slate-100 dark:border-white/5">
+                          <span className="text-[14px] font-bold text-slate-900 dark:text-white block leading-tight truncate">{isAr ? job.workTypeAr : job.workType}</span>
+                          <span className="text-[10.5px] text-slate-400 block mt-1">{isAr ? "طبيعة العمل" : "Work Mode"}</span>
                         </div>
 
-                        <div className="p-3 rounded-2xl bg-white dark:bg-[#0B1120]/[0.02] border border-slate-200/80 dark:border-white/10 shadow-2xs">
-                          <span className="text-[17px] font-black text-[#0B132B] dark:text-white block leading-tight">{companyDetails.usersCount}</span>
-                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block mt-0.5">{isAr ? "مستخدم وعميل" : "Users Served"}</span>
-                          <span className="text-[10px] text-slate-400 block">{isAr ? "قاعدة عملاء" : "Client Base"}</span>
+                        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#070B14] border border-slate-100 dark:border-white/5">
+                          <span className="text-[14px] font-bold text-slate-900 dark:text-white block leading-tight truncate">{isAr ? job.seniorityAr : job.seniority}</span>
+                          <span className="text-[10.5px] text-slate-400 block mt-1">{isAr ? "المستوى الوظيفي" : "Seniority"}</span>
                         </div>
 
-                        <div className="p-3 rounded-2xl bg-white dark:bg-[#0B1120]/[0.02] border border-slate-200/80 dark:border-white/10 shadow-2xs">
-                          <span className="text-[17px] font-black text-[#0B132B] dark:text-white block leading-tight">{companyDetails.employeesCount}</span>
-                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block mt-0.5">{isAr ? "موظف" : "Employees"}</span>
-                          <span className="text-[10px] text-slate-400 block">{isAr ? "فريق العمل" : "Total Team"}</span>
+                        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#070B14] border border-slate-100 dark:border-white/5">
+                          <span className="text-[14px] font-bold text-slate-900 dark:text-white block leading-tight truncate">{job.matchedSkills?.length || 0}</span>
+                          <span className="text-[10.5px] text-emerald-600 dark:text-emerald-400 font-bold block mt-1">{isAr ? "مهارات مطابقة" : "Matched Skills"}</span>
                         </div>
 
-                        <div className="p-3 rounded-2xl bg-white dark:bg-[#0B1120]/[0.02] border border-slate-200/80 dark:border-white/10 shadow-2xs">
-                          <span className="text-[17px] font-black text-[#12B76A] block leading-tight">#1</span>
-                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block mt-0.5">{isAr ? "الريادة والتميز" : "Industry Leader"}</span>
-                          <span className="text-[10px] text-slate-400 block">{isAr ? "بيئة موثوقة" : "Top Employer"}</span>
+                        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#070B14] border border-slate-100 dark:border-white/5">
+                          <span className="text-[14px] font-bold text-blue-600 dark:text-blue-400 block leading-tight">Wuzzuf</span>
+                          <span className="text-[10.5px] text-slate-400 block mt-1">{isAr ? "مصدر الإعلان" : "Job Source"}</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* 3 Pillars */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-1.5 text-[13px] font-bold text-[#1B57E0] dark:text-blue-400">
-                          <Target className="w-4 h-4" />
-                          <span>{isAr ? "رسالتنا" : "Our Mission"}</span>
-                        </div>
-                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                          {isAr ? `تمكين الأفراد والمؤسسات من الازدهار والنمو الرقمي بـ${companyDetails.countryName}.` : `To empower individuals and organizations to thrive digitally in ${companyDetails.countryName}.`}
-                        </p>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-1.5 text-[13px] font-bold text-[#1B57E0] dark:text-blue-400">
-                          <Eye className="w-4 h-4" />
-                          <span>{isAr ? "رؤيتنا" : "Our Vision"}</span>
-                        </div>
-                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                          {isAr ? `أن نكون الكيان الأكثر ابتكاراً وتميزاً في مجال التكنولوجيا والخدمات الرقمية.` : `To be the most innovative and trusted technology and solutions provider.`}
-                        </p>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-1.5 text-[13px] font-bold text-[#1B57E0] dark:text-blue-400">
-                          <Diamond className="w-4 h-4" />
-                          <span>{isAr ? "قيمنا" : "Our Values"}</span>
-                        </div>
-                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                          {isAr ? "الدافع لدينا مبني على الثقة، الشفافية، جودة الأداء، والابتكار المستمر." : "Driven by trust, transparency, excellence, and continuous innovation."}
-                        </p>
+                    {/* Quick Verification Note */}
+                    <div className="pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px]">
+                      <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>{isAr ? "تم التحقق من بيانات ورابط الوظيفة عبر الذكاء الاصطناعي" : "Job listing and apply link verified by AI parser"}</span>
                       </div>
                     </div>
                   </div>
@@ -937,9 +864,16 @@ export default function JobDetailsPage() {
                               🌐
                             </span>
                             <div className="min-w-0">
-                              <span className="text-slate-400 font-medium">{isAr ? "الموقع: " : "Website: "}</span>
-                              <a href={`https://${companyDetails.website}`} target="_blank" rel="noreferrer" className="text-[#1B57E0] dark:text-blue-400 font-bold hover:underline">
-                                {companyDetails.website}
+                              <span className="text-slate-400 font-medium">{isAr ? "الموقع الرسمي: " : "Website: "}</span>
+                              <a 
+                                href={companyDetails.website.startsWith('http') ? companyDetails.website : `https://${companyDetails.website}`} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="text-[#1B57E0] dark:text-blue-400 font-bold hover:underline truncate block"
+                              >
+                                {companyDetails.isExternalSearch 
+                                  ? (isAr ? `البحث عن ${companyDetails.name} ↗` : `Search ${companyDetails.name} ↗`)
+                                  : companyDetails.website}
                               </a>
                             </div>
                           </div>
@@ -994,283 +928,10 @@ export default function JobDetailsPage() {
 
                 </div>
 
-                {/* Journey Timeline */}
-                <div className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4">
-                  <h3 className="text-[15px] font-bold text-[#0B132B] dark:text-white">
-                    {isAr ? "مسيرة ورحلة الشركة" : "Our Journey"}
-                  </h3>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-1">
-                    <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 shrink-0 rounded-full bg-[#EEF3FE] dark:bg-blue-950/70 border border-blue-200 dark:border-blue-500/30 text-[#1B57E0] flex items-center justify-center shadow-xs">
-                        <Compass className="w-5 h-5" />
-                      </div>
-                      <div className="space-y-0.5">
-                        <span className="text-[14px] font-black text-[#0B132B] dark:text-white">{companyDetails.foundingYear}</span>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">{isAr ? `تأسيس ${companyDetails.name}` : "Company Founded"}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 shrink-0 rounded-full bg-[#EEF3FE] dark:bg-blue-950/70 border border-blue-200 dark:border-blue-500/30 text-[#1B57E0] flex items-center justify-center shadow-xs">
-                        <Network className="w-5 h-5" />
-                      </div>
-                      <div className="space-y-0.5">
-                        <span className="text-[14px] font-black text-[#0B132B] dark:text-white">{companyDetails.foundingYear + Math.max(2, Math.round(companyDetails.yearsInMarket * 0.25))}</span>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">{isAr ? "توسع العمليات والخدمات" : "Operations Expansion"}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 shrink-0 rounded-full bg-[#EEF3FE] dark:bg-blue-950/70 border border-blue-200 dark:border-blue-500/30 text-[#1B57E0] flex items-center justify-center shadow-xs">
-                        <Smartphone className="w-5 h-5" />
-                      </div>
-                      <div className="space-y-0.5">
-                        <span className="text-[14px] font-black text-[#0B132B] dark:text-white">{companyDetails.foundingYear + Math.max(4, Math.round(companyDetails.yearsInMarket * 0.55))}</span>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">{isAr ? "رقمنة المنظومة والأنظمة" : "Digitalization"}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 shrink-0 rounded-full bg-[#EEF3FE] dark:bg-blue-950/70 border border-blue-200 dark:border-blue-500/30 text-[#1B57E0] flex items-center justify-center shadow-xs">
-                        <CalendarDays className="w-5 h-5" />
-                      </div>
-                      <div className="space-y-0.5">
-                        <span className="text-[14px] font-black text-[#0B132B] dark:text-white">{companyDetails.foundingYear + Math.max(6, Math.round(companyDetails.yearsInMarket * 0.8))}</span>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">{isAr ? "استقطاب وتمكين الكفاءات" : "Talent Enablement"}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 shrink-0 rounded-full bg-[#E8F8F0] dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-500/30 text-[#12B76A] flex items-center justify-center shadow-xs">
-                        <Sparkles className="w-5 h-5" />
-                      </div>
-                      <div className="space-y-0.5">
-                        <span className="text-[14px] font-black text-[#12B76A]">2024+</span>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">{isAr ? "الذكاء الاصطناعي والحلول السحابية" : "AI & Cloud Solutions"}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
               </div>
             )}
 
-            {/* TAB 3: BENEFITS TAB (FULL WIDTH 100%) */}
-            {activeTab === 'benefits' && (
-              <div className="space-y-5 w-full">
-                
-                {/* 4 Highlights */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                  <div className="p-4 rounded-2xl bg-white dark:bg-[#0B1120] border border-slate-200/90 dark:border-white/10 shadow-xs">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-[#12B76A] mb-2.5">
-                      <ShieldCheck className="w-5 h-5" />
-                    </div>
-                    <span className="text-[18px] font-black text-[#0B132B] dark:text-white block leading-tight">100%</span>
-                    <span className="text-[12px] font-bold text-slate-700 dark:text-slate-200 block mt-0.5">{isAr ? "تأمين طبي درجة أولى" : "Full Medical Coverage"}</span>
-                    <span className="text-[10.5px] text-slate-400 block mt-0.5">{isAr ? "شامل الموظف والأسرة" : "Employee & family"}</span>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-white dark:bg-[#0B1120] border border-slate-200/90 dark:border-white/10 shadow-xs">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#1B57E0] mb-2.5">
-                      <Home className="w-5 h-5" />
-                    </div>
-                    <span className="text-[18px] font-black text-[#0B132B] dark:text-white block leading-tight">3 Days</span>
-                    <span className="text-[12px] font-bold text-slate-700 dark:text-slate-200 block mt-0.5">{isAr ? "أيام عمل مرنة (من المنزل)" : "Hybrid WFH Days"}</span>
-                    <span className="text-[10.5px] text-slate-400 block mt-0.5">{isAr ? "ساعات مرنة وحرية" : "Flexible core hours"}</span>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-white dark:bg-[#0B1120] border border-slate-200/90 dark:border-white/10 shadow-xs">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-[#9333EA] mb-2.5">
-                      <BookOpen className="w-5 h-5" />
-                    </div>
-                    <span className="text-[18px] font-black text-[#0B132B] dark:text-white block leading-tight">$1,000</span>
-                    <span className="text-[12px] font-bold text-slate-700 dark:text-slate-200 block mt-0.5">{isAr ? "ميزانية تعليم وتطوير" : "Annual Learning Stipend"}</span>
-                    <span className="text-[10.5px] text-slate-400 block mt-0.5">{isAr ? "شهادات وامتحانات معتمدة" : "Free exams & courses"}</span>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-white dark:bg-[#0B1120] border border-slate-200/90 dark:border-white/10 shadow-xs">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-[#F97316] mb-2.5">
-                      <Calendar className="w-5 h-5" />
-                    </div>
-                    <span className="text-[18px] font-black text-[#0B132B] dark:text-white block leading-tight">30 Days</span>
-                    <span className="text-[12px] font-bold text-slate-700 dark:text-slate-200 block mt-0.5">{isAr ? "إجازات سنوية مدفوعة" : "Paid Annual Leave"}</span>
-                    <span className="text-[10.5px] text-slate-400 block mt-0.5">{isAr ? "راحة وتوازن كامل" : "PTO + wellness"}</span>
-                  </div>
-                </div>
-
-                {/* 4 Detailed Blocks */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-[#12B76A]">
-                        <HeartPulse className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-[15px] font-bold text-[#0B132B] dark:text-white">{isAr ? "الصحة والرعاية الطبية الشاملة" : "Health & Wellbeing"}</h3>
-                        <p className="text-[11.5px] text-slate-400">{isAr ? "تغطية طبية متكاملة واهتمام بصحتك" : "Comprehensive medical and wellness coverage"}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-white/5 text-[12.5px] text-slate-600 dark:text-slate-300">
-                      <p className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-[#12B76A] shrink-0 mt-0.5" /><span>{isAr ? "تأمين طبي خاص درجة أولى يغطي المستشفيات والعيادات بنسبة 100%." : "Tier-1 private medical insurance covering surgeries, consultations, and prescriptions 100%."}</span></p>
-                      <p className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-[#12B76A] shrink-0 mt-0.5" /><span>{isAr ? "تغطية الأسنان والعيون والنظارات الطبية للموظف وعائلته." : "Comprehensive dental, optical, and vision care for employee and dependents."}</span></p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-[#1B57E0]">
-                        <Layers className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-[15px] font-bold text-[#0B132B] dark:text-white">{isAr ? "مرونة العمل والتوازن الشخصي" : "Flexibility & Balance"}</h3>
-                        <p className="text-[11.5px] text-slate-400">{isAr ? "بيئة عمل مرنة تناسب إنتاجيتك" : "Freedom to work where and when you produce best"}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-white/5 text-[12.5px] text-slate-600 dark:text-slate-300">
-                      <p className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-[#1B57E0] shrink-0 mt-0.5" /><span>{isAr ? "نظام عمل مرن: العمل يومين إلى 3 أيام أسبوعياً من المنزل." : "Hybrid model with 2–3 work-from-home days every week."}</span></p>
-                      <p className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-[#1B57E0] shrink-0 mt-0.5" /><span>{isAr ? "ساعات عمل مرنة مع إمكانية بدء اليوم بين 8:30 ص حتى 10:30 ص." : "Flexible core working hours (start anytime between 8:30 AM – 10:30 AM)."}</span></p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-[#9333EA]">
-                        <Award className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-[15px] font-bold text-[#0B132B] dark:text-white">{isAr ? "النمو المهني والشهادات المعتمدة" : "Growth & Learning"}</h3>
-                        <p className="text-[11.5px] text-slate-400">{isAr ? "استثمار حقيقي في مهاراتك ومستقبلك" : "Continuous learning and global career tracks"}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-white/5 text-[12.5px] text-slate-600 dark:text-slate-300">
-                      <p className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-[#9333EA] shrink-0 mt-0.5" /><span>{isAr ? "اشتراكات مجانية كاملة في Coursera و Udemy Enterprise و DataCamp." : "Unlimited free access to Coursera, Udemy Enterprise, and LinkedIn Learning."}</span></p>
-                      <p className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-[#9333EA] shrink-0 mt-0.5" /><span>{isAr ? "تغطية كاملة لرسوم امتحانات الشهادات العالمية (AWS, Microsoft, Tableau)." : "100% reimbursement for international exams (AWS, Azure, Tableau, Databricks)."}</span></p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-[#F97316]">
-                        <Bus className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-[15px] font-bold text-[#0B132B] dark:text-white">{isAr ? "المكافآت ووسائل الراحة والمواصلات" : "Transportation & Perks"}</h3>
-                        <p className="text-[11.5px] text-slate-400">{isAr ? "حوافز سنوية وتسهيلات متكاملة" : "Bonuses, shuttle buses, and on-site perks"}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-white/5 text-[12.5px] text-slate-600 dark:text-slate-300">
-                      <p className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-[#F97316] shrink-0 mt-0.5" /><span>{isAr ? "باصات مكيفة ومجانية تغطي معظم مناطق القاهرة والجيزة للمقر." : "Free luxury air-conditioned shuttle network covering all Cairo and Giza stops."}</span></p>
-                      <p className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-[#F97316] shrink-0 mt-0.5" /><span>{isAr ? "بونص أداء سنوي تنافسي ومشاركة في أرباح الشركة وكافيتريا مدعومة." : "Competitive annual performance bonuses and subsidized gourmet cafeteria."}</span></p>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* TAB 4: REVIEWS TAB (FULL WIDTH 100%) */}
-            {activeTab === 'reviews' && (
-              <div className="space-y-5 w-full">
-                
-                {/* Scoreboard */}
-                <div className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                    
-                    <div className="lg:col-span-3 flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 dark:bg-[#0B1120]/[0.02] border border-slate-100 dark:border-white/5 text-center">
-                      <span className="text-[40px] font-black text-[#0B132B] dark:text-white leading-none">
-                        {companyDetails.rating}
-                      </span>
-                      <div className="flex items-center gap-1 my-2 text-amber-500">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <Star key={s} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                        ))}
-                      </div>
-                      <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
-                        {isAr ? `بناءً على ${companyDetails.reviewsCount} تقييم موثق` : `Based on ${companyDetails.reviewsCount} verified reviews`}
-                      </p>
-                    </div>
-
-                    <div className="lg:col-span-4 grid grid-cols-2 gap-4 text-center">
-                      <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#0B1120]/[0.02] border border-slate-100 dark:border-white/5 flex flex-col items-center justify-center">
-                        <span className="text-[20px] font-black text-[#12B76A]">{companyDetails.recommendRatio}%</span>
-                        <span className="text-[11.5px] font-bold text-slate-600 dark:text-slate-300 mt-1">{isAr ? "يوصون بها لصديق" : "Recommend"}</span>
-                      </div>
-
-                      <div className="p-3 rounded-2xl bg-slate-50 dark:bg-[#0B1120]/[0.02] border border-slate-100 dark:border-white/5 flex flex-col items-center justify-center">
-                        <span className="text-[20px] font-black text-[#1B57E0]">{companyDetails.ceoApproval}%</span>
-                        <span className="text-[11.5px] font-bold text-slate-600 dark:text-slate-300 mt-1">{isAr ? "تأييد الإدارة" : "Approve CEO"}</span>
-                      </div>
-                    </div>
-
-                    <div className="lg:col-span-5 space-y-2">
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[11.5px] font-bold">
-                          <span className="text-slate-600 dark:text-slate-300">{isAr ? "ثقافة وقيم العمل" : "Culture & Values"}</span>
-                          <span className="text-slate-800 dark:text-slate-200">4.6</span>
-                        </div>
-                        <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                          <div className="h-full rounded-full bg-[#12B76A]" style={{ width: '92%' }} />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[11.5px] font-bold">
-                          <span className="text-slate-600 dark:text-slate-300">{isAr ? "فرص النمو والترقي" : "Career Growth"}</span>
-                          <span className="text-slate-800 dark:text-slate-200">4.4</span>
-                        </div>
-                        <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                          <div className="h-full rounded-full bg-[#1B57E0]" style={{ width: '88%' }} />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[11.5px] font-bold">
-                          <span className="text-slate-600 dark:text-slate-300">{isAr ? "المرونة والتوازن الشخصي" : "Work-Life Balance"}</span>
-                          <span className="text-slate-800 dark:text-slate-200">4.2</span>
-                        </div>
-                        <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                          <div className="h-full rounded-full bg-[#F97316]" style={{ width: '84%' }} />
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* Review Item */}
-                <div className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-[#EEF3FE] text-[#1B57E0] font-black text-[13px] flex items-center justify-center">
-                        DA
-                      </div>
-                      <div>
-                        <h4 className="text-[14px] font-bold text-[#0B132B] dark:text-white">
-                          {isAr ? "أفضل مكان لبناء خبرة قوية في تحليل البيانات الضخمة" : "Exceptional Growth & Telecom Big Data Scale"}
-                        </h4>
-                        <p className="text-[11.5px] text-slate-400">
-                          {isAr ? "محلل بيانات أول • موظف حالي (3 سنوات)" : "Senior Data Analyst • Current Employee (3+ yrs)"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <span className="px-2.5 py-1 rounded-md bg-emerald-50 text-[#12B76A] font-bold text-[11px]">
-                      {isAr ? "موظف موثق ✓" : "Verified Employee ✓"}
-                    </span>
-                  </div>
-
-                  <p className="text-[12.5px] text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-white/5 leading-relaxed">
-                    {isAr
-                      ? "حجم البيانات التي تتعامل معها يومياً هائل ويتفوق على أي شركة أخرى في مصر. بيئة العمل محترمة جداً وهناك دعم مستمر للحصول على شهادات معتمدة."
-                      : "The sheer volume of petabyte-scale telecom data will fast-track your technical career. Leadership strongly encourages training and covers top-tier certifications."}
-                  </p>
-                </div>
-
-              </div>
-            )}
-
-            {/* TAB 5: SIMILAR JOBS TAB (FULL WIDTH 100%) */}
+            {/* TAB 3: SIMILAR JOBS TAB (FULL WIDTH 100%) */}
             {activeTab === 'similar' && (
               <div className="space-y-3.5 w-full">
                 {mockJobsList.filter(j => j.id !== jobId).map((similarJob) => (

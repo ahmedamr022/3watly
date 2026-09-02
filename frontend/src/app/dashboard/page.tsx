@@ -33,48 +33,41 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const { analysis } = useCV();
 
-  // Instant synchronous hydration from cache to eliminate 100% of latency and mock flashes
-  const [userParsedCv, setUserParsedCv] = useState<any>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('3watly_parsed_cv');
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return null;
-  });
-
-  const [liveJobs, setLiveJobs] = useState<any[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = sessionStorage.getItem('3watly_dashboard_jobs');
-        if (cached) return JSON.parse(cached);
-      } catch {}
-    }
-    return [];
-  });
-
-  const [loadingJobs, setLoadingJobs] = useState(() => liveJobs.length === 0);
-
-  const [marketStats, setMarketStats] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = sessionStorage.getItem('3watly_market_stats');
-        if (cached) return JSON.parse(cached);
-      } catch {}
-    }
-    return {
-      totalJobs: 401,
-      totalCompanies: 120,
-      remoteJobsPercentage: 38,
-      topSkillName: 'SQL',
-      topSkillPercentage: 81,
-    };
+  const [userParsedCv, setUserParsedCv] = useState<any>(null);
+  const [liveJobs, setLiveJobs] = useState<any[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [marketStats, setMarketStats] = useState({
+    totalJobs: 401,
+    totalCompanies: 120,
+    remoteJobsPercentage: 38,
+    topSkillName: 'SQL',
+    topSkillPercentage: 81,
   });
 
   React.useEffect(() => {
     let mounted = true;
 
+    // 1. Immediately hydrate client state from storage (safe inside useEffect post-hydration)
+    try {
+      const savedCv = localStorage.getItem('3watly_parsed_cv');
+      if (savedCv) setUserParsedCv(JSON.parse(savedCv));
+
+      const cachedJobs = sessionStorage.getItem('3watly_dashboard_jobs');
+      if (cachedJobs) {
+        const parsedJobs = JSON.parse(cachedJobs);
+        if (Array.isArray(parsedJobs) && parsedJobs.length > 0) {
+          setLiveJobs(parsedJobs);
+          setLoadingJobs(false);
+        }
+      }
+
+      const cachedStats = sessionStorage.getItem('3watly_market_stats');
+      if (cachedStats) {
+        setMarketStats(JSON.parse(cachedStats));
+      }
+    } catch {}
+
+    // 2. Refresh live data from API in background
     ApiService.getJobs({ limit: '6' }).then((res: any) => {
       if (mounted && res && (Array.isArray(res) || Array.isArray(res.jobs))) {
         const data = Array.isArray(res) ? res : res.jobs;
@@ -131,7 +124,7 @@ export default function DashboardPage() {
     : ['Power BI', 'SQL'];
 
   const topJobs = React.useMemo(() => {
-    return liveJobs.slice(0, 4).map((job: any) => ({
+    return liveJobs.slice(0, 3).map((job: any) => ({
       id: String(job.id),
       title: job.title,
       titleAr: job.titleAr || job.title,
@@ -141,12 +134,17 @@ export default function DashboardPage() {
       location: job.location || 'Cairo, Egypt',
       locationAr: job.locationAr || job.location || 'القاهرة، مصر',
       matchScore: job.matchScore || 82,
-      skills: Array.isArray(job.matchedSkills)
+      skills: (Array.isArray(job.matchedSkills) && job.matchedSkills.length > 0)
         ? job.matchedSkills.map((s: any) => typeof s === 'string' ? s : s.name).slice(0, 3)
-        : Array.isArray(job.skills)
+        : (Array.isArray(job.required_skills) && job.required_skills.length > 0)
+        ? job.required_skills.slice(0, 3)
+        : (Array.isArray(job.skills) && job.skills.length > 0)
         ? job.skills.slice(0, 3)
-        : ['SQL', 'Python', 'Power BI'],
-      extraSkillsCount: Math.max(0, ((job.matchedSkills?.length || job.skills?.length || 5) - 3)),
+        : ['SQL', 'Python', 'Git'],
+      extraSkillsCount: Math.max(
+        0,
+        ((job.required_skills?.length || job.matchedSkills?.length || job.skills?.length || 0) - 3)
+      ),
       postedAgo: job.postedAgo || 'Recently',
       postedAgoAr: job.postedAgoAr || 'مؤخراً',
     }));
@@ -413,7 +411,7 @@ export default function DashboardPage() {
                   <span className="text-[#1B57E0] dark:text-[#60A5FA]">{missingSkills[0] || 'SQL'}</span> {isAr ? "و " : "and "}
                   <span className="text-[#1B57E0] dark:text-[#60A5FA]">{missingSkills[1] || 'Power BI'}</span>.
                 </h3>
-                <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p suppressHydrationWarning className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
                   {isAr
                     ? `هاتان هما أكثر مهارتين ذات تأثير مرتفع تنقصان ملفك مقارنة بـ ${marketStats.totalJobs} وظيفة نشطة في سوق العمل المصري.`
                     : `These are the two highest-impact skills missing from your profile based on ${marketStats.totalJobs} active job postings.`}
@@ -642,9 +640,11 @@ export default function DashboardPage() {
                           {skill}
                         </span>
                       ))}
-                      <span className="px-1.5 py-0.5 rounded-lg bg-slate-100 dark:bg-[#0B1120]/5 text-[10.5px] font-medium text-slate-400">
-                        +{job.extraSkillsCount}
-                      </span>
+                      {job.extraSkillsCount > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-lg bg-slate-100 dark:bg-[#0B1120]/5 text-[10.5px] font-medium text-slate-400">
+                          +{job.extraSkillsCount}
+                        </span>
+                      )}
                     </div>
                   </div>
 

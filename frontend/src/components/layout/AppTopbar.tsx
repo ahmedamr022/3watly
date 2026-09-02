@@ -310,16 +310,8 @@ export function AppTopbar({
 
                 {/* Navigation Actions */}
                 <div className="py-1.5 space-y-0.5">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handlePhotoSelect}
-                    accept="image/*"
-                    className="hidden"
-                  />
-
                   <Link
-                    href="/career"
+                    href="/settings"
                     onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                   >

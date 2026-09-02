@@ -65,8 +65,8 @@ export function FinalCta() {
       ];
 
   return (
-    <section className="w-full bg-white dark:bg-[#060913] pt-4 pb-10 px-6 sm:px-10 lg:px-16 transition-colors duration-300">
-      <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[32px] border border-white/90 dark:border-white/10 bg-[#F4F8FF] dark:bg-gradient-to-r dark:from-[#0D1424] dark:via-[#111D35] dark:to-[#0A1F26] p-6 sm:p-10 lg:p-11 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90">
+    <section className="w-full bg-white dark:bg-[#060913] pt-2 pb-6 px-4 sm:px-8 lg:px-12 transition-colors duration-300">
+      <div className="relative mx-auto max-w-[1360px] overflow-hidden rounded-[26px] border border-slate-200/90 dark:border-white/10 bg-[#F4F8FF] dark:bg-gradient-to-r dark:from-[#0D1424] dark:via-[#111D35] dark:to-[#0A1F26] p-5 sm:p-7 lg:p-8 shadow-lg shadow-slate-200/40 dark:shadow-2xl dark:shadow-black/80">
         
         {/* Light Mode Background Image */}
         <div className="pointer-events-none absolute inset-0 select-none dark:hidden">
@@ -80,11 +80,11 @@ export function FinalCta() {
         </div>
 
         {/* Content Layout */}
-        <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-8">
+        <div className="relative z-10 grid items-center gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-6">
           
           {/* LEFT COLUMN */}
-          <div className="space-y-4">
-            <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-black text-[#0F172A] dark:text-white leading-[1.2] tracking-tight">
+          <div className="space-y-3.5">
+            <h2 className="text-2xl sm:text-3xl lg:text-[32px] font-black text-[#0F172A] dark:text-white leading-[1.2] tracking-tight">
               {isAr ? (
                 <>
                   مسارك المهني محتاج خطة واضحة.
@@ -93,29 +93,29 @@ export function FinalCta() {
                 </>
               ) : (
                 <>
-                  Your career has a direction.<br />
-                  <span className="bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">3WATLY</span> helps you find it.
+                  Your career needs a clear direction.<br />
+                  <span className="bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">3WATLY</span> helps you reach it.
                 </>
               )}
             </h2>
 
-            <p className="text-[14.5px] text-[#475569] dark:text-slate-300 font-normal leading-relaxed max-w-md">
+            <p className="text-[13.5px] text-[#475569] dark:text-slate-300 font-normal leading-relaxed max-w-lg">
               {isAr
                 ? "افهم مهاراتك الفعلية، اكتشف متطلبات السوق المصري، وخد الخطوة الجاية بثقة."
-                : "Understand your skills. Discover opportunities. Take the next step."}
+                : "Understand your real skills, discover Egyptian job market demands, and take your next career step with confidence."}
             </p>
 
             {/* Feature Badges */}
-            <div className="flex flex-wrap gap-2.5 pt-1">
+            <div className="flex flex-wrap gap-2 pt-0.5">
               {ctaHighlights.map((item) => (
                 <div 
                   key={item.title} 
-                  className="flex items-center gap-2 bg-white/95 dark:bg-[#0B1120] backdrop-blur-md rounded-xl px-3 py-2 border border-white/90 dark:border-white/10 shadow-sm"
+                  className="flex items-center gap-2 bg-white/95 dark:bg-[#0B1120]/90 backdrop-blur-md rounded-xl px-2.5 py-1.5 border border-slate-200/80 dark:border-white/10 shadow-2xs"
                 >
-                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${item.tileBg}`}>
+                  <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border ${item.tileBg}`}>
                     {item.icon}
                   </div>
-                  <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">
+                  <span className="text-[11.5px] font-bold text-slate-800 dark:text-slate-200">
                     {item.title}
                   </span>
                 </div>
@@ -123,24 +123,24 @@ export function FinalCta() {
             </div>
 
             {/* Action Button & Trust checkpoint */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-1.5">
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-[#0052FF] hover:bg-[#0045D8] text-white text-[14px] font-bold shadow-lg shadow-blue-600/30 hover:-translate-y-0.5 transition-all"
+                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-[#0052FF] hover:bg-[#0045D8] text-white text-[13.5px] font-bold shadow-md shadow-blue-600/25 hover:-translate-y-0.5 transition-all"
               >
                 <span>{isAr ? "ابدأ مجاناً الآن" : "Get Started Free"}</span>
                 <ArrowRight className={`w-4 h-4 ${isAr ? "rotate-180" : ""}`} />
               </Link>
               
-              <div className="flex items-center gap-1.5 text-[12px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-500/30 px-3 py-2 rounded-xl">
+              <div className="flex items-center gap-1.5 text-[11.5px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-500/30 px-3 py-2 rounded-xl">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>{isAr ? "بدون أي رسوم أو بطاقة ائتمان" : "No credit card required"}</span>
+                <span>{isAr ? "بدون أي رسوم أو بطاقة ائتمان" : "No fees or credit card required"}</span>
               </div>
             </div>
           </div>
 
           {/* RIGHT COLUMN: Layered Floating Analytics Cards */}
-          <div className="relative mx-auto w-full max-w-[540px] lg:h-[310px]">
+          <div className="relative mx-auto w-full max-w-[500px] lg:h-[260px]">
             
             {/* 1. Career Match Score Card */}
             <div className="relative rounded-[22px] border border-white/95 dark:border-white/10 bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:top-0 lg:z-20 lg:w-[225px]">

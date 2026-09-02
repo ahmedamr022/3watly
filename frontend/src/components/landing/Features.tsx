@@ -107,7 +107,7 @@ export function Features() {
       ];
 
   return (
-    <section id="features" className="w-full bg-[#F8FAFC]/60 dark:bg-[#060913] py-16 px-6 sm:px-10 lg:px-16 border-t border-slate-100 dark:border-white/5 transition-colors duration-300">
+    <section id="features" className="w-full bg-transparent py-14 px-6 sm:px-10 lg:px-16 transition-colors duration-300 scroll-mt-20">
       <div className="max-w-[1400px] mx-auto">
         
         {/* Section Heading */}

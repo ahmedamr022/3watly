@@ -120,6 +120,24 @@ export function CVPreview() {
     return url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
   };
 
+  // Helper to collect and normalize all social links
+  const activeSocialLinks = React.useMemo(() => {
+    if (Array.isArray(cv.contact.socialLinks) && cv.contact.socialLinks.length > 0) {
+      return cv.contact.socialLinks.filter((l) => Boolean(l.url && l.url.trim()));
+    }
+    const legacy: Array<{ id: string; platform: string; url: string }> = [];
+    if (cv.contact.linkedin?.trim()) {
+      legacy.push({ id: 'li', platform: 'LinkedIn', url: cv.contact.linkedin });
+    }
+    if (cv.contact.github?.trim()) {
+      legacy.push({ id: 'gh', platform: 'GitHub', url: cv.contact.github });
+    }
+    if (cv.contact.portfolio?.trim()) {
+      legacy.push({ id: 'pf', platform: 'Portfolio', url: cv.contact.portfolio });
+    }
+    return legacy;
+  }, [cv.contact.socialLinks, cv.contact.linkedin, cv.contact.github, cv.contact.portfolio]);
+
   const isTwoColumn = template === 'two-column';
 
   return (
@@ -134,7 +152,7 @@ export function CVPreview() {
         >
           {/* Header: Name + Headline + 2-Line Contact & Links */}
           <header className="border-b border-slate-200 dark:border-white/10 pb-4 text-center">
-            <h1 className={style.name}>{cv.contact.fullName || 'Ahmed Amr'}</h1>
+            <h1 className={style.name}>{cv.contact.fullName || 'Candidate Name'}</h1>
             {cv.contact.jobTitle && <p className={style.role}>{cv.contact.jobTitle}</p>}
 
             {/* Contact Line 1: Email • Phone • Location */}
@@ -161,45 +179,22 @@ export function CVPreview() {
               )}
             </div>
 
-            {/* Contact Line 2: Links (LinkedIn • GitHub • Portfolio) */}
-            {(cv.contact.linkedin || cv.contact.github || cv.contact.portfolio) && (
+            {/* Contact Line 2: Links (LinkedIn • GitHub • Portfolio • etc.) */}
+            {activeSocialLinks.length > 0 && (
               <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-[12px] text-blue-600 dark:text-blue-400 mt-1 font-sans font-medium">
-                {cv.contact.linkedin && (
-                  <a
-                    href={formatUrl(cv.contact.linkedin)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline"
-                  >
-                    LinkedIn
-                  </a>
-                )}
-                {cv.contact.github && (
-                  <>
-                    {cv.contact.linkedin && <span className="text-slate-300 dark:text-slate-600 font-normal">•</span>}
+                {activeSocialLinks.map((item, idx) => (
+                  <React.Fragment key={item.id || idx}>
+                    {idx > 0 && <span className="text-slate-300 dark:text-slate-600 font-normal">•</span>}
                     <a
-                      href={formatUrl(cv.contact.github)}
+                      href={formatUrl(item.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:underline"
                     >
-                      GitHub
+                      {item.platform || 'Link'}
                     </a>
-                  </>
-                )}
-                {cv.contact.portfolio && (
-                  <>
-                    {(cv.contact.linkedin || cv.contact.github) && <span className="text-slate-300 dark:text-slate-600 font-normal">•</span>}
-                    <a
-                      href={formatUrl(cv.contact.portfolio)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:underline"
-                    >
-                      Portfolio
-                    </a>
-                  </>
-                )}
+                  </React.Fragment>
+                ))}
               </div>
             )}
           </header>

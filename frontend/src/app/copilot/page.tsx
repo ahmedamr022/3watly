@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 import {
   SparklesIcon,
   PlusCircleIcon,
@@ -12,10 +13,15 @@ import {
   Trash2Icon,
   MessageSquarePlusIcon,
   Loader2Icon,
+  UploadIcon,
+  CheckCircle2Icon,
+  BriefcaseIcon,
+  TargetIcon,
 } from 'lucide-react';
 import { ChatThread } from '@/components/copilot/ChatThread';
 import { ChatComposer } from '@/components/copilot/ChatComposer';
 import { useChat } from '@/contexts/ChatContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { downloadFile } from '@/utils/marketData';
 import { AppShell } from '@/components/layout/AppShell';
@@ -24,39 +30,39 @@ import { ActiveCVBadge } from '@/components/cv/CVVersionManager';
 
 const arabicEmptyPrompts = [
   {
-    title: "مراجعة السيرة الذاتية (ATS)",
-    prompt: "حلل سيرتي الذاتية وقدم لي 3 نقاط قوة و3 نقاط تحتاج تحسين للتوافق مع متطلبات السوق."
+    title: "🔍 أقرب الوظائف المطابقة لخبراتي",
+    prompt: "ما هي أقرب الوظائف المتاحة حالياً في السوق المصري المناسبة لمهاراتي وخبراتي ولماذا؟"
   },
   {
-    title: "خطة سد فجوة المهارات",
-    prompt: "ما هي المهارات التقنية الأكثر طلباً في مصر لدور Data Analyst وكيف أتقنها؟"
+    title: "📈 أهم المهارات المطلوب تعلمها الآن",
+    prompt: "ما هي أهم المهارات التقنية الناقصة في ملفي والتي سترفع نسبة قبولي في الشركات الكبرى؟"
   },
   {
-    title: "الاستعداد لمقابلة العمل",
-    prompt: "اطرح علي 5 أسئلة تقنية وسلوكية شائعة في مقابلات العمل مع الإجابات النموذجية."
+    title: "📄 فحص وتحسين الـ CV لـ ATS",
+    prompt: "حلل نقاط القوة والضعف في سيرتي الذاتية واقترح صياغة رقمية أفضل لإنجازاتي."
   },
   {
-    title: "رواتب وفرص السوق المصري",
-    prompt: "ما هو متوسط الرواتب التقنية الحالية وما هي الشركات الأكثر توظيفاً في القاهرة؟"
+    title: "🎯 رفع الـ Match Score للوظائف",
+    prompt: "كيف أرفع نسبة التطابق (Match Score) لوظائف الشركات الرائدة في القاهرة؟"
   }
 ];
 
 const englishEmptyPrompts = [
   {
-    title: "ATS CV Diagnostic",
-    prompt: "Analyze my CV and provide 3 strengths and 3 high-impact improvement points for Egyptian market standards."
+    title: "🔍 Top Matching Jobs for My Skills",
+    prompt: "What are the closest live Egyptian market opportunities matching my profile and why?"
   },
   {
-    title: "Skill Gap Roadmap",
-    prompt: "What are the top required skills for a Data Analyst in Egypt and how can I master them in 3 months?"
+    title: "📈 High-Impact Skills to Learn Next",
+    prompt: "What are the most critical skill gaps I should close to maximize my hiring probability?"
   },
   {
-    title: "Interview Preparation",
-    prompt: "Give me 5 common technical and behavioral interview questions with model answers."
+    title: "📄 ATS CV Optimization & Audit",
+    prompt: "Review my CV structure, keywords, and quantified achievements for Egyptian tech companies."
   },
   {
-    title: "Salary & Market Trends",
-    prompt: "What are the current tech salary ranges and top hiring companies in Cairo?"
+    title: "🎯 Boost Job Match Scores",
+    prompt: "How can I increase my match score for top tech roles in Cairo and Alexandria?"
   }
 ];
 
@@ -70,10 +76,33 @@ export default function CopilotPage() {
     setFeedback,
     buildTranscript,
   } = useChat();
+  const { user } = useAuth();
   const { isAr } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useClickOutside<HTMLDivElement>(menuOpen, () => setMenuOpen(false));
   const endRef = useRef<HTMLDivElement | null>(null);
+
+  const [activeCvStats, setActiveCvStats] = useState<{
+    hasCv: boolean;
+    role?: string;
+    skillsCount: number;
+    atsScore?: number;
+  }>({ hasCv: false, skillsCount: 0 });
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('3watly_parsed_cv');
+      if (raw) {
+        const p = JSON.parse(raw);
+        setActiveCvStats({
+          hasCv: true,
+          role: p.targetRole || p.currentTitle || 'Data Analyst',
+          skillsCount: Array.isArray(p.skills) ? p.skills.length : 0,
+          atsScore: p.atsReport?.score,
+        });
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -212,9 +241,19 @@ export default function CopilotPage() {
               <Loader2Icon className="h-6 w-6 animate-spin text-blue-600 dark:text-blue-400" />
             </div>
           ) : messages.length === 0 ? (
-            <EmptyState isAr={isAr} prompts={emptyStatePrompts} onPick={sendMessage} />
+            <EmptyState
+              isAr={isAr}
+              userName={user?.fullName || (user as any)?.name || ''}
+              stats={activeCvStats}
+              prompts={emptyStatePrompts}
+              onPick={sendMessage}
+            />
           ) : (
-            <ChatThread messages={messages} onFeedback={setFeedback} />
+            <ChatThread
+              messages={messages}
+              onFeedback={setFeedback}
+              onSendMessage={sendMessage}
+            />
           )}
           <div ref={endRef} />
         </div>
@@ -230,39 +269,96 @@ export default function CopilotPage() {
 
 function EmptyState({
   isAr,
+  userName,
+  stats,
   prompts,
   onPick,
 }: {
   isAr: boolean;
+  userName?: string;
+  stats: { hasCv: boolean; role?: string; skillsCount: number; atsScore?: number };
   prompts: Array<{ title: string; prompt: string }>;
   onPick: (prompt: string) => void;
 }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center py-10 text-center">
-      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20 shadow-xs">
-        <MessageSquarePlusIcon className="h-7 w-7" strokeWidth={1.9} />
-      </span>
-      <h2 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">
-        {isAr ? "فيمَ يمكنني مساعدتك اليوم؟" : "What should we work on today?"}
-      </h2>
-      <p className="mt-1 max-w-[440px] text-[13px] leading-relaxed text-slate-500 dark:text-slate-400">
-        {isAr
-          ? "اسأل عن مسارك المهني، مهاراتك، تحسين سيرتك الذاتية، أو متطلبات وظائف السوق المصري."
-          : "Get guidance on your career roadmap, CV diagnostics, skill gaps, or Egyptian job trends."}
-      </p>
+  const router = useRouter();
 
-      <div className="mt-6 grid w-full max-w-[640px] grid-cols-1 sm:grid-cols-2 gap-3">
+  return (
+    <div className="flex h-full flex-col items-center justify-center py-8 text-center max-w-[720px] mx-auto">
+      {/* Personalized Welcome Card */}
+      <div className="w-full rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-slate-900/60 p-5 text-left rtl:text-right mb-6 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+            <SparklesIcon className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              {isAr
+                ? `أهلاً بك${userName ? ` يا ${userName}` : ''} في عواطلي Copilot`
+                : `Welcome${userName ? `, ${userName}` : ''} to 3WATLY Copilot`}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {isAr
+                ? "مساعدك المتخصص لربط مهاراتك بشواغر وفرص سوق العمل المصري."
+                : "Your AI advisor grounded in Egyptian tech market criteria."}
+            </p>
+          </div>
+        </div>
+
+        {/* Dynamic Status Badges */}
+        <div className="mt-4 flex flex-wrap items-center gap-2 pt-3 border-t border-slate-200/70 dark:border-white/5">
+          {stats.hasCv ? (
+            <>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-[11.5px] font-semibold text-emerald-700 dark:text-emerald-400">
+                <CheckCircle2Icon className="h-3.5 w-3.5" />
+                {stats.role || 'Data Analyst'}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 text-[11.5px] font-semibold text-blue-700 dark:text-blue-400">
+                <TargetIcon className="h-3.5 w-3.5" />
+                {stats.skillsCount} {isAr ? 'مهارة مسجلة' : 'Skills Detected'}
+              </span>
+              {stats.atsScore !== undefined && (
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/40 px-2.5 py-1 text-[11.5px] font-semibold text-purple-700 dark:text-purple-400">
+                  <BriefcaseIcon className="h-3.5 w-3.5" />
+                  ATS: {stats.atsScore}/100
+                </span>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center justify-between w-full">
+              <span className="text-[12px] text-slate-500">
+                {isAr
+                  ? "لم ترفع سيرتك الذاتية بعد. ارفعها لتحصل على تحليل فوري مخصص."
+                  : "No CV uploaded yet. Upload your resume for tailored insights."}
+              </span>
+              <button
+                type="button"
+                onClick={() => router.push('/onboarding/upload-cv')}
+                className="inline-flex items-center gap-1 rounded-lg bg-blue-600 hover:bg-blue-700 px-3 py-1 text-[11.5px] font-semibold text-white transition-colors cursor-pointer"
+              >
+                <UploadIcon className="h-3 w-3" />
+                {isAr ? "رفع سيرة ذاتية" : "Upload CV"}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
+        {isAr ? "ما الذي يشغل بالك اليوم؟ اختر موضوعاً للبدء:" : "What would you like to explore today?"}
+      </h3>
+
+      <div className="grid w-full grid-cols-1 sm:grid-cols-2 gap-3">
         {prompts.map((item) => (
           <button
             key={item.title}
             type="button"
             onClick={() => onPick(item.prompt)}
-            className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0F172A] p-4 text-left rtl:text-right shadow-2xs transition-all hover:border-blue-500 hover:shadow-xs cursor-pointer group"
+            className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0F172A] p-3.5 text-left rtl:text-right shadow-2xs transition-all hover:border-blue-500 hover:shadow-xs cursor-pointer group"
           >
-            <p className="text-[13.5px] font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <p className="text-[13px] font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {item.title}
             </p>
-            <p className="mt-1 text-[12px] leading-relaxed text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-[11.5px] leading-relaxed text-slate-500 dark:text-slate-400">
               {item.prompt}
             </p>
           </button>

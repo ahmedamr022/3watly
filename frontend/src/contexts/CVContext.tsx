@@ -192,6 +192,8 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
                   id: proj.id || `prj-${idx + 1}`,
                   title: proj.title || `Project ${idx + 1}`,
                   technologies: Array.isArray(proj.technologies) ? proj.technologies : [],
+                  github: proj.github || '',
+                  link: proj.link || '',
                   bullets: Array.isArray(proj.bullets) && proj.bullets.length > 0
                     ? proj.bullets
                     : (proj.description ? [proj.description] : [])
@@ -224,6 +226,31 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
               adaptedSkills = [{ id: 'tech-1', label: 'Technical Skills', skills: p.skills }];
             }
 
+            // Build socialLinks from parsed links array or individual fields
+            const platformMap: Record<string, import('../types/cv').SocialPlatform> = {
+              linkedin: 'LinkedIn',
+              github: 'GitHub',
+              portfolio: 'Portfolio',
+              kaggle: 'Other',
+              leetcode: 'Other',
+              behance: 'Dribbble',
+              medium: 'Medium',
+              website: 'Personal'
+            };
+            const parsedSocialLinks: import('../types/cv').SocialLink[] = [];
+            if (Array.isArray(p.links) && p.links.length > 0) {
+              p.links.forEach((l: any, idx: number) => {
+                const platform = platformMap[l.type] ?? 'Other';
+                if (l.url && !parsedSocialLinks.some(sl => sl.url === l.url)) {
+                  parsedSocialLinks.push({ id: `link-${idx}`, platform, url: l.url });
+                }
+              });
+            } else {
+              if (p.linkedin) parsedSocialLinks.push({ id: 'link-li', platform: 'LinkedIn', url: p.linkedin });
+              if (p.github) parsedSocialLinks.push({ id: 'link-gh', platform: 'GitHub', url: p.github });
+              if (p.portfolio) parsedSocialLinks.push({ id: 'link-pf', platform: 'Portfolio', url: p.portfolio });
+            }
+
             baseCv = {
               ...initialCV,
               contact: {
@@ -234,7 +261,8 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
                 location: p.location || initialCV.contact.location,
                 linkedin: p.linkedin || initialCV.contact.linkedin,
                 github: p.github || initialCV.contact.github || '',
-                portfolio: p.portfolio || initialCV.contact.portfolio || ''
+                portfolio: p.portfolio || initialCV.contact.portfolio || '',
+                socialLinks: parsedSocialLinks
               },
               summary: p.summary || initialCV.summary,
               skillsSummary: initialCV.skillsSummary || '',

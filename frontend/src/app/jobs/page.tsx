@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { 
   Search, 
@@ -19,19 +19,27 @@ import {
   Users,
   MoreVertical,
   Zap,
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
   Loader2
 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { ActiveCVBadge } from '@/components/cv/CVVersionManager';
 import { mockDashboardData, mockJobsList, JobItem } from '@/data/jobs';
+import { ApplyModal } from '@/components/jobs/ApplyModal';
 
-export default function JobsPage() {
+function JobsPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryParam = searchParams.get('q') || searchParams.get('keyword') || '';
   const { isAr } = useLanguage();
   const { parsedCv, profile } = useOnboarding();
-  const [keyword, setKeyword] = useState('');
+  const [keyword, setKeyword] = useState(queryParam);
   const [locationQuery, setLocationQuery] = useState('');
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
 
@@ -108,9 +116,25 @@ export default function JobsPage() {
       result = [...result].sort((a, b) => b.matchScore - a.matchScore);
     } else if (sortBy === 'recent') {
       result = [...result]; // already ordered by posted_at from API
+    } else if (sortBy === 'salary') {
+      result = [...result].sort((a, b) => {
+        const parseSal = (str: string) => {
+          const match = (str || '').match(/(\d+[\d,]*)/g);
+          if (!match) return 0;
+          return parseInt(match[match.length - 1].replace(/,/g, ''), 10);
+        };
+        return parseSal(b.salaryRange) - parseSal(a.salaryRange);
+      });
     }
     return result;
   }, [keyword, locationQuery, seniorityFilter, workTypeFilter, matchScoreFilter, sortBy]);
+
+  // Sync keyword if URL query param changes
+  useEffect(() => {
+    if (queryParam) {
+      setKeyword(queryParam);
+    }
+  }, [queryParam]);
 
   // Fetch live jobs from Supabase API
   const fetchJobs = useCallback(() => {
@@ -156,8 +180,32 @@ export default function JobsPage() {
     );
   };
 
-  // Jobs are already filtered/sorted by the API, just expose them
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
+  const listTopRef = useRef<HTMLDivElement>(null);
+
+  // Jobs are already filtered/sorted by the API
   const filteredJobs = jobs;
+  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / pageSize));
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [keyword, locationQuery, seniorityFilter, workTypeFilter, matchScoreFilter, sortBy]);
+
+  const paginatedJobs = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredJobs.slice(start, start + pageSize);
+  }, [filteredJobs, currentPage, pageSize]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages || newPage === currentPage) return;
+    setCurrentPage(newPage);
+    if (listTopRef.current) {
+      listTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
     <AppShell
@@ -533,8 +581,11 @@ export default function JobsPage() {
               </div>
             )}
 
+            {/* Scroll Anchor */}
+            <div ref={listTopRef} />
+
             {/* Job Cards Feed */}
-            {filteredJobs.map((job) => {
+            {paginatedJobs.map((job) => {
               const isSaved = savedJobs.includes(job.id);
               return (
                 <div
@@ -652,28 +703,26 @@ export default function JobsPage() {
                             {skill.name}
                           </span>
                         ))}
-                        <span className="text-[12px] font-medium text-slate-400">
-                          {isAr ? "1 مهارة ناقصة" : "1 missing skill"}
-                        </span>
+                        {job.missingSkills.length > 0 && (
+                          <span className="text-[12px] font-medium text-slate-400">
+                            {isAr 
+                              ? `${job.missingSkills.length} مهارة ناقصة`
+                              : `${job.missingSkills.length} missing skill${job.missingSkills.length > 1 ? 's' : ''}`}
+                          </span>
+                        )}
                       </div>
 
-                      {/* Action Buttons (View Details & Fit + Bookmark) */}
+                      {/* Action Buttons (Direct Apply + View Details + Bookmark) */}
                       <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const url = job.applyUrl || (job as any).apply_url;
-                            if (url) {
-                              window.open(url, '_blank', 'noopener,noreferrer');
-                            } else {
-                              window.location.href = `/jobs/${job.id}`;
-                            }
-                          }}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[12.5px] font-bold shadow-sm transition-all cursor-pointer"
+                        <a
+                          href={job.applyUrl || (job as any).apply_url || `/jobs/${job.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 hover:shadow-md text-white text-[12.5px] font-bold shadow-xs hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 cursor-pointer"
                         >
-                          <Zap className="w-3.5 h-3.5 fill-white" />
+                          <ExternalLink className="w-3.5 h-3.5" />
                           <span>{isAr ? "تقديم سريع ↗" : "Quick Apply ↗"}</span>
-                        </button>
+                        </a>
 
                         <Link
                           href={`/jobs/${job.id}`}
@@ -701,6 +750,94 @@ export default function JobsPage() {
                 </div>
               );
             })}
+
+            {/* Premium Pagination Bar */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4.5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-xs">
+                {/* Information */}
+                <div className="text-[13px] font-medium text-slate-500 dark:text-slate-400">
+                  {isAr ? (
+                    <>
+                      عرض <span className="font-bold text-slate-900 dark:text-white">{(currentPage - 1) * pageSize + 1}</span> - <span className="font-bold text-slate-900 dark:text-white">{Math.min(currentPage * pageSize, filteredJobs.length)}</span> من إجمالي <span className="font-bold text-blue-600 dark:text-blue-400">{filteredJobs.length}</span> وظيفة
+                    </>
+                  ) : (
+                    <>
+                      Showing <span className="font-bold text-slate-900 dark:text-white">{(currentPage - 1) * pageSize + 1}</span>–<span className="font-bold text-slate-900 dark:text-white">{Math.min(currentPage * pageSize, filteredJobs.length)}</span> of <span className="font-bold text-blue-600 dark:text-blue-400">{filteredJobs.length}</span> jobs
+                    </>
+                  )}
+                </div>
+
+                {/* Navigation Controls */}
+                <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                  {/* Previous Button */}
+                  <button
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800/80 px-3 text-[12.5px] font-bold text-slate-700 dark:text-slate-200 transition-all hover:bg-slate-50 dark:hover:bg-white/5 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <ChevronRight className={`h-4 w-4 ${isAr ? "" : "rotate-180"}`} />
+                    <span>{isAr ? "السابق" : "Prev"}</span>
+                  </button>
+
+                  {/* Smart Window Pagination Numbers */}
+                  {(() => {
+                    const pages: (number | string)[] = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pages.push(i);
+                    } else {
+                      if (currentPage <= 4) {
+                        pages.push(1, 2, 3, 4, 5, '...', totalPages);
+                      } else if (currentPage >= totalPages - 3) {
+                        pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+                      } else {
+                        pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+                      }
+                    }
+
+                    return pages.map((p, idx) => {
+                      if (p === '...') {
+                        return (
+                          <span
+                            key={`dots-${idx}`}
+                            className="flex h-9 w-7 items-center justify-center text-xs font-bold text-slate-400"
+                          >
+                            ...
+                          </span>
+                        );
+                      }
+                      const pageNum = Number(p);
+                      const isActive = pageNum === currentPage;
+                      return (
+                        <button
+                          key={pageNum}
+                          type="button"
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-2.5 text-[13px] font-bold transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md shadow-blue-600/30 ring-2 ring-blue-500/20 scale-105'
+                              : 'border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/40 dark:hover:bg-blue-950/20'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    });
+                  })()}
+
+                  {/* Next Button */}
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages}
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800/80 px-3 text-[12.5px] font-bold text-slate-700 dark:text-slate-200 transition-all hover:bg-slate-50 dark:hover:bg-white/5 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <span>{isAr ? "التالي" : "Next"}</span>
+                    <ChevronLeft className={`h-4 w-4 ${isAr ? "" : "rotate-180"}`} />
+                  </button>
+                </div>
+              </div>
+            )}
 
           </div>
 
@@ -861,6 +998,25 @@ export default function JobsPage() {
         </div>
 
       </div>
+
+      {/* Apply Modal */}
+      <ApplyModal
+        job={selectedJobForApply}
+        isOpen={!!selectedJobForApply}
+        onClose={() => setSelectedJobForApply(null)}
+      />
     </AppShell>
+  );
+}
+
+export default function JobsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    }>
+      <JobsPageContent />
+    </Suspense>
   );
 }

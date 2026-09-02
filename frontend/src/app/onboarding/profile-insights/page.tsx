@@ -240,7 +240,7 @@ export default function ProfileInsightsPage() {
                     { id: 'email', label: isAr ? 'البريد الإلكتروني' : 'Email', ok: Boolean(parsedCv.email) },
                     { id: 'phone', label: isAr ? 'رقم الهاتف' : 'Phone', ok: Boolean(parsedCv.phone) },
                     { id: 'location', label: isAr ? 'الموقع الجغرافي' : 'Location', ok: Boolean(parsedCv.location) },
-                    { id: 'summary', label: isAr ? 'الملخص المهني' : 'Summary', ok: Boolean(parsedCv.summary) },
+                    { id: 'links', label: isAr ? 'الروابط المهنية (LinkedIn/GitHub)' : 'Professional Links', ok: Boolean(parsedCv.linkedin || parsedCv.github || parsedCv.portfolio || (parsedCv.links && parsedCv.links.length > 0)) },
                   ].map(item => (
                     <div key={item.id} className="flex items-center gap-1.5 text-[11.5px]">
                       <span className={`h-4 w-4 rounded-full flex items-center justify-center flex-shrink-0 ${

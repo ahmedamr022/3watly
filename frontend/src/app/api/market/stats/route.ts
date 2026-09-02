@@ -46,6 +46,17 @@ export async function GET(request: NextRequest) {
     const remoteCount = jobs.filter((j) => j.is_remote || (j.work_type && j.work_type.toLowerCase().includes('remote')) || (j.work_type && j.work_type.toLowerCase().includes('hybrid'))).length;
     const remotePercentage = totalJobs > 0 ? Math.round((remoteCount / (jobs.length || 1)) * 100) : 38;
 
+    // Blacklist: seniority levels, generic adjectives, and experience descriptors that are NOT real skills
+    const MARKET_SKILL_BLACKLIST = new Set([
+      'experienced', 'experience', 'senior', 'junior', 'mid level', 'mid-level',
+      'entry level', 'entry-level', 'expert', 'manager', 'specialist', 'internship',
+      'intern', 'fresher', 'graduate', 'lead', 'principal', 'director', 'associate',
+      'professional', 'proficient', 'strong', 'knowledge', 'ability', 'skills',
+      'communication', 'teamwork', 'problem solving', 'problem-solving', 'analytical',
+      'leadership', 'motivated', 'detail oriented', 'detail-oriented', 'fast learner',
+      'years', 'year', 'months', 'month', 'plus', 'minimum', 'required', 'preferred'
+    ]);
+
     // Aggregate skill frequencies
     const skillCounts: Record<string, number> = {};
     jobs.forEach((j) => {
@@ -57,7 +68,8 @@ export async function GET(request: NextRequest) {
 
       skills.forEach((s) => {
         const clean = s.trim();
-        if (clean) {
+        // Skip blacklisted seniority/generic terms
+        if (clean && !MARKET_SKILL_BLACKLIST.has(clean.toLowerCase())) {
           skillCounts[clean] = (skillCounts[clean] || 0) + 1;
         }
       });

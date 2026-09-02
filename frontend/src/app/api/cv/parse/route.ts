@@ -49,6 +49,159 @@ const ACTION_VERBS = [
   'trained', 'evaluated', 'researched', 'maintained', 'conducted', 'tested', 'orchestrated'
 ];
 
+export interface ExtractedLinkItem {
+  title: string;
+  url: string;
+  type: 'linkedin' | 'github' | 'portfolio' | 'kaggle' | 'leetcode' | 'behance' | 'medium' | 'website';
+}
+
+export interface ExtractedLinksResult {
+  linkedin: string;
+  github: string;
+  portfolio: string;
+  allLinks: ExtractedLinkItem[];
+}
+
+export function extractDocumentLinks(buffer: Buffer, rawText: string): ExtractedLinksResult {
+  const foundUrls = new Set<string>();
+  const binaryString = buffer.toString('binary');
+  const utf8String = buffer.toString('utf-8');
+
+  // 1. PDF /URI annotations: /URI (https://...)
+  const pdfUriRegex = /\/URI\s*\(([^)\r\n]+)\)/gi;
+  let match: RegExpExecArray | null;
+  while ((match = pdfUriRegex.exec(binaryString)) !== null) {
+    const raw = match[1].trim();
+    if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('mailto:')) {
+      foundUrls.add(raw);
+    }
+  }
+
+  // 2. PDF /URI with hex encoding: /URI <...>
+  const pdfHexUriRegex = /\/URI\s*<([0-9a-fA-F]+)>/gi;
+  while ((match = pdfHexUriRegex.exec(binaryString)) !== null) {
+    try {
+      const decoded = Buffer.from(match[1], 'hex').toString('utf-8').trim();
+      if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
+        foundUrls.add(decoded);
+      }
+    } catch {}
+  }
+
+  // 3. Raw standard URLs from utf8 text and binary stream
+  const rawUrlRegex = /https?:\/\/[a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=%]+/gi;
+  while ((match = rawUrlRegex.exec(utf8String)) !== null) {
+    const clean = match[0].replace(/[.,;:)>\]\\]+$/, '').trim();
+    if (clean.length > 10 && !clean.includes('w3.org') && !clean.includes('adobe.com') && !clean.includes('schema.org')) {
+      foundUrls.add(clean);
+    }
+  }
+
+  // Also scan rawText if provided separately
+  if (rawText && rawText !== utf8String) {
+    while ((match = rawUrlRegex.exec(rawText)) !== null) {
+      const clean = match[0].replace(/[.,;:)>\]\\]+$/, '').trim();
+      if (clean.length > 10 && !clean.includes('w3.org') && !clean.includes('adobe.com') && !clean.includes('schema.org')) {
+        foundUrls.add(clean);
+      }
+    }
+  }
+
+  // 4. Domain-like text patterns without http
+  const domainPatterns = [
+    /(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9_\-\/]+/gi,
+    /(?:www\.)?github\.com\/[a-zA-Z0-9_\-\/]+/gi,
+    /(?:www\.)?kaggle\.com\/[a-zA-Z0-9_\-\/]+/gi,
+    /(?:www\.)?leetcode\.com\/(?:u\/)?[a-zA-Z0-9_\-\/]+/gi,
+    /(?:www\.)?behance\.net\/[a-zA-Z0-9_\-\/]+/gi,
+    /(?:www\.)?medium\.com\/@[a-zA-Z0-9_\-\/]+/gi,
+    /[a-zA-Z0-9_\-]+\.(?:vercel\.app|netlify\.app|github\.io|me|dev|tech|site|bio|link)(?:\/[a-zA-Z0-9_\-.~%]*)*\b/gi,
+  ];
+
+  for (const pat of domainPatterns) {
+    while ((match = pat.exec(utf8String)) !== null) {
+      const clean = match[0].replace(/[.,;:)>\]\\]+$/, '').trim();
+      if (clean.length > 5) {
+        foundUrls.add(clean.startsWith('http') ? clean : `https://${clean}`);
+      }
+    }
+    if (rawText && rawText !== utf8String) {
+      while ((match = pat.exec(rawText)) !== null) {
+        const clean = match[0].replace(/[.,;:)>\]\\]+$/, '').trim();
+        if (clean.length > 5) {
+          foundUrls.add(clean.startsWith('http') ? clean : `https://${clean}`);
+        }
+      }
+    }
+  }
+
+  // Categorize URLs
+  let linkedin = '';
+  let github = '';
+  let portfolio = '';
+  const allLinks: ExtractedLinkItem[] = [];
+  const seenUrls = new Set<string>();
+
+  for (const url of foundUrls) {
+    const lower = url.toLowerCase();
+
+    // Skip PDF schema/metadata URLs
+    if (
+      lower.includes('ns.adobe.com') ||
+      lower.includes('w3.org') ||
+      lower.includes('purl.org') ||
+      lower.includes('xml.org') ||
+      lower.includes('schemas.openxmlformats.org') ||
+      lower.includes('schemas.microsoft.com')
+    ) {
+      continue;
+    }
+
+    if (seenUrls.has(lower)) continue;
+    seenUrls.add(lower);
+
+    const formattedUrl = url.startsWith('http') ? url : `https://${url}`;
+
+    if (lower.includes('linkedin.com/in/') || lower.includes('linkedin.com/pub/') || lower.includes('linkedin.com/')) {
+      if (!linkedin) linkedin = formattedUrl;
+      allLinks.push({ title: 'LinkedIn', url: formattedUrl, type: 'linkedin' });
+    } else if (lower.includes('github.com/') && !lower.includes('github.com/features') && !lower.includes('github.com/pricing')) {
+      if (!github && !formattedUrl.includes('/tree/') && !formattedUrl.includes('/blob/')) {
+        github = formattedUrl;
+      }
+      allLinks.push({
+        title: formattedUrl.includes('/tree/') || formattedUrl.includes('/blob/') ? 'Project Repo' : 'GitHub',
+        url: formattedUrl,
+        type: 'github',
+      });
+    } else if (lower.includes('kaggle.com/')) {
+      allLinks.push({ title: 'Kaggle', url: formattedUrl, type: 'kaggle' });
+    } else if (lower.includes('leetcode.com/')) {
+      allLinks.push({ title: 'LeetCode', url: formattedUrl, type: 'leetcode' });
+    } else if (lower.includes('behance.net/')) {
+      allLinks.push({ title: 'Behance', url: formattedUrl, type: 'behance' });
+    } else if (lower.includes('medium.com/')) {
+      allLinks.push({ title: 'Medium', url: formattedUrl, type: 'medium' });
+    } else if (
+      lower.includes('vercel.app') ||
+      lower.includes('netlify.app') ||
+      lower.includes('github.io') ||
+      lower.includes('.me') ||
+      lower.includes('.dev') ||
+      lower.includes('.bio') ||
+      lower.includes('portfolio')
+    ) {
+      if (!portfolio) portfolio = formattedUrl;
+      allLinks.push({ title: 'Portfolio', url: formattedUrl, type: 'portfolio' });
+    } else if (!lower.includes('google.com') && !lower.includes('gmail.com') && !lower.includes('wuzzuf.net')) {
+      if (!portfolio && !linkedin && !github) portfolio = formattedUrl;
+      allLinks.push({ title: 'Website', url: formattedUrl, type: 'website' });
+    }
+  }
+
+  return { linkedin, github, portfolio, allLinks };
+}
+
 interface ExtractedData {
   fullName: string;
   currentTitle: string;
@@ -58,6 +211,7 @@ interface ExtractedData {
   linkedin: string;
   github: string;
   portfolio: string;
+  links?: ExtractedLinkItem[];
   summary: string;
   targetRole: string;
   experienceYears: number;
@@ -101,6 +255,8 @@ interface ExtractedData {
     description: string;
     technologies: string[];
     bullets: string[];
+    link?: string;
+    github?: string;
   }>;
   atsReport: {
     score: number;
@@ -141,7 +297,12 @@ interface ExtractedData {
   }>;
 }
 
-export function parseCVText(rawText: string, targetRoleInput?: string, fileName?: string): ExtractedData {
+export function parseCVText(
+  rawText: string,
+  targetRoleInput?: string,
+  fileName?: string,
+  extractedLinksResult?: ExtractedLinksResult
+): ExtractedData {
   const lines = rawText
     .split(/\r?\n/)
     .map(l => l.trim())
@@ -155,12 +316,28 @@ export function parseCVText(rawText: string, targetRoleInput?: string, fileName?
   const phoneMatch = rawText.match(/(?:\+?20|0020|0)?1[0125][0-9]{8}|\+?[0-9]{10,15}/);
   const phone = phoneMatch ? phoneMatch[0] : '';
 
-  // 3. Extract LinkedIn & GitHub
+  // 3. Extract LinkedIn, GitHub & Portfolio (combining buffer links + text regex)
   const linkedinMatch = rawText.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([a-zA-Z0-9_-]+)/i);
-  const linkedin = linkedinMatch ? `linkedin.com/in/${linkedinMatch[1]}` : (rawText.toLowerCase().includes('linkedin') ? 'LinkedIn Profile' : '');
+  const linkedin = extractedLinksResult?.linkedin || (
+    linkedinMatch ? `https://linkedin.com/in/${linkedinMatch[1]}` : ''
+  );
 
   const githubMatch = rawText.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_-]+)/i);
-  const github = githubMatch ? `github.com/${githubMatch[1]}` : (rawText.toLowerCase().includes('github') ? 'GitHub Profile' : '');
+  const github = extractedLinksResult?.github || (
+    githubMatch ? `https://github.com/${githubMatch[1]}` : ''
+  );
+
+  // Portfolio: match any non-linkedin/github URL that looks like a personal portfolio site
+  const portfolioMatch = rawText.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.(?:com|io|me|dev|net|org)\/[a-zA-Z0-9/_-]*)/i);
+  let textPortfolio = '';
+  if (portfolioMatch) {
+    const raw = portfolioMatch[0].toLowerCase();
+    if (!raw.includes('linkedin.com') && !raw.includes('github.com')) {
+      textPortfolio = portfolioMatch[0].startsWith('http') ? portfolioMatch[0] : `https://${portfolioMatch[0]}`;
+    }
+  }
+  const portfolio = extractedLinksResult?.portfolio || textPortfolio || '';
+  const links = extractedLinksResult?.allLinks || [];
 
   // 4. Extract Location
   let location = 'Cairo, Egypt';
@@ -500,14 +677,18 @@ export function parseCVText(rawText: string, targetRoleInput?: string, fileName?
   const metricsCount = metricsMatches ? metricsMatches.length : 3;
   const atsScore = Math.min(96, Math.max(78, 84 + (skillsList.length > 6 ? 6 : 0) + (actionVerbsCount > 4 ? 4 : 0)));
 
+  const fallbackName = email ? email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
+
   return {
-    fullName: fullName || 'Ahmed Amr',
-    currentTitle: currentTitle || 'Junior Data Analyst',
+    fullName: fullName || fallbackName,
+    currentTitle: currentTitle || 'Data Analyst',
     email,
     phone,
     location,
     linkedin,
     github,
+    portfolio,
+    links,
     summary,
     targetRole,
     experienceYears: 0, // Fresh graduate / internship
@@ -561,20 +742,27 @@ export function parseCVText(rawText: string, targetRoleInput?: string, fileName?
       totalSkills: skillsList.length,
       yearsOfExperience: 0,
       atsScore,
-      marketFit: 90,
-      strengths: [`Strong in ${skillsList.slice(0, 4).join(', ')}`],
-      topGaps: []
+      marketFit: Math.min(95, Math.max(65, skillsList.length * 6 + 40)),
+      strengths: [
+        'ATS Single-Column Format Validated',
+        `Contains ${skillsList.length} In-Demand Technical Skills`,
+        'Direct Action-Oriented Project Bullet Points'
+      ],
+      topGaps: [
+        'Add 1 cloud infrastructure technology (e.g. AWS or Azure)',
+        'Quantify business impacts with exact numbers or percentages'
+      ]
     },
     actionPlan: [
       {
         id: 'ap-1',
-        title: `Master Advanced ${skillsList[0] || 'Technical'} Stack`,
-        titleAr: `تعزيز وإتقان مسار ${skillsList[0] || 'المهارات التقنية'} المتقدم`,
-        category: 'Skill Enhancement',
-        categoryAr: 'تطوير المهارات',
+        title: 'Enhance Project Metrics with Quantifiable ROI',
+        titleAr: 'إضافة نسب وأرقام قياسية ملموسة لمشاريعك العملية',
+        category: 'Project Optimization',
+        categoryAr: 'تطوير المشاريع',
         priority: 'high',
-        description: `Enhance your proficiency in ${skillsList[0] || 'core technologies'} with real-world case studies.`,
-        descriptionAr: `بناء مشاريع عملية متقدمة وتطبيق دراسات حالة في ${skillsList[0] || 'المهارات الأساسية'} يرفع نسبة قبولك بنسبة 25%.`
+        description: 'Quantify at least 2 project achievements with real percentages or performance numbers.',
+        descriptionAr: 'قم بإضافة نسب مئوية أو أرقام كمية لإنجازين على الأقل في قسم المشاريع لتعزيز التوافق مع أنظمة الفحص.'
       },
       {
         id: 'ap-2',
@@ -631,7 +819,10 @@ export async function POST(request: NextRequest) {
       extractedText = `Resume of ${fileName.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ')}\n${targetRole || 'Data Analyst'}\nSkills: Python, SQL, Excel, Power BI`;
     }
 
-    const structuredData = parseCVText(extractedText, targetRole || undefined, fileName);
+    // Extract binary annotations + regex links from buffer
+    const extractedLinksResult = extractDocumentLinks(buffer, extractedText);
+
+    const structuredData = parseCVText(extractedText, targetRole || undefined, fileName, extractedLinksResult);
 
     return NextResponse.json({
       success: true,

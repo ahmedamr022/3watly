@@ -159,6 +159,53 @@ export const SCORE_LEGEND: {
   noteAr: '(مخاطرة استبعاد عالية)'
 }];
 
+export function getMarketKeywordsForRole(roleTitle: string): { keywords: string[]; benchmark: number } {
+  const t = (roleTitle || '').toLowerCase();
+  
+  if (/machine learning|ml\b|ai\b|computer vision|deep learning|data science|data scientist/i.test(t)) {
+    return {
+      keywords: [
+        'Python', 'PyTorch', 'TensorFlow', 'OpenCV', 'Scikit-Learn',
+        'Deep Learning', 'Computer Vision', 'Pandas', 'NumPy',
+        'SQL', 'Git', 'Model Training', 'Data Preprocessing', 'Feature Engineering',
+        'CNN', 'REST APIs', 'Docker', 'Linux'
+      ],
+      benchmark: 10
+    };
+  }
+
+  if (/frontend|react|web developer|ui developer/i.test(t)) {
+    return {
+      keywords: [
+        'React', 'JavaScript', 'TypeScript', 'Next.js', 'Tailwind CSS',
+        'HTML5', 'CSS3', 'Redux', 'REST APIs', 'Git',
+        'Responsive Design', 'State Management', 'Web Performance', 'Jest', 'UI/UX'
+      ],
+      benchmark: 9
+    };
+  }
+
+  if (/backend|node|express|api|software engineer/i.test(t)) {
+    return {
+      keywords: [
+        'Node.js', 'Python', 'SQL', 'PostgreSQL', 'MongoDB',
+        'REST APIs', 'Docker', 'Git', 'Express', 'Redis',
+        'Database Design', 'Authentication', 'Microservices', 'CI/CD', 'Linux'
+      ],
+      benchmark: 9
+    };
+  }
+
+  // Default: Data Analyst & BI
+  return {
+    keywords: [
+      'SQL', 'Python', 'Power BI', 'Excel', 'Tableau',
+      'Data Modeling', 'DAX', 'Pandas', 'Data Cleaning', 'Data Visualization',
+      'ETL', 'Statistical Analysis', 'Business Intelligence', 'KPIs', 'Git'
+    ],
+    benchmark: 8
+  };
+}
 
 export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
   const text = cvToText(cv);
@@ -268,11 +315,15 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
 
 
   /* ---------------------------------- keywords ---------------------------- */
+  const roleKeywords = getMarketKeywordsForRole(cv.contact.jobTitle || 'Data Analyst');
+  const targetKeywords = roleKeywords.keywords;
+  const benchmark = roleKeywords.benchmark;
+
   const found: string[] = [];
   const missing: string[] = [];
-  MARKET_KEYWORDS.forEach((keyword) => {
-    if (containsKeyword(text, keyword)) found.push(keyword);else
-    missing.push(keyword);
+  targetKeywords.forEach((keyword) => {
+    if (containsKeyword(text, keyword)) found.push(keyword);
+    else missing.push(keyword);
   });
 
   /* ----------------------------------- score ------------------------------ */
@@ -282,7 +333,7 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
 
   const structureScore = structurePassed / structureItems.length * 30;
   const parserScore = parserPassed / parserItems.length * 30;
-  const keywordScore = Math.min(1, found.length / KEYWORD_BENCHMARK) * 28;
+  const keywordScore = Math.min(1, found.length / benchmark) * 28;
   const impactScore = impact * 12;
   const summaryBonus = cv.skillsSummary ? 3 : 0;
 

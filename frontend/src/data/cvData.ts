@@ -7,6 +7,8 @@ export const initialCV: CVData = {
     phone: '',
     email: '',
     linkedin: '',
+    github: '',
+    portfolio: '',
     location: ''
   },
   summary:

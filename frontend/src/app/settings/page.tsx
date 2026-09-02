@@ -87,42 +87,59 @@ export default function SettingsPage() {
   // File input ref for avatar
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const initialName = user?.fullName || (isAr ? 'المستخدم' : 'User');
-  const initialEmail = user?.email || '';
-  const initialRole = user?.targetRole || (role ? String(role).replace(/-/g, ' ') : (isAr ? 'محلل بيانات' : 'Data Analyst'));
+  // Profile data state with dynamic real fallback
+  const [profile, setProfile] = useState<ProfileData>(() => {
+    let cvData: any = null;
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('3watly_parsed_cv') : null;
+      if (raw) cvData = JSON.parse(raw);
+    } catch {}
 
-  // Profile data state
-  const [profile, setProfile] = useState<ProfileData>({
-    fullName: initialName,
-    jobTitle: initialRole,
-    email: initialEmail,
-    phone: '',
-    location: 'Cairo, Egypt',
-    bio: '',
-    dateJoined: '2025',
-    linkedin: '',
-    github: ''
+    const joinYear = user?.createdAt ? new Date(user.createdAt).getFullYear().toString() : new Date().getFullYear().toString();
+
+    return {
+      fullName: user?.fullName || cvData?.fullName || (isAr ? 'المستخدم' : 'User'),
+      jobTitle: user?.targetRole || cvData?.targetRole || cvData?.currentTitle || (isAr ? 'محلل بيانات' : 'Data Analyst'),
+      email: user?.email || cvData?.email || '',
+      phone: cvData?.phone || '',
+      location: cvData?.location || (isAr ? 'القاهرة، مصر' : 'Cairo, Egypt'),
+      bio: cvData?.summary || '',
+      dateJoined: joinYear,
+      linkedin: cvData?.linkedin || '',
+      github: cvData?.github || ''
+    };
   });
 
-  // Keep profile in sync if user state updates
+  // Keep profile in sync if user or localStorage updates
   useEffect(() => {
-    if (user?.fullName) {
-      setProfile(prev => ({
-        ...prev,
-        fullName: user.fullName || prev.fullName,
-        email: user.email || prev.email,
-        jobTitle: user.targetRole || prev.jobTitle
-      }));
-    }
-  }, [user]);
+    let cvData: any = null;
+    let savedSettings: any = null;
+    try {
+      const rawCv = localStorage.getItem('3watly_parsed_cv');
+      if (rawCv) cvData = JSON.parse(rawCv);
+      const rawSettings = localStorage.getItem('3watly_profile_settings');
+      if (rawSettings) savedSettings = JSON.parse(rawSettings);
+    } catch {}
 
-  // Load saved profile data from localStorage
+    const joinYear = user?.createdAt ? new Date(user.createdAt).getFullYear().toString() : new Date().getFullYear().toString();
+
+    setProfile(prev => ({
+      ...prev,
+      fullName: savedSettings?.fullName || user?.fullName || cvData?.fullName || prev.fullName,
+      email: savedSettings?.email || user?.email || cvData?.email || prev.email,
+      jobTitle: savedSettings?.jobTitle || user?.targetRole || cvData?.targetRole || cvData?.currentTitle || prev.jobTitle,
+      location: savedSettings?.location || cvData?.location || prev.location,
+      phone: savedSettings?.phone || cvData?.phone || prev.phone,
+      linkedin: savedSettings?.linkedin || cvData?.linkedin || prev.linkedin,
+      github: savedSettings?.github || cvData?.github || prev.github,
+      bio: savedSettings?.bio || cvData?.summary || prev.bio,
+      dateJoined: joinYear,
+    }));
+  }, [user, isAr]);
+
+  // Load saved notification & 2FA preferences
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('3watly_profile_settings');
-      if (saved) {
-        setProfile(JSON.parse(saved));
-      }
       const savedNotifs = localStorage.getItem('3watly_notifications');
       if (savedNotifs) {
         const parsed = JSON.parse(savedNotifs);

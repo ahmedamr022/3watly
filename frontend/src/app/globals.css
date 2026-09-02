@@ -231,8 +231,17 @@ html[dir="rtl"] h4 {
 }
 
 /* ========================================================================= */
-/* MODERN FLOATING SCROLLBAR - NO UGLY BOXES OR ARROW BUTTONS               */
+/* UNIFIED DYNAMIC NAVY/BLUE SCROLLBAR - LIGHT & DARK THEME ADAPTIVE        */
 /* ========================================================================= */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.35) transparent;
+}
+
+html.dark * {
+  scrollbar-color: rgba(30, 64, 175, 0.75) transparent;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -242,13 +251,15 @@ html[dir="rtl"] h4 {
   background: transparent;
 }
 
+/* Light Mode: Adaptive Brand Blue */
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
+  background: rgba(37, 99, 235, 0.35);
   border-radius: 9999px;
+  transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.65);
+  background: rgba(29, 78, 216, 0.7);
 }
 
 ::-webkit-scrollbar-button {
@@ -257,20 +268,25 @@ html[dir="rtl"] h4 {
   height: 0 !important;
 }
 
+/* Dark Mode: Deep Dark Navy Blue with subtle electric edge */
 html.dark ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(30, 58, 138, 0.8);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 9999px;
 }
 
 html.dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(37, 99, 235, 0.85);
+  border-color: rgba(96, 165, 250, 0.5);
 }
 
 .scroll-slim {
   scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+  scrollbar-color: rgba(37, 99, 235, 0.35) transparent;
 }
+
 html.dark .scroll-slim {
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-color: rgba(30, 58, 138, 0.8) transparent;
 }
 
 /* ========================================================================= */
@@ -327,7 +343,7 @@ html.dark .scroll-slim {
   overflow-x: hidden;
   /* Transparent track – scrollbar floats on the document */
   scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+  scrollbar-color: rgba(37, 99, 235, 0.35) transparent;
   /* Smooth inner scroll */
   scroll-behavior: smooth;
   /* Give it a subtle inset shadow so content feels contained */
@@ -342,11 +358,11 @@ html.dark .scroll-slim {
   background: transparent;
 }
 .cv-scroll-viewport::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.45);
+  background: rgba(37, 99, 235, 0.35);
   border-radius: 9999px;
 }
 .cv-scroll-viewport::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.7);
+  background: rgba(29, 78, 216, 0.7);
 }
 .cv-scroll-viewport::-webkit-scrollbar-button {
   display: none !important;
@@ -355,11 +371,13 @@ html.dark .scroll-slim {
 
 /* Dark-mode overrides */
 html.dark .cv-scroll-viewport {
-  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  scrollbar-color: rgba(30, 58, 138, 0.8) transparent;
 }
 html.dark .cv-scroll-viewport::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.13);
+  background: rgba(30, 58, 138, 0.8);
+  border: 1px solid rgba(59, 130, 246, 0.25);
 }
 html.dark .cv-scroll-viewport::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(37, 99, 235, 0.85);
+  border-color: rgba(96, 165, 250, 0.5);
 }

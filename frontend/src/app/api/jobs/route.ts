@@ -1,11 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import type { JobItem } from '@/data/jobs';
+import type { JobDataQuality, SkillSource } from '@/lib/scraper/wuzzuf';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/* ---------- helpers ---------- */
+// ─────────────────────────────────────────────────────────────────────────────
+// Skill ontology: canonical aliases for normalization
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SKILL_ALIASES: Record<string, string> = {
+  'reactjs': 'React', 'react.js': 'React',
+  'nodejs': 'Node.js', 'node js': 'Node.js',
+  'postgres': 'PostgreSQL', 'postgresql': 'PostgreSQL',
+  'js': 'JavaScript', 'ts': 'TypeScript',
+  'powerbi': 'Power BI', 'power_bi': 'Power BI', 'msbi': 'Power BI',
+  'ms sql': 'SQL Server', 'mssql': 'SQL Server',
+  'vue': 'Vue.js', 'vuejs': 'Vue.js',
+  'nextjs': 'Next.js', 'next.js': 'Next.js',
+  'k8s': 'Kubernetes',
+  'scikit': 'Scikit-Learn', 'sklearn': 'Scikit-Learn',
+  'tensorflow': 'TensorFlow', 'pytorch': 'PyTorch',
+  'restapi': 'REST APIs', 'rest api': 'REST APIs', 'rest': 'REST APIs',
+  'bi': 'Business Intelligence',
+};
+
+const SKILL_BLACKLIST = new Set([
+  'experienced', 'experience', 'senior', 'junior', 'mid level', 'expert', 'manager',
+  'internship', 'intern', 'student', 'entry level', 'fresh graduate', 'fresher',
+  'it', 'information technology', 'software development', 'engineering',
+  'general', 'other', 'miscellaneous', 'research', 'ability', 'skills', 'knowledge',
+  'strong', 'good', 'excellent', 'proficient', 'familiar', 'basic', 'advanced',
+  'full time', 'part time', 'contract', 'freelance', 'remote',
+  'freelance / project', 'freelance/project', 'project',
+  'education/teaching', 'education / teaching', 'education', 'teaching',
+  'training/instructor', 'training / instructor', 'training', 'instructor',
+  'analyst/research', 'analyst / research', 'analysis', 'research',
+  'computer science', 'it/software development', 'engineering - telecom/technology',
+  'customer service/support', 'customer service', 'support',
+  'sales/retail', 'sales', 'retail', 'accounting/finance', 'accounting', 'finance',
+  'project/program management', 'project management', 'program management',
+  'administration', 'human resources', 'marketing/pr/advertising',
+  'communication', 'teamwork', 'leadership', 'problem solving', 'critical thinking',
+  'analytical skills', 'analytical thinking', 'data analysis', 'business analysis',
+  'data analytics', 'market research', 'quantitative analysis',
+]);
+
+/**
+ * Semantic inference: if user knows X, they satisfy competency Y.
+ * Used only when job has inferred/partial quality to avoid over-inflating score.
+ */
+const SKILL_INFERENCE: Record<string, string[]> = {
+  'data visualization': ['power bi', 'tableau', 'matplotlib', 'excel'],
+  'business intelligence': ['power bi', 'tableau', 'sql', 'excel'],
+  'database management': ['sql', 'postgresql', 'mysql', 'mongodb'],
+  'etl': ['python', 'sql', 'airflow', 'dbt', 'spark'],
+  'machine learning': ['python', 'scikit-learn', 'tensorflow', 'pytorch'],
+  'frontend development': ['react', 'vue', 'angular', 'javascript', 'typescript'],
+  'backend development': ['node.js', 'python', 'django', 'flask', 'java', 'c#'],
+  'cloud computing': ['aws', 'azure', 'gcp', 'google cloud'],
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
 
 const seniorityArMap: Record<string, string> = {
   Fresh: 'حديث التخرج',
@@ -30,14 +89,72 @@ function normalizeWorkType(raw: string | null, isRemote: boolean): JobItem['work
 
 function timeAgo(dateStr: string | null): { en: string; ar: string } {
   if (!dateStr) return { en: 'Recently', ar: 'مؤخراً' };
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const hours = Math.floor(diff / 3_600_000);
-  if (hours < 1) return { en: 'Just now', ar: 'الآن' };
-  if (hours < 24) return { en: `${hours} hour${hours > 1 ? 's' : ''} ago`, ar: `منذ ${hours} ساعة` };
-  const days = Math.floor(hours / 24);
-  if (days < 7) return { en: `${days} day${days > 1 ? 's' : ''} ago`, ar: `منذ ${days} يوم` };
-  const weeks = Math.floor(days / 7);
-  return { en: `${weeks} week${weeks > 1 ? 's' : ''} ago`, ar: `منذ ${weeks} أسبوع` };
+  try {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    if (diff < 0) return { en: 'Just now', ar: 'الآن' };
+    const hours = Math.floor(diff / 3_600_000);
+    if (hours < 1) return { en: 'Just now', ar: 'الآن' };
+    if (hours === 1) return { en: '1h ago', ar: 'منذ ساعة' };
+    if (hours === 2) return { en: '2h ago', ar: 'منذ ساعتين' };
+    if (hours < 24) return { en: `${hours}h ago`, ar: `منذ ${hours} ساعة` };
+    const days = Math.floor(hours / 24);
+    if (days === 1) return { en: '1d ago', ar: 'منذ يوم' };
+    if (days === 2) return { en: '2d ago', ar: 'منذ يومين' };
+    if (days <= 30) return { en: `${days}d ago`, ar: `منذ ${days} يوم` };
+    const months = Math.floor(days / 30);
+    if (months === 1) return { en: '1mo ago', ar: 'منذ شهر' };
+    if (months === 2) return { en: '2mo ago', ar: 'منذ شهرين' };
+    return { en: `${months}mo ago`, ar: `منذ ${months} أشهر` };
+  } catch {
+    return { en: 'Recently', ar: 'مؤخراً' };
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractExperienceYears(row: any): { en: string; ar: string } {
+  const fullText = `${row.title || ''} ${row.description || ''} ${row.requirements || ''}`;
+
+  // 1. Check ranges: "3-5 years", "3 to 6 Yrs", "· 3 - 5 Yrs of Exp ·", "من 3 الى 5 سنوات"
+  const rangeMatch = fullText.match(/(\d+)\s*(?:-|to|إلى|الي)\s*(\d+)\s*(?:years?|yrs?|سنوات|سنة)/i) ||
+                     fullText.match(/·?\s*(\d+)\s*-\s*(\d+)\s*Yrs of Exp/i);
+  if (rangeMatch) {
+    const min = parseInt(rangeMatch[1], 10);
+    const max = parseInt(rangeMatch[2], 10);
+    if (min < 30 && max < 30 && max >= min) {
+      return {
+        en: `${min} - ${max} years`,
+        ar: `${min} - ${max} سنوات`
+      };
+    }
+  }
+
+  // 2. Check plus expressions: "6+ years", "+6 years", "more than 5 years", "at least 6 years", "خبرة 6 سنوات", "خبرة لا تقل عن 6 سنوات"
+  const plusMatch = fullText.match(/(?:at least|minimum|more than|min\.?|over|\+)?\s*(\d+)\s*\+?\s*(?:years?|yrs?|سنوات|سنة)\s*(?:of experience|experience|\+)?/i) ||
+                    fullText.match(/(?:خبرة\s*(?:لا تقل عن|\+)?\s*)(\d+)\s*(?:سنوات|سنة)/i);
+  if (plusMatch) {
+    const years = parseInt(plusMatch[1], 10);
+    if (years > 0 && years < 30) {
+      return {
+        en: `${years}+ years`,
+        ar: `+${years} سنوات`
+      };
+    }
+  }
+
+  // 3. Seniority & title fallback
+  const senior = row.seniority || '';
+  const title = (row.title || '').toLowerCase();
+  if (senior === 'Senior' || /senior|lead|principal|head|manager|director|expert/i.test(title)) {
+    return { en: '5+ years', ar: '+٥ سنوات' };
+  }
+  if (senior === 'Fresh' || /fresh|intern|entry|trainee/i.test(title)) {
+    return { en: '0 - 1 years', ar: '٠ - ١ سنة' };
+  }
+  if (senior === 'Junior' || /junior/i.test(title)) {
+    return { en: '1 - 3 years', ar: '١ - ٣ سنوات' };
+  }
+
+  return { en: '2 - 4 years', ar: '٢ - ٤ سنوات' };
 }
 
 function parseSkillsArray(raw: unknown): string[] {
@@ -48,125 +165,122 @@ function parseSkillsArray(raw: unknown): string[] {
   return [];
 }
 
-// Words/tokens that are NOT specific technical skills and must be filtered out
-const JOBS_SKILL_BLACKLIST = new Set([
-  'experienced', 'experience', 'senior', 'junior', 'mid level', 'expert', 'manager', 'specialist',
-  'internship', 'intern', 'student', 'entry level', 'fresh graduate', 'fresher',
-  'it', 'information technology', 'it/software development', 'software development',
-  'engineering', 'general', 'other', 'miscellaneous', 'various',
-  'research', 'ability', 'skills', 'knowledge', 'understanding',
-  'strong', 'good', 'excellent', 'proficient', 'familiar', 'basic', 'advanced',
-  'working knowledge', 'proven', 'demonstrated', 'solid',
-  'bi', 'ai', 'ml', 'dl',
-  'full time', 'part time', 'contract', 'freelance', 'remote',
-  'communication', 'teamwork', 'leadership', 'presentation skills', 'interpersonal skills',
-  'problem solving', 'critical thinking', 'analytical skills', 'analytical thinking',
-  'work under pressure', 'attention to detail', 'time management', 'multitasking',
-  'data analysis', 'business analysis', 'data analytics', 'market research', 'quantitative analysis'
-]);
-
-// Canonical expansions for common abbreviations found in scraped DB data
-const SKILL_EXPANSION: Record<string, string> = {
-  'bi': 'Business Intelligence',
-  'ai': 'Machine Learning',
-  'ml': 'Machine Learning',
-  'dl': 'Deep Learning',
-  'oop': 'OOP',
-  'nlp': 'NLP',
-  'etl': 'ETL',
-  'kpi': 'KPIs & Reporting',
-  'erp': 'ERP Systems',
-  'api': 'REST APIs',
-  'ci/cd': 'CI/CD',
-  'ux': 'UX Design',
-  'ui': 'UI Design',
-};
-
-// Semantic inference rules: if candidate knows key tools, they satisfy these competency areas
-const SKILL_INFERENCE_RULES: Record<string, string[]> = {
-  'data analysis': ['python', 'sql', 'pandas', 'excel', 'power bi', 'tableau', 'r'],
-  'data analytics': ['python', 'sql', 'pandas', 'excel', 'power bi', 'tableau', 'r'],
-  'business intelligence': ['power bi', 'tableau', 'sql', 'looker', 'qlik', 'excel'],
-  'business analysis': ['power bi', 'tableau', 'sql', 'excel', 'jira'],
-  'data visualization': ['power bi', 'tableau', 'matplotlib', 'seaborn', 'looker', 'excel'],
-  'data cleaning': ['python', 'pandas', 'sql', 'excel', 'r'],
-  'database management': ['sql', 'postgresql', 'mysql', 'sql server', 'oracle', 'mongodb'],
-  'etl': ['python', 'sql', 'airflow', 'ssis', 'dbt', 'spark'],
-  'machine learning': ['python', 'scikit-learn', 'tensorflow', 'pytorch', 'pandas', 'r'],
-  'deep learning': ['python', 'pytorch', 'tensorflow', 'keras'],
-  'frontend development': ['react', 'vue', 'angular', 'javascript', 'typescript', 'html', 'css'],
-  'backend development': ['node.js', 'python', 'django', 'flask', 'fastapi', 'java', 'c#', 'php', 'go'],
-  'cloud computing': ['aws', 'azure', 'gcp', 'google cloud'],
-};
-
-function isSkillMatchedByUser(reqSkill: string, userSkills: string[]): boolean {
-  const normReq = reqSkill.toLowerCase().trim();
-  const normUser = userSkills.map(s => s.toLowerCase().trim());
-
-  // 1. Direct or substring match
-  if (normUser.some(us => us === normReq || us.includes(normReq) || normReq.includes(us))) {
-    return true;
-  }
-
-  // 2. Semantic inference match (e.g. user knows Power BI -> satisfies Business Intelligence & Data Visualization)
-  const inferredFrom = SKILL_INFERENCE_RULES[normReq];
-  if (inferredFrom && inferredFrom.some(neededSkill => normUser.some(us => us.includes(neededSkill) || neededSkill.includes(us)))) {
-    return true;
-  }
-
-  return false;
+function normalizeSkill(s: string): string {
+  const key = s.toLowerCase().trim().replace(/\s+/g, ' ');
+  return SKILL_ALIASES[key] || s.trim();
 }
 
-function cleanAndFilterSkills(rawSkills: string[]): string[] {
+function cleanSkills(rawSkills: string[]): string[] {
   const seen = new Set<string>();
   const result: string[] = [];
-
   for (const raw of rawSkills) {
-    const trimmed = (raw || '').trim();
-    if (!trimmed || trimmed.length < 2) continue;
-
-    const lower = trimmed.toLowerCase();
-
-    // Skip blacklisted tokens
-    if (JOBS_SKILL_BLACKLIST.has(lower)) continue;
-
-    // Expand known abbreviations
-    const expanded = SKILL_EXPANSION[lower] || trimmed;
-    const expLower = expanded.toLowerCase();
-
-    if (JOBS_SKILL_BLACKLIST.has(expLower)) continue;
-
-    // Skip very short tokens (1-2 chars)
-    if (expanded.length <= 2) continue;
-
-    // Skip tokens that are purely numeric
-    if (/^\d+$/.test(expanded)) continue;
-
-    // Skip phrases with more than 4 words
-    if (expanded.split(/\s+/).length > 4) continue;
-
-    if (!seen.has(expanded)) { seen.add(expanded); result.push(expanded); }
+    const norm = normalizeSkill((raw || '').trim());
+    if (!norm || norm.length < 2 || norm.length > 40) continue;
+    const lower = norm.toLowerCase();
+    if (SKILL_BLACKLIST.has(lower)) continue;
+    if (/^\d+$/.test(norm) || norm.split(/\s+/).length > 4) continue;
+    if (!seen.has(lower)) { seen.add(lower); result.push(norm); }
   }
-
   return result;
 }
 
-/* ---------- GET handler ---------- */
+/**
+ * Check whether user satisfies a job's required skill.
+ * Uses direct match, substring, and semantic inference (only for inferred-quality jobs).
+ */
+function isSkillMatchedByUser(
+  reqSkill: string,
+  userSkills: string[],
+  allowInference: boolean
+): boolean {
+  const normReq = reqSkill.toLowerCase().trim();
+  const normUser = userSkills.map(s => s.toLowerCase().trim());
+
+  if (normUser.some(us => us === normReq || us.includes(normReq) || normReq.includes(us))) {
+    return true;
+  }
+  if (allowInference) {
+    const inferred = SKILL_INFERENCE[normReq];
+    if (inferred?.some(need => normUser.some(us => us.includes(need) || need.includes(us)))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Confidence-weighted match score.
+ * Verified skills (job_tags / job_description) → weight 1.0
+ * Inferred skills (title_inference)             → weight 0.4
+ *
+ * Returns null with confidence='low' when data_quality = 'unresolved'
+ * (no reliable required skills at all).
+ */
+function calculateMatchScore(
+  requiredSkills: string[],
+  inferredSkills: string[],
+  userSkills: string[],
+  dataQuality: JobDataQuality,
+  skillSources: SkillSource[],
+  targetRoleBoost: number,
+): { score: number | null; confidence: 'high' | 'medium' | 'low'; reason?: string } {
+  // Unresolved → no reliable data, don't fabricate a score
+  if (dataQuality === 'unresolved' && requiredSkills.length === 0 && inferredSkills.length === 0) {
+    return { score: null, confidence: 'low', reason: 'insufficient_job_data' };
+  }
+
+  const hasVerifiedSources = skillSources.some(s => s === 'job_tags' || s === 'job_description');
+
+  // Use verified skills with weight 1.0
+  const verifiedMatched = requiredSkills.filter(s =>
+    isSkillMatchedByUser(s, userSkills, !hasVerifiedSources)
+  ).length;
+  const verifiedTotal = requiredSkills.length;
+
+  // Use inferred skills with weight 0.4 (as fractional contribution)
+  const inferredMatched = inferredSkills.filter(s =>
+    isSkillMatchedByUser(s, userSkills, false)
+  ).length;
+  const inferredTotal = inferredSkills.length;
+
+  const weightedMatched = verifiedMatched * 1.0 + inferredMatched * 0.4;
+  const weightedTotal = verifiedTotal * 1.0 + inferredTotal * 0.4;
+
+  if (weightedTotal === 0) {
+    // Has data but no skills after filtering → neutral score, low confidence
+    return { score: 55 + targetRoleBoost, confidence: 'low', reason: 'no_skills_after_filter' };
+  }
+
+  const ratio = weightedMatched / weightedTotal;
+  const base = Math.round(ratio * 70 + 15 + targetRoleBoost);
+  const score = Math.min(98, Math.max(40, base));
+
+  const confidence: 'high' | 'medium' | 'low' =
+    dataQuality === 'verified' ? 'high' :
+    dataQuality === 'partial' ? 'medium' : 'low';
+
+  return { score, confidence };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/jobs
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const keyword = searchParams.get('keyword')?.trim().toLowerCase() || '';
+    const keyword       = searchParams.get('keyword')?.trim().toLowerCase() || '';
     const locationQuery = searchParams.get('location')?.trim().toLowerCase() || '';
-    const seniority = searchParams.get('seniority') || 'all';
-    const workType = searchParams.get('workType') || 'all';
-    const sortBy = searchParams.get('sortBy') || 'match';
-    const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 200);
+    const seniority     = searchParams.get('seniority') || 'all';
+    const workType      = searchParams.get('workType') || 'all';
+    const sortBy        = searchParams.get('sortBy') || 'match';
+    const limit         = Math.min(parseInt(searchParams.get('limit') || '100', 10), 200);
     const userSkillsParam = searchParams.get('skills') || '';
+    const targetRole    = searchParams.get('targetRole')?.trim().toLowerCase() || '';
 
     const userSkills = userSkillsParam
-      ? userSkillsParam.split(',').map((s) => s.trim().toLowerCase())
-      : ['sql', 'python', 'power bi', 'excel', 'data modeling', 'tableau', 'react', 'git'];
+      ? userSkillsParam.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+      : ['sql', 'python', 'power bi', 'excel', 'data modeling', 'react', 'git'];
 
     const supabase = await createClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -176,18 +290,14 @@ export async function GET(request: NextRequest) {
       try {
         let query = supabase.from('jobs').select('*');
 
-        // DB-level keyword search across title, company, location
         if (keyword) {
           query = query.or(
             `title.ilike.%${keyword}%,company.ilike.%${keyword}%,description.ilike.%${keyword}%`
           );
         }
-
-        // DB-level location filter
         if (locationQuery) {
           query = query.ilike('location', `%${locationQuery}%`);
         }
-
         if (seniority !== 'all') {
           query = query.ilike('seniority', `%${seniority}%`);
         }
@@ -200,84 +310,104 @@ export async function GET(request: NextRequest) {
         }
 
         const { data, error } = await query
-          .order('posted_at', { ascending: false })
+          .order('posted_at', { ascending: false, nullsFirst: false })
           .limit(limit);
 
         if (!error && Array.isArray(data) && data.length > 0) {
           jobsFromDb = data;
         }
       } catch (e) {
-        console.warn('Supabase jobs query fallback:', e);
+        console.warn('[/api/jobs] Supabase query error:', e);
       }
     }
 
-    /* ---- Transform DB rows → full JobItem[] ---- */
-    const targetRole = (searchParams.get('targetRole') || '').trim().toLowerCase();
-
+    // ── Transform DB rows → JobItem[] ──
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mappedJobs: JobItem[] = jobsFromDb.map((row: any) => {
-      // Clean scraped skills — removes garbage tokens and generic title phrases
-      const reqSkills = cleanAndFilterSkills(parseSkillsArray(row.required_skills));
+    const mappedJobs: (JobItem & { _postedAt: string | null; _matchConfidence: string })[] = jobsFromDb.map((row: any) => {
+      const dataQuality: JobDataQuality = row.data_quality ?? 'unresolved';
+      const skillSources: SkillSource[] = parseSkillsArray(row.skill_source) as SkillSource[];
 
-      const matchedSkills = reqSkills
-        .filter((s) => isSkillMatchedByUser(s, userSkills))
-        .map((s) => ({ name: s, weight: 0.8 }));
+      // Verified required skills
+      const reqSkills = cleanSkills(parseSkillsArray(row.required_skills));
+      // Inferred skills (lower confidence, separate field from DB)
+      const inferredSkills = cleanSkills(parseSkillsArray(row.inferred_skills ?? []));
+      // Preferred skills
+      const preferredSkills = cleanSkills(parseSkillsArray(row.preferred_skills ?? []));
 
-      const missingSkills = reqSkills
-        .filter((s) => !isSkillMatchedByUser(s, userSkills))
-        .map((s, idx) => {
-          const demandBase = Math.max(25, Math.min(75, 60 - idx * 7));
-          return {
-            name: s,
-            weight: parseFloat(((reqSkills.length - idx) / Math.max(reqSkills.length, 1)).toFixed(2)),
-            marketNote: `Found in ${demandBase}% of similar Cairo jobs`,
-            marketNoteAr: `موجودة في ${demandBase}% من وظائف القاهرة المشابهة`,
-          };
-        });
-
-      // Role title match boost
+      // Role title match boost (+15 if target role aligns with this job)
       const titleLower = (row.title || '').toLowerCase();
       let roleBoost = 0;
       if (targetRole) {
-        if (targetRole.includes('data') && (titleLower.includes('data') || titleLower.includes('bi') || titleLower.includes('analytics'))) {
-          roleBoost = 15;
-        } else if (targetRole.includes('frontend') && (titleLower.includes('frontend') || titleLower.includes('react') || titleLower.includes('web'))) {
-          roleBoost = 15;
-        } else if (targetRole.includes('backend') && (titleLower.includes('backend') || titleLower.includes('node') || titleLower.includes('api'))) {
-          roleBoost = 15;
+        const rolePatterns: [string, string[]][] = [
+          ['data', ['data', 'bi', 'analytics', 'analyst']],
+          ['frontend', ['frontend', 'react', 'web', 'ui']],
+          ['backend', ['backend', 'node', 'api', 'server']],
+          ['fullstack', ['full stack', 'fullstack', 'full-stack']],
+          ['devops', ['devops', 'cloud', 'sre', 'platform']],
+          ['mobile', ['mobile', 'flutter', 'android', 'ios']],
+        ];
+        for (const [rkey, patterns] of rolePatterns) {
+          if (targetRole.includes(rkey) && patterns.some(p => titleLower.includes(p))) {
+            roleBoost = 15;
+            break;
+          }
         }
       }
 
-      const matchRatio = reqSkills.length > 0 ? (matchedSkills.length / reqSkills.length) : 0.8;
-      const baseMatch = Math.round(matchRatio * 75 + 15 + roleBoost);
-      const matchScore = Math.min(98, Math.max(55, baseMatch));
+      const { score: matchScore, confidence: matchConfidence } = calculateMatchScore(
+        reqSkills, inferredSkills, userSkills, dataQuality, skillSources, roleBoost
+      );
+
+      // Skills for display: verified matched/missing
+      const matchedSkills = [
+        ...reqSkills.filter(s => isSkillMatchedByUser(s, userSkills, false))
+          .map(s => ({ name: s, weight: 1.0 })),
+        // Show partial matches from inferred at reduced weight
+        ...inferredSkills.filter(s => isSkillMatchedByUser(s, userSkills, false))
+          .map(s => ({ name: s, weight: 0.4 })),
+      ].slice(0, 8);
+
+      const missingSkills = [
+        ...reqSkills.filter(s => !isSkillMatchedByUser(s, userSkills, false))
+          .map((s, idx) => ({
+            name: s,
+            weight: parseFloat(((reqSkills.length - idx) / Math.max(reqSkills.length, 1)).toFixed(2)),
+            marketNote: `Verified: found in job listing`,
+            marketNoteAr: `مُستخرجة من إعلان الوظيفة مباشرة`,
+          })),
+        ...preferredSkills.filter(s => !isSkillMatchedByUser(s, userSkills, false))
+          .map(s => ({
+            name: s,
+            weight: 0.3,
+            marketNote: `Preferred (nice to have)`,
+            marketNoteAr: `مُفضَّلة (ميزة إضافية)`,
+          })),
+      ].slice(0, 6);
 
       const wt = normalizeWorkType(row.work_type, !!row.is_remote);
       const senior: JobItem['seniority'] =
-        (['Fresh', 'Junior', 'Mid', 'Senior'].includes(row.seniority) ? row.seniority : 'Junior') as JobItem['seniority'];
+        (['Fresh', 'Junior', 'Mid', 'Senior'].includes(row.seniority)
+          ? row.seniority
+          : 'Mid') as JobItem['seniority'];
       const posted = timeAgo(row.posted_at);
 
-      // Use real experience_years from DB if available, otherwise derive from seniority
-      const rawExpYears = row.experience_years || row.min_experience || null;
-      const expYearsEn = rawExpYears
-        ? `${rawExpYears}+ years`
-        : senior === 'Fresh' ? '0-1 years' : senior === 'Junior' ? '1-3 years' : senior === 'Senior' ? '5+ years' : '2-4 years';
-      const expYearsAr = rawExpYears
-        ? `+${rawExpYears} سنوات`
-        : senior === 'Fresh' ? '٠-١ سنوات' : senior === 'Junior' ? '١-٣ سنوات' : senior === 'Senior' ? '+٥ سنوات' : '٢-٤ سنوات';
+      const expYears = extractExperienceYears(row);
+      const expYearsEn = expYears.en;
+      const expYearsAr = expYears.ar;
 
-      const descLines = (row.description || '').split(/\n|•/).filter(Boolean);
-      const reqLines = (row.requirements || '').split(/\n|•/).filter(Boolean);
+      const descLines = (row.description || '').split(/\n|•/).map((s: string) => s.trim()).filter(Boolean);
+      const reqLines = (row.requirements || '').split(/\n|•/).map((s: string) => s.trim()).filter(Boolean);
 
-      const job: JobItem = {
+      const effectiveMatchScore = matchScore ?? 50; // UI gets a number; confidence shown separately
+
+      const job = {
         id: row.id,
         title: row.title,
         titleAr: row.title_ar || row.title,
-        company: row.company,
-        companyAr: row.company_ar || row.company,
-        logo:
-          row.company_logo ||
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(row.company.slice(0, 2))}&background=0D8ABC&color=fff&bold=true`,
+        company: row.company || 'Employer',
+        companyAr: row.company_ar || row.company || 'جهة العمل',
+        logo: row.company_logo ||
+          `https://ui-avatars.com/api/?name=${encodeURIComponent((row.company || 'CO').slice(0, 2))}&background=0D8ABC&color=fff&bold=true`,
         companyLogo: row.company_logo || null,
         company_logo: row.company_logo || null,
         applyUrl: row.apply_url || '',
@@ -286,68 +416,78 @@ export async function GET(request: NextRequest) {
         locationAr: row.location_ar || row.location || 'القاهرة، مصر',
         workType: wt,
         workTypeAr: (workTypeArMap[wt] || 'من مقر الشركة') as JobItem['workTypeAr'],
-        employmentType: 'Full-time',
-        employmentTypeAr: 'دوام كامل',
+        employmentType: 'Full-time' as const,
+        employmentTypeAr: 'دوام كامل' as const,
         seniority: senior,
         seniorityAr: seniorityArMap[senior] || 'متوسط',
-        salaryRange: row.salary_range || 'Competitive (EGP)',
+        salaryRange: row.salary_range || 'Competitive',
         salaryRangeAr: row.salary_range || 'راتب تنافسي',
-        matchScore,
+        matchScore: effectiveMatchScore,
         postedAgo: posted.en,
         postedAgoAr: posted.ar,
-        applicantsCount: row.applicants_count || Math.floor(Math.random() * 40) + 5,
+        applicantsCount: row.applicants_count || Math.floor(Math.random() * 35) + 5,
         department: row.department || row.category || 'Technology',
-        departmentAr: row.department_ar || row.category_ar || 'التكنولوجيا',
+        departmentAr: row.department_ar || 'التكنولوجيا',
         education: row.education || "Bachelor's",
         educationAr: row.education_ar || 'بكالوريوس',
         experienceYears: expYearsEn,
         experienceYearsAr: expYearsAr,
         matchedSkills,
         missingSkills,
-        description: row.description || `Exciting role at ${row.company}`,
-        descriptionAr: row.description_ar || row.description || `فرصة عمل متميزة في ${row.company}`,
-        responsibilities: descLines.length > 0 ? descLines.slice(0, 5) : [`Work on core ${row.title} tasks`],
-        responsibilitiesAr: descLines.length > 0 ? descLines.slice(0, 5) : [`العمل على مهام ${row.title}`],
-        requirements: reqLines.length > 0 ? reqLines : reqSkills.slice(0, 5).map((s) => `Experience with ${s}`),
-        requirementsAr: reqLines.length > 0 ? reqLines : reqSkills.slice(0, 5).map((s) => `خبرة في ${s}`),
+        description: row.description || `Opportunity at ${row.company || 'a leading company'}`,
+        descriptionAr: row.description_ar || row.description || `فرصة عمل في ${row.company || 'شركة رائدة'}`,
+        responsibilities: descLines.slice(0, 5).length > 0 ? descLines.slice(0, 5) : [`Core ${row.title} responsibilities`],
+        responsibilitiesAr: descLines.slice(0, 5).length > 0 ? descLines.slice(0, 5) : [`مهام ${row.title} الأساسية`],
+        requirements: reqLines.slice(0, 5).length > 0 ? reqLines.slice(0, 5) : reqSkills.slice(0, 5).map(s => `Experience with ${s}`),
+        requirementsAr: reqLines.slice(0, 5).length > 0 ? reqLines.slice(0, 5) : reqSkills.slice(0, 5).map(s => `خبرة في ${s}`),
+        // Internal fields for sorting/analytics (not in JobItem interface but carried through)
+        _postedAt: row.posted_at || null,
+        _matchConfidence: matchScore === null ? 'unavailable' : matchConfidence,
       };
+
       return job;
     });
 
-    /* ---- Client-side filtering & sorting ---- */
-    let results = mappedJobs;
+    // ── Client-side Filtering ──
+    let results = mappedJobs as typeof mappedJobs;
 
     if (keyword) {
-      results = results.filter(
-        (j) =>
-          j.title.toLowerCase().includes(keyword) ||
-          j.titleAr.includes(keyword) ||
-          j.company.toLowerCase().includes(keyword) ||
-          j.matchedSkills.some((s) => s.name.toLowerCase().includes(keyword))
+      results = results.filter(j =>
+        j.title.toLowerCase().includes(keyword) ||
+        j.titleAr.includes(keyword) ||
+        j.company.toLowerCase().includes(keyword) ||
+        j.matchedSkills.some(s => s.name.toLowerCase().includes(keyword))
       );
     }
-
     if (locationQuery) {
-      results = results.filter(
-        (j) =>
-          j.location.toLowerCase().includes(locationQuery) ||
-          j.locationAr.toLowerCase().includes(locationQuery)
+      results = results.filter(j =>
+        j.location.toLowerCase().includes(locationQuery) ||
+        j.locationAr.toLowerCase().includes(locationQuery)
       );
     }
 
+    // ── Sorting ──
     if (sortBy === 'match') {
       results.sort((a, b) => b.matchScore - a.matchScore);
     } else if (sortBy === 'recent') {
-      results.sort((a, b) => b.applicantsCount - a.applicantsCount);
+      // Sort by real posted_at — nulls last
+      results.sort((a, b) => {
+        const aTime = a._postedAt ? new Date(a._postedAt).getTime() : 0;
+        const bTime = b._postedAt ? new Date(b._postedAt).getTime() : 0;
+        return bTime - aTime;
+      });
     }
 
+    // Strip internal fields before sending to client
+    const clientJobs: JobItem[] = results.map(({ _postedAt, _matchConfidence, ...job }) => job);
+
     return NextResponse.json({
-      jobs: results,
-      total: results.length,
+      jobs: clientJobs,
+      total: clientJobs.length,
       source: jobsFromDb.length > 0 ? 'supabase' : 'fallback',
     });
   } catch (err: unknown) {
-    console.error('Error in GET /api/jobs:', err);
+    console.error('[/api/jobs] GET error:', err);
     return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 });
   }
 }

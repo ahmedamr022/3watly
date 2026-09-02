@@ -191,6 +191,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           location: data.location || '',
           linkedin: data.linkedin || '',
           github: data.github || '',
+          portfolio: data.portfolio || '',
+          links: Array.isArray(data.links) ? data.links : [],
           summary: data.summary || '',
           filename: nextFile.name,
           targetRole: data.targetRole || resolvedTitle,

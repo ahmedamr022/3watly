@@ -9,11 +9,17 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AssistantPayload, getAssistantReply, roadmapReply, seedQuestion } from '../data/chat';
+import { AssistantPayload } from '../data/chat';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 
 export type Feedback = 'up' | 'down' | null;
+
+export interface ChatNavigationItem {
+  path: string;
+  label: string;
+  priority?: 'primary' | 'secondary';
+}
 
 export type ChatMessage = {
   id: string;
@@ -22,6 +28,8 @@ export type ChatMessage = {
   text?: string;
   content?: string;
   attachment?: string;
+  navigation?: ChatNavigationItem[];
+  followUps?: string[];
   payload?: AssistantPayload;
   pending?: boolean;
   feedback?: Feedback;
@@ -54,9 +62,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [isThinking, setIsThinking] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const isStreamingRef = useRef(false);
+  const isSendingRef = useRef(false);
 
-  // Load conversation history from Supabase on user mount or change
+  // Load conversation history from Supabase on mount
   const loadMessages = useCallback(async () => {
     if (!user) {
       setMessages([]);
@@ -83,7 +91,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           }));
           setMessages(formatted);
         } else {
-          // Default empty or seed message if desired
           setMessages([]);
         }
       }
@@ -98,12 +105,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     loadMessages();
   }, [loadMessages]);
 
-  // Send message and handle real-time streaming tokens
+  // Send message and process structured JSON response
   const sendMessage = useCallback(
     async (text: string, attachment?: string) => {
       const trimmed = text.trim();
       if (!trimmed && !attachment) return;
-      if (isStreamingRef.current || isThinking) return;
+      if (isSendingRef.current || isThinking) return;
 
       const userMsgId = `user-${Date.now()}`;
       const assistantMsgId = `assistant-${Date.now()}`;
@@ -131,7 +138,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       setMessages((prev) => [...prev, userMsg, pendingAssistantMsg]);
       setIsThinking(true);
       setError(null);
-      isStreamingRef.current = true;
+      isSendingRef.current = true;
 
       try {
         let activeCvPayload: any = undefined;
@@ -139,6 +146,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           const raw = localStorage.getItem('3watly_parsed_cv');
           if (raw) activeCvPayload = JSON.parse(raw);
         } catch {}
+
+        // Gather recent messages for memory context
+        const recentMessagesPayload = messages.slice(-6).map((m) => ({
+          role: m.role,
+          content: m.text || m.content || '',
+        }));
 
         const response = await fetch('/api/copilot/chat', {
           method: 'POST',
@@ -148,6 +161,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             attachment,
             userId: user?.id,
             activeCv: activeCvPayload,
+            recentMessages: recentMessagesPayload,
             user: user
               ? {
                   id: user.id,
@@ -160,56 +174,50 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (!response.ok) {
-          if (response.status === 401) {
-            toast.error('يرجى تسجيل الدخول لاستخدام المساعد الذكي / Please log in to chat.');
-            throw new Error('Unauthorized');
+          if (response.status === 429) {
+            toast.error('تم تجاوز الحد المسموح من الأسئلة مؤقتاً، يرجى الانتظار قليلاً');
+            throw new Error('Rate limit exceeded');
           }
           const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error || `Server error ${response.status}`);
+          throw new Error(errData.error || errData.message || `Server error ${response.status}`);
         }
 
-        const reader = response.body?.getReader();
-        if (!reader) throw new Error('No response stream available');
+        const data = await response.json();
 
-        const decoder = new TextDecoder('utf-8');
-        let accumulatedText = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          accumulatedText += chunk;
-
+        if (data.success && data.data) {
+          const { message, navigation, followUps } = data.data;
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === assistantMsgId
                 ? {
                     ...msg,
-                    text: accumulatedText,
-                    content: accumulatedText,
+                    text: message,
+                    content: message,
+                    navigation: Array.isArray(navigation) ? navigation : [],
+                    followUps: Array.isArray(followUps) ? followUps : [],
+                    pending: false,
+                  }
+                : msg
+            )
+          );
+        } else {
+          // Fallback if plain text returned
+          const msgText = typeof data === 'string' ? data : (data.message || 'تمت معالجة استفسارك بنجاح.');
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMsgId
+                ? {
+                    ...msg,
+                    text: msgText,
+                    content: msgText,
                     pending: false,
                   }
                 : msg
             )
           );
         }
-
-        // Final state sync
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === assistantMsgId
-              ? {
-                  ...msg,
-                  text: accumulatedText,
-                  content: accumulatedText,
-                  pending: false,
-                }
-              : msg
-          )
-        );
       } catch (err: any) {
-        console.error('Streaming error in ChatContext:', err);
+        console.error('Error sending message in ChatContext:', err);
         setError(err?.message || 'Failed to send message');
 
         setMessages((prev) =>
@@ -227,16 +235,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         );
       } finally {
         setIsThinking(false);
-        isStreamingRef.current = false;
+        isSendingRef.current = false;
       }
     },
-    [isThinking]
+    [isThinking, user, messages]
   );
 
   // Clear/Reset chat conversation
   const resetChat = useCallback(async () => {
     setIsThinking(false);
-    isStreamingRef.current = false;
+    isSendingRef.current = false;
     setMessages([]);
 
     try {

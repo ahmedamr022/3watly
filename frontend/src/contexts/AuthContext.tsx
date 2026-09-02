@@ -12,6 +12,9 @@ export interface User {
   fullName: string;
   avatarUrl?: string | null;
   targetRole?: string;
+  location?: string;
+  phone?: string;
+  createdAt?: string;
   token?: string;
   hasUploadedCv?: boolean;
   onboardingCompleted?: boolean;
@@ -108,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               fullName,
               avatarUrl,
               targetRole: metadata.target_role || undefined,
+              createdAt: session.user.created_at,
               token: session.access_token,
               onboardingCompleted,
               hasUploadedCv: metadata.has_uploaded_cv ?? false

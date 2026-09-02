@@ -62,6 +62,8 @@ export interface ParsedCv {
   location: string;
   linkedin?: string;
   github?: string;
+  portfolio?: string;
+  links?: Array<{ title: string; url: string; type: string }>;
   summary: string;
   filename?: string;
   targetRole?: string;

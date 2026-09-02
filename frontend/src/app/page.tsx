@@ -28,9 +28,11 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { Logo } from "@/components/brand/Logo";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LandingPage() {
   const { isAr, t } = useLanguage();
+  const { user } = useAuth();
   const [activeNav, setActiveNav] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
@@ -60,32 +62,23 @@ export default function LandingPage() {
       if (isClickScrollingRef.current) return;
 
       // When at the top Hero section, no navbar link is active
-      if (window.scrollY < 320) {
+      if (window.scrollY < 300) {
         setActiveNav("");
         return;
       }
 
-      const sections = [
-        { id: "features", navId: "features" },
-        { id: "how-it-works", navId: "how-it-works" },
-        { id: "insights", navId: "insights" },
-      ];
+      const featuresEl = document.getElementById("features");
+      const howItWorksEl = document.getElementById("how-it-works");
+      const insightsEl = document.getElementById("insights");
 
-      const scrollPos = window.scrollY + 250;
-      let matched = false;
-      for (const section of sections) {
-        const el = document.getElementById(section.id);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPos >= top && scrollPos < top + height) {
-            setActiveNav(section.navId);
-            matched = true;
-            break;
-          }
-        }
-      }
-      if (!matched && window.scrollY >= 320) {
+      const scrollPos = window.scrollY + 280;
+
+      // From Market Insights section all the way down through Final CTA and Footer, keep "insights" active
+      if (insightsEl && scrollPos >= insightsEl.offsetTop) {
+        setActiveNav("insights");
+      } else if (howItWorksEl && scrollPos >= howItWorksEl.offsetTop) {
+        setActiveNav("how-it-works");
+      } else if (featuresEl && scrollPos >= featuresEl.offsetTop) {
         setActiveNav("features");
       }
     };
@@ -160,15 +153,16 @@ export default function LandingPage() {
             {/* Dark / Light Mode Switcher */}
             <ThemeToggle />
 
+            {/* Right Action Controls: Log In + Sign Up Free */}
             <Link 
-              href="/login" 
+              href={user ? "/dashboard" : "/login"} 
               className="text-[14px] font-bold text-[#1E293B] dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 px-2 py-1.5 transition-colors"
             >
               {isAr ? "تسجيل الدخول" : "Log In"}
             </Link>
 
             <Link 
-              href="/signup" 
+              href={user ? "/dashboard" : "/signup"} 
               className="px-4 sm:px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13.5px] font-bold shadow-md shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all duration-200"
             >
               {isAr ? "أنشئ حسابك مجاناً" : "Sign Up Free"}
@@ -255,10 +249,14 @@ export default function LandingPage() {
                 className="flex flex-wrap items-center gap-3.5 pt-2 w-full sm:w-auto"
               >
                 <Link
-                  href="/signup"
+                  href={user ? "/dashboard" : "/signup"}
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-[15px] shadow-lg shadow-blue-600/30 hover:shadow-blue-600/45 hover:-translate-y-0.5 transition-all duration-200 group"
                 >
-                  <span>{isAr ? "ابدأ الآن — مجاناً" : "Get Started — It's Free"}</span>
+                  <span>
+                    {user
+                      ? (isAr ? "الانتقال إلى لوحة التحكم" : "Go to Dashboard")
+                      : (isAr ? "ابدأ الآن — مجاناً" : "Get Started — It's Free")}
+                  </span>
                   <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isAr ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
                 </Link>
 
@@ -342,30 +340,22 @@ export default function LandingPage() {
       {/* ========================================================================= */}
       {/* 3. CORE FEATURES SECTION                                                 */}
       {/* ========================================================================= */}
-      <section id="features" className="w-full py-16 scroll-mt-20">
-        <Features />
-      </section>
+      <Features />
 
       {/* ========================================================================= */}
       {/* 4. HOW IT WORKS SECTION                                                  */}
       {/* ========================================================================= */}
-      <section id="how-it-works" className="w-full py-16 bg-slate-50/50 dark:bg-[#070B14]/50 scroll-mt-20 border-y border-slate-100 dark:border-white/5">
-        <HowItWorks />
-      </section>
+      <HowItWorks />
 
       {/* ========================================================================= */}
       {/* 5. LIVE MARKET INSIGHTS SECTION                                          */}
       {/* ========================================================================= */}
-      <section id="insights" className="w-full py-16 scroll-mt-20">
-        <MarketInsights />
-      </section>
+      <MarketInsights />
 
       {/* ========================================================================= */}
       {/* 6. FINAL CALL TO ACTION (CTA)                                            */}
       {/* ========================================================================= */}
-      <section className="w-full py-16">
-        <FinalCta />
-      </section>
+      <FinalCta />
 
       {/* ========================================================================= */}
       {/* 8. FOOTER                                                                */}
