@@ -66,7 +66,7 @@ const SKILL_ALIASES = {
   'nodejs': 'Node.js', 'node js': 'Node.js', 'node': 'Node.js',
   'postgres': 'PostgreSQL', 'pg': 'PostgreSQL',
   'js': 'JavaScript', 'ts': 'TypeScript',
-  'powerbi': 'Power BI', 'power_bi': 'Power BI', 'msbi': 'Power BI',
+  'powerbi': 'Power BI', 'power_bi': 'Power BI', 'msbi': 'Power BI', 'power bi': 'Power BI',
   'ms sql': 'SQL Server', 'mssql': 'SQL Server',
   'vue': 'Vue.js', 'vuejs': 'Vue.js',
   'nextjs': 'Next.js', 'next.js': 'Next.js',
@@ -76,6 +76,22 @@ const SKILL_ALIASES = {
   'restapi': 'REST APIs', 'rest api': 'REST APIs', 'rest': 'REST APIs',
   'ci/cd': 'CI/CD', 'cicd': 'CI/CD',
   'graphql': 'GraphQL', 'nlp': 'NLP', 'etl': 'ETL',
+  'android': 'Android', 'android development': 'Android', 'android application development': 'Android',
+  'ui/ux': 'UI/UX', 'ui / ux': 'UI/UX',
+  'pandas': 'Pandas', 'numpy': 'NumPy',
+  'python development': 'Python',
+  'web development': 'Web Development',
+  'mobile development': 'Mobile Development', 'mobile application development': 'Mobile Development',
+  'front-end development': 'Frontend Development', 'front-end web development': 'Frontend Development',
+  'back-end development': 'Backend Development',
+  'full stack development': 'Full Stack',
+  'machine learning fundamentals': 'Machine Learning',
+  'artificial intelligence (ai)': 'Artificial Intelligence',
+  'generative ai technologies': 'Generative AI',
+  'llms (large language models)': 'LLMs', 'large language models (llms)': 'LLMs',
+  'excel': 'Excel', 'microsoft excel': 'Excel', 'ms excel': 'Excel',
+  'chatgpt/openai tools': 'OpenAI / ChatGPT',
+  'data engineering': 'Data Engineering', 'database management': 'Database Management'
 };
 
 const SKILL_BLACKLIST = new Set([
@@ -92,6 +108,13 @@ const SKILL_BLACKLIST = new Set([
   'data analysis','business analysis','data analytics','market research',
   'shift based','males only','females only','unspecified','education','training',
   'technology','tech','computer science','software','it/software',
+  'medical/healthcare', 'media/journalism/publishing', 'logistics/supply chain',
+  'installation/maintenance/repair', 'r&d/science', 'strategy/consulting',
+  'engineering - oil & gas/energy', 'purchasing/procurement', 'sports and leisure',
+  'food & beverage', 'hospitality management', 'human resources',
+  'accounting/finance', 'administration', 'marketing/pr/advertising',
+  'sales/retail', 'customer service/support', 'senior management',
+  'senior full stack developer', 'executive/director', 'development', 'product', 'planning',
 ]);
 
 const ROLE_SKILL_PROFILES = {
@@ -138,13 +161,23 @@ const KNOWN_TECH_SKILLS = [
 function genId(url) {
   return 'wuzzuf_' + crypto.createHash('md5').update(url).digest('hex').slice(0, 16);
 }
-function cleanText(t) { return t.replace(/\s+/g, ' ').trim(); }
+function cleanText(t) {
+  if (!t) return '';
+  return t
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/\.css-[a-zA-Z0-9_-]+\s*\{[^}]*\}/gi, '')
+    .replace(/\{[^}]*\}/g, '')
+    .replace(/\.css-[a-zA-Z0-9_-]+/gi, '')
+    .replace(/@media[^{]*\{[^}]*\}\s*\}/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 function normalizeSkill(raw) {
   if (!raw) return null;
-  const trimmed = raw.trim();
-  if (trimmed.length < 2) return null;
-  const key = trimmed.toLowerCase().replace(/\s+/g,' ');
-  return SKILL_ALIASES[key] || trimmed;
+  const stripped = raw.replace(/^[\s•●\-\*\t]+/, '').replace(/[:\s]+$/, '').trim();
+  if (stripped.length < 2) return null;
+  const key = stripped.toLowerCase().replace(/\s+/g,' ');
+  return SKILL_ALIASES[key] || stripped;
 }
 function dedupeSkills(skills) {
   const seen = new Set();
@@ -197,23 +230,36 @@ function parseWorkType(text) {
 function extractSalaryFromCardText(cardText) {
   if (!cardText) return 'تحدد أثناء المقابلة';
   const match = cardText.match(/(\d[\d,]*\s*(?:to|-|–)\s*\d[\d,]*\s*(?:EGP|USD|EUR|ج\.م|\$)[^\n•,]*)/i);
-  if (match) return match[1].trim();
+  if (match) {
+    const rawSalary = match[1].replace(/(دوام كامل|دوام جزئي|عمل عن بعد|من مقر الشركة|Full Time|Part Time|Remote|On-site|Hybrid).*/i, '').trim();
+    return rawSalary || 'تحدد أثناء المقابلة';
+  }
   return 'تحدد أثناء المقابلة';
 }
 function parseRelativeDate(text) {
   if (!text?.trim()) return null;
   const t = text.toLowerCase().trim();
-  const now = new Date();
-  const h = t.match(/(\d+)\s*(?:hour|hours|hr|ساعة|ساعات)/);
-  if (h) { now.setHours(now.getHours() - +h[1]); return now.toISOString(); }
+  const nowMs = Date.now(); // Always UTC milliseconds — no timezone involved
+
+  const min = t.match(/(\d+)\s*(?:minute|minutes|min|mins|دقيقة|دقائق)/);
+  if (min) return new Date(nowMs - parseInt(min[1], 10) * 60_000).toISOString();
+
+  const h = t.match(/(\d+)\s*(?:hour|hours|hr|hrs|ساعة|ساعات)/);
+  if (h) return new Date(nowMs - parseInt(h[1], 10) * 3_600_000).toISOString();
+
   const d = t.match(/(\d+)\s*(?:day|days|يوم|أيام)/);
-  if (d) { now.setDate(now.getDate() - +d[1]); return now.toISOString(); }
+  if (d) return new Date(nowMs - parseInt(d[1], 10) * 86_400_000).toISOString();
+
   const w = t.match(/(\d+)\s*(?:week|weeks|أسبوع|أسابيع)/);
-  if (w) { now.setDate(now.getDate() - +w[1] * 7); return now.toISOString(); }
+  if (w) return new Date(nowMs - parseInt(w[1], 10) * 7 * 86_400_000).toISOString();
+
   const m = t.match(/(\d+)\s*(?:month|months|شهر|أشهر)/);
-  if (m) { now.setMonth(now.getMonth() - +m[1]); return now.toISOString(); }
-  if (/just now|الآن|اليوم|today/.test(t)) return now.toISOString();
-  return null; // NEVER fake a date
+  if (m) return new Date(nowMs - parseInt(m[1], 10) * 30 * 86_400_000).toISOString();
+
+  if (/yesterday|أمس/.test(t)) return new Date(nowMs - 86_400_000).toISOString();
+  if (/just now|الآن|اليوم|today/.test(t)) return new Date(nowMs - 600_000).toISOString();
+
+  return null;
 }
 function translateTitle(title) {
   const t = title.toLowerCase();
@@ -310,6 +356,7 @@ async function runConcurrent(items, concurrency, fn) {
 // Card Extractors
 // ─────────────────────────────────────────────────────────────────────────────
 function extractTitle($card, $) {
+  $card.find('style, script, noscript').remove();
   return cleanText(
     $card.find('h2').first().text() ||
     $card.find('h3').first().text() ||
@@ -336,20 +383,21 @@ function extractJobUrl($card) {
   try { return new URL(href, WUZZUF_BASE).toString(); } catch { return href.startsWith('http') ? href : `${WUZZUF_BASE}${href}`; }
 }
 function extractCompany($card) {
-  let c = $card.find('a[href*="/jobs/careers/"]').first().text().trim();
+  $card.find('style, script, noscript').remove();
+  let c = cleanText($card.find('a[href*="/jobs/careers/"]').first().text());
   if (!c || c.length < 2) {
     const alt = $card.find('img[alt*="Jobs and Careers"]').attr('alt') || '';
-    if (alt) c = alt.replace(/^Jobs and Careers at /i,'').replace(/ Egypt$/i,'').trim();
+    if (alt) c = cleanText(alt.replace(/^Jobs and Careers at /i,'').replace(/ Egypt$/i,''));
   }
   if (!c || c.length < 2) {
     const href = $card.find('a[href*="/jobs/careers/"]').attr('href') || '';
     const m = href.match(/careers\/(.*?)(?:-Egypt)?-\d+/);
-    if (m?.[1]) c = decodeURIComponent(m[1].replace(/-/g,' '));
+    if (m?.[1]) c = cleanText(decodeURIComponent(m[1].replace(/-/g,' ')));
   }
   if (!c || c.length < 2) {
     return /confidential/i.test($card.text()) ? 'Confidential' : null;
   }
-  return c.replace(/\s*[-–—]\s*(?:New Cairo|Cairo|Giza|Alexandria|Smart Village|Maadi|Egypt|مصر).*$/i,'').replace(/[-–—]$/,'').trim() || null;
+  return cleanText(c.replace(/\s*[-–—]\s*(?:New Cairo|Cairo|Giza|Alexandria|Smart Village|Maadi|Egypt|مصر).*$/i,'').replace(/[-–—]$/,'')) || null;
 }
 function extractLogo($card) {
   const img = $card.find('img[src*="company_logo"], a[href*="/jobs/careers/"] img').first();
@@ -358,6 +406,7 @@ function extractLogo($card) {
   return src.startsWith('http') ? src : `${WUZZUF_BASE}${src}`;
 }
 function extractLocation($card) {
+  $card.find('style, script, noscript').remove();
   return cleanText(
     $card.find('a[href*="location="], a[href*="city="]').first().text() ||
     $card.find('[class*="location"],[class*="css-5wys0k"],[class*="css-16x61xq"]').first().text()
@@ -366,7 +415,7 @@ function extractLocation($card) {
 function extractBadges($card) {
   const tags = [];
   $card.find('a[href*="Full-Time"],a[href*="Part-Time"],a[href*="Remote"],a[href*="On-Site"],a[href*="Hybrid"],a[href*="experience="],a[href*="level="]').each((_,el) => {
-    const t = $card.find(el).text().trim(); if (t) tags.push(t);
+    const t = cleanText($card.find(el).text()); if (t) tags.push(t);
   });
   return tags;
 }
@@ -374,7 +423,7 @@ function extractSkillTags($card) {
   const tags = [];
   // Priority 1: URL-pattern skill links (stable across Wuzzuf HTML changes)
   $card.find('a[href*="-Jobs-in-Egypt"],a[href*="skills="],a[href*="skill="]').each((_,el) => {
-    const txt = $card.find(el).text().replace(/^[·\s]+/,'').trim();
+    const txt = cleanText($card.find(el).text().replace(/^[·\s]+/,''));
     if (txt && txt.length >= 2 && txt.length <= 35 && !/full.?time|part.?time|on.?site|remote|hybrid|years/i.test(txt)) {
       tags.push(txt);
     }
@@ -382,13 +431,14 @@ function extractSkillTags($card) {
   // Priority 2: Legacy hash classes (fragile fallback)
   if (tags.length === 0) {
     $card.find('[class*="css-5x9"]').each((_,el) => {
-      const txt = $card.find(el).text().replace(/^[·\s]+/,'').trim();
+      const txt = cleanText($card.find(el).text().replace(/^[·\s]+/,''));
       if (txt && txt.length >= 2 && txt.length <= 35) tags.push(txt);
     });
   }
   return tags;
 }
 function extractDate($card) {
+  $card.find('style, script, noscript').remove();
   // 1. time[datetime]
   const timeEl = $card.find('time').first();
   if (timeEl.length) {
@@ -397,17 +447,23 @@ function extractDate($card) {
     const parsed = parseRelativeDate(timeEl.text());
     if (parsed) return parsed;
   }
-  // 2. Text scan for relative dates
+  // 2. Direct search for relative time elements inside card
   let found = null;
-  $card.find('*').each((_, el) => {
+  $card.find('div, span, p').each((_, el) => {
     if (found) return;
-    const t = $card.find(el).clone().children().remove().end().text().trim();
-    if (/(\d+\s*(minute|hour|day|week|month)s?\s*ago)|منذ\s*\d+/i.test(t)) found = parseRelativeDate(t);
+    const txt = cleanText($card.find(el).clone().children().remove().end().text());
+    if (/(?:minute|hour|day|week|month|ago|منذ|أمس|yesterday|just now)/i.test(txt)) {
+      found = parseRelativeDate(txt);
+    }
   });
   if (found) return found;
-  // 3. Hash-class fallback
-  const dateText = $card.find('[class*="date"],[class*="time"],[class*="posted"],[class*="css-1jldrig"],[class*="css-do2t5m"]').first().text().trim();
-  return parseRelativeDate(dateText); // may be null — that's correct
+
+  // 3. Fallback: card full text match
+  const cardText = cleanText($card.text());
+  const match = cardText.match(/(?:posted\s*)?(\d+\s*(?:minute|hour|day|week|month)s?\s*ago|just now|yesterday)/i);
+  if (match) return parseRelativeDate(match[1]);
+
+  return null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -482,6 +538,102 @@ async function enrichJob(job) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Category & Browse Pages (Bypasses Cloudflare block, high job yield)
+// ─────────────────────────────────────────────────────────────────────────────
+const WUZZUF_CATEGORIES = [
+  { slug: 'Data-Analyst', label: 'Data Analyst', maxPages: 4 },
+  { slug: 'Business-Intelligence', label: 'Business Intelligence', maxPages: 3 },
+  { slug: 'Data-Engineer', label: 'Data Engineer', maxPages: 3 },
+  { slug: 'Data-Scientist', label: 'Data Scientist', maxPages: 3 },
+  { slug: 'Python', label: 'Python Developer', maxPages: 4 },
+  { slug: 'SQL', label: 'SQL & Database', maxPages: 4 },
+  { slug: 'Analyst-Research', label: 'Analyst & Research', maxPages: 4 },
+];
+
+async function scrapeCategory(categorySlug, maxPages = 3) {
+  const jobs = [];
+  for (let page = 0; page < maxPages; page++) {
+    const url = `${WUZZUF_BASE}/a/${categorySlug}-Jobs-in-Egypt?start=${page}`;
+    const html = await fetchWithRetry(url, 2);
+    if (!html) continue;
+    try {
+      const $ = cheerio.load(html);
+      $('style, script, noscript').remove();
+      const seenUrls = new Set();
+      $('a[href*="/jobs/p/"]').each((_, link) => {
+        try {
+          const href = $(link).attr('href');
+          if (!href) return;
+          const fullUrl = href.startsWith('http') ? href : `${WUZZUF_BASE}${href}`;
+          if (seenUrls.has(fullUrl)) return;
+          const $card = $(link).closest('article,li,[class*="css-1gatmva"],[class*="css-pkv5jc"],div.job-card-wuzzuf');
+          if (!$card.length || !$card.find('h2,h3').length) return;
+          seenUrls.add(fullUrl);
+
+          const title = extractTitle($card, $);
+          const applyUrl = extractJobUrl($card) || fullUrl;
+          if (!title || !applyUrl) return;
+
+          // Reject explicitly non-tech / unrelated roles
+          const UNRELATED_TITLE_PATTERNS = [
+            /fabric/i, /yarn/i, /textile/i, /sales manager/i, /sales executive/i,
+            /field sales/i, /telesales/i, /call center/i, /customer service agent/i,
+            /real estate/i, /property consultant/i, /broker/i, /pharmacist/i, /pharma/i,
+            /medical rep/i, /doctor/i, /nurse/i, /civil engineer/i, /architect(?!ure)/i,
+            /site engineer/i, /interior design/i, /accountant(?!.*data)/i, /cashier/i,
+            /receptionist/i, /driver/i, /chef/i, /waiter/i, /technician(?!.*(lab|network|it))/i,
+            /maintenance/i, /procurement/i, /purchasing/i, /storekeeper/i, /warehouse/i,
+          ];
+          if (UNRELATED_TITLE_PATTERNS.some(p => p.test(title))) return;
+
+          const company = extractCompany($card);
+          const logo = extractLogo($card);
+          const location = extractLocation($card);
+          const badges = extractBadges($card);
+          const badgeStr = badges.join(' ');
+          const { workType, isRemote } = parseWorkType(badgeStr + ' ' + location);
+          const seniority = parseSeniority(badgeStr + ' ' + title);
+          const rawTags = extractSkillTags($card);
+          const postedAt = extractDate($card);
+
+          const verifiedFromTags = dedupeSkills([...rawTags, ...extractSkillsFromText(title)]);
+          const inferredSkills = inferSkillsFromTitle(title);
+          const skillSources = [];
+          if (verifiedFromTags.length > 0) skillSources.push('job_tags');
+          if (inferredSkills.length > 0) skillSources.push('title_inference');
+
+          const partial = { required_skills: verifiedFromTags, inferred_skills: inferredSkills, posted_at: postedAt, company };
+          const dataQuality = classifyQuality(partial);
+
+          jobs.push({
+            id: genId(applyUrl),
+            title, title_ar: translateTitle(title),
+            company: company || 'Confidential Employer', company_ar: company || 'جهة عمل رائدة',
+            company_logo: logo,
+            location, location_ar: translateLocation(location),
+            work_type: workType, is_remote: isRemote,
+            seniority, salary_range: extractSalaryFromCardText($card.text()),
+            required_skills: verifiedFromTags,
+            inferred_skills: inferredSkills,
+            preferred_skills: [],
+            skill_source: skillSources,
+            data_quality: dataQuality,
+            description: `Exciting opportunity for a ${title} position at ${company ?? 'a leading company'} in ${location}.`,
+            description_ar: `فرصة عمل في ${company ?? 'شركة رائدة'} — ${translateTitle(title)} (${translateLocation(location)})`,
+            requirements: verifiedFromTags.slice(0, 4).map(s => `• Experience with ${s}`).join('\n'),
+            requirements_ar: verifiedFromTags.slice(0, 4).map(s => `• خبرة في ${s}`).join('\n'),
+            apply_url: applyUrl, source: 'wuzzuf',
+            posted_at: postedAt, last_enriched_at: null,
+          });
+        } catch {}
+      });
+      await new Promise(r => setTimeout(r, 600 + Math.random() * 300));
+    } catch(e) { console.warn(`  ⚠️ Category parse error: ${e.message}`); }
+  }
+  return jobs;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Listing Scraper
 // ─────────────────────────────────────────────────────────────────────────────
 async function scrapeQuery(query, maxPages = 2) {
@@ -492,6 +644,7 @@ async function scrapeQuery(query, maxPages = 2) {
     if (!html) continue;
     try {
       const $ = cheerio.load(html);
+      $('style, script, noscript').remove();
       const seenUrls = new Set();
       $('a[href*="/job/"],a[href*="/jobs/p/"]').each((_, link) => {
         try {
@@ -610,8 +763,26 @@ async function main() {
 
   const allMap = new Map();
 
-  // Phase 1: Listing Pages
-  console.log('\n📋  Phase 1: Listing Pages\n');
+  // Phase 1: High-Yield Category & Browse Pages (Bypasses Cloudflare)
+  console.log('\n📋  Phase 1A: Browse & Category Pages (High Yield Tech Roles)\n');
+  for (const cat of WUZZUF_CATEGORIES) {
+    console.log(`  📂 Scraping Category: "${cat.label}" (${cat.slug})`);
+    try {
+      const results = await scrapeCategory(cat.slug, cat.maxPages);
+      let added = 0;
+      for (const job of results) {
+        const existing = allMap.get(job.id);
+        if (!existing || QUALITY_RANK[job.data_quality] >= QUALITY_RANK[existing.data_quality]) {
+          allMap.set(job.id, job); added++;
+        }
+      }
+      console.log(`  ✅ "${cat.label}": ${results.length} found (${added} new/updated). Total unique: ${allMap.size}\n`);
+    } catch(e) { console.log(`  ❌ "${cat.label}" failed: ${e.message}\n`); }
+    await new Promise(r => setTimeout(r, 600 + Math.random() * 300));
+  }
+
+  // Phase 1B: Search Queries
+  console.log('\n📋  Phase 1B: Keyword Search Pages\n');
   for (const query of SEARCH_QUERIES) {
     console.log(`  🔍 Scraping: "${query}"`);
     try {

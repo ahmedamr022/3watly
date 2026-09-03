@@ -83,25 +83,34 @@ export function containsKeyword(text: string, keyword: string): boolean {
 }
 
 const STRONGER_VERBS: Record<string, string> = {
-  Supported: 'Drove',
-  Helped: 'Led',
-  Assisted: 'Partnered on',
-  Created: 'Built',
+  Supported: 'Facilitated',
+  Helped: 'Contributed to',
+  Assisted: 'Collaborated on',
+  Created: 'Designed and built',
   Cleaned: 'Standardized',
-  Worked: 'Delivered'
+  Worked: 'Delivered',
+  Made: 'Developed',
+  Did: 'Executed',
+  Used: 'Leveraged',
+  Got: 'Achieved',
+  Managed: 'Oversaw',
+  Wrote: 'Authored',
+  Fixed: 'Resolved',
+  Ran: 'Executed',
 };
 
+/** Qualitative suffixes — never invent fake percentages */
 const IMPACT_SUFFIXES = [
-', cutting manual effort by 30%',
-', improving reporting accuracy by 18%',
-', reducing turnaround time by 25%',
-' across 3 business units',
-', supporting 15+ weekly business decisions'];
-
+  ', improving overall workflow efficiency',
+  ', supporting data-driven business decisions',
+  ', enhancing data quality and reliability',
+  ', delivering actionable insights to stakeholders',
+  ', strengthening team productivity and collaboration',
+];
 
 /**
- * Rewrites a bullet so it leads with a strong verb and ends with a measurable
- * outcome. Deterministic, so the same bullet always improves the same way.
+ * Rewrites a bullet so it leads with a strong verb and ends with a meaningful
+ * qualitative outcome. Deterministic — same input always produces the same output.
  */
 export function enhanceBullet(text: string, seed = 0): string {
   let out = text.trim();

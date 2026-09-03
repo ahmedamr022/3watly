@@ -25,7 +25,8 @@ import {
   X,
   AlertTriangle,
   Trash2,
-  Loader2
+  Loader2,
+  Phone
 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -96,6 +97,12 @@ export default function SettingsPage() {
 
   // File input ref for avatar
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Avatar error state for graceful fallback to initials
+  const [avatarError, setAvatarError] = useState(false);
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.avatarUrl]);
 
   // Profile data state with dynamic real fallback
   const [profile, setProfile] = useState<ProfileData>(() => {
@@ -355,48 +362,89 @@ export default function SettingsPage() {
 
               {/* Profile Details Layout */}
               <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                {/* Clean Avatar Circle (No floating camera badge in overview) */}
+                {/* Clean Avatar Circle with graceful initials fallback */}
                 <div className="shrink-0">
-                  {user?.avatarUrl ? (
+                  {user?.avatarUrl && !avatarError ? (
                     <img 
                       src={user.avatarUrl} 
                       alt={profile.fullName} 
-                      className="w-24 h-24 rounded-full object-cover shadow-md ring-4 ring-blue-50 dark:ring-blue-950/40"
+                      className="w-24 h-24 rounded-full object-cover shadow-md ring-4 ring-blue-100 dark:ring-blue-950/60"
+                      onError={() => setAvatarError(true)}
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-700 text-white font-extrabold text-[28px] flex items-center justify-center shadow-md shadow-blue-500/20 ring-4 ring-blue-50 dark:ring-blue-950/40">
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white font-black text-[30px] tracking-wider flex items-center justify-center shadow-md shadow-blue-500/25 ring-4 ring-blue-100 dark:ring-blue-950/60 select-none">
                       {userInitials}
                     </div>
                   )}
                 </div>
 
                 {/* Information Column */}
-                <div className="space-y-2 min-w-0 flex-1">
+                <div className="space-y-2.5 min-w-0 flex-1">
                   <div>
-                    <h3 className="text-[20px] font-bold text-[#0B132B] dark:text-white leading-tight">
+                    <h3 className="text-[22px] font-black text-[#0B132B] dark:text-white leading-tight tracking-tight">
                       {profile.fullName}
                     </h3>
-                    <p className="text-[14px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                      {profile.jobTitle}
-                    </p>
+                    {profile.jobTitle && (
+                      <p className="text-[13.5px] font-semibold text-blue-600 dark:text-blue-400 mt-1 inline-block bg-blue-50 dark:bg-blue-950/40 px-2.5 py-0.5 rounded-lg">
+                        {profile.jobTitle}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-y-2 gap-x-5 pt-1 text-[13px] text-slate-600 dark:text-slate-400">
-                    <div className="flex items-center gap-1.5">
-                      <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span className="truncate">{profile.email}</span>
-                    </div>
+                    {profile.email && (
+                      <div className="flex items-center gap-1.5">
+                        <Mail className="w-4 h-4 text-blue-500 shrink-0" />
+                        <span className="truncate">{profile.email}</span>
+                      </div>
+                    )}
+
+                    {profile.phone && (
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-4 h-4 text-indigo-500 shrink-0" />
+                        <span dir="ltr">{profile.phone}</span>
+                      </div>
+                    )}
+
+                    {profile.location && (
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
+                        <span>{profile.location}</span>
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span>{profile.location}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                      <Calendar className="w-4 h-4 text-amber-500 shrink-0" />
                       <span>{isAr ? `انضم في ${profile.dateJoined}` : `Joined ${profile.dateJoined}`}</span>
                     </div>
                   </div>
+
+                  {(profile.linkedin || profile.github) && (
+                    <div className="flex items-center gap-2 pt-1">
+                      {profile.linkedin && (
+                        <a
+                          href={profile.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[12px] font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 transition-colors"
+                        >
+                          <LinkedInIcon className="w-3.5 h-3.5 text-[#0A66C2]" />
+                          <span>LinkedIn</span>
+                        </a>
+                      )}
+                      {profile.github && (
+                        <a
+                          href={profile.github}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[12px] font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 transition-colors"
+                        >
+                          <GitHubIcon className="w-3.5 h-3.5" />
+                          <span>GitHub</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -609,12 +657,13 @@ export default function SettingsPage() {
 
                   <div className="relative w-28 h-28 sm:w-32 sm:h-32">
                     {/* Circular Avatar */}
-                    <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-700 text-white font-extrabold text-[32px] sm:text-[36px] flex items-center justify-center shadow-lg shadow-blue-500/20 ring-4 ring-blue-50 dark:ring-blue-950/40">
-                      {user?.avatarUrl ? (
+                    <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white font-black text-[32px] sm:text-[36px] tracking-wider flex items-center justify-center shadow-lg shadow-blue-500/20 ring-4 ring-blue-100 dark:ring-blue-950/60 select-none">
+                      {user?.avatarUrl && !avatarError ? (
                         <img 
                           src={user.avatarUrl} 
                           alt={profile.fullName} 
                           className="w-full h-full object-cover"
+                          onError={() => setAvatarError(true)}
                         />
                       ) : (
                         userInitials

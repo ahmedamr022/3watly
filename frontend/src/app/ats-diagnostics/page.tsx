@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Download, UploadCloud } from "lucide-react";
+import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { useCV } from "@/contexts/CVContext";
 import { ScoreOverview } from "@/components/ats/ScoreOverview";
@@ -9,15 +9,15 @@ import { StructureCard } from "@/components/ats/StructureCard";
 import { ParserCard } from "@/components/ats/ParserCard";
 import { KeywordCard } from "@/components/ats/KeywordCard";
 import { FixesCard } from "@/components/ats/FixesCard";
-import { ReuploadModal } from "@/components/ats/ReuploadModal";
 import { ActiveCVBadge } from "@/components/cv/CVVersionManager";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { downloadAtsDiagnosticPdf } from "@/utils/atsReportGenerator";
 
 export default function ATSDiagnosticsPage() {
-  const { analysis, applyFix } = useCV();
+  const { analysis, applyFix, cv } = useCV();
   const { isAr } = useLanguage();
-  const [reuploadOpen, setReuploadOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [runKey, setRunKey] = useState(0);
   const previousScore = useRef(analysis.score);
 
@@ -41,13 +41,21 @@ export default function ATSDiagnosticsPage() {
     }
   }, [analysis.score, isAr]);
 
-  const downloadReport = () => {
-    toast.success(
-      isAr
-        ? "جاري فتح نافذة الطباعة — احفظ التقرير كملف PDF."
-        : "Opening your print dialog — save the report as PDF."
-    );
-    window.setTimeout(() => window.print(), 350);
+  const handleDownloadReport = () => {
+    try {
+      setDownloading(true);
+      toast.success(
+        isAr
+          ? "جاري إنشاء وتحميل تقرير الـ ATS بصيغة PDF..."
+          : "Generating and downloading your ATS Diagnostic Report PDF..."
+      );
+      downloadAtsDiagnosticPdf(analysis, cv, isAr);
+    } catch (err) {
+      console.error("Failed to download ATS report:", err);
+      toast.error(isAr ? "فشل إنشاء تقرير الـ PDF" : "Failed to generate PDF report");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -80,17 +88,9 @@ export default function ATSDiagnosticsPage() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
-              onClick={() => setReuploadOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] text-[13px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-all shadow-xs cursor-pointer"
-            >
-              <UploadCloud className="h-4 w-4 text-[#1B57E0] dark:text-[#60A5FA]" />
-              <span>{isAr ? "إعادة رفع السيرة الذاتية" : "Re-upload CV"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={downloadReport}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white font-bold text-[13px] shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+              onClick={handleDownloadReport}
+              disabled={downloading}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white font-bold text-[13px] shadow-md shadow-blue-600/20 transition-all cursor-pointer disabled:opacity-60"
             >
               <Download className="h-4 w-4" />
               <span>{isAr ? "تحميل التقرير PDF" : "Download Report PDF"}</span>
@@ -110,24 +110,6 @@ export default function ATSDiagnosticsPage() {
 
         {/* Actionable Fixes */}
         <FixesCard analysis={analysis} onApply={applyFix} />
-
-        {reuploadOpen && (
-          <ReuploadModal
-            open={reuploadOpen}
-            onClose={() => setReuploadOpen(false)}
-            onComplete={(fileName) => {
-              setRunKey((key) => key + 1);
-              window.setTimeout(() => {
-                setReuploadOpen(false);
-                toast.success(
-                  isAr
-                    ? `تمت إعادة تحليل ${fileName} — تم تحديث التشخيص بنجاح.`
-                    : `${fileName} re-analyzed — diagnostics refreshed.`
-                );
-              }, 600);
-            }}
-          />
-        )}
       </div>
     </AppShell>
   );

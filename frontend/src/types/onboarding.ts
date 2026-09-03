@@ -64,6 +64,7 @@ export interface ParsedCv {
   github?: string;
   portfolio?: string;
   links?: Array<{ title: string; url: string; type: string }>;
+  socialLinks?: Array<{ id: string; platform: string; url: string }>;
   summary: string;
   filename?: string;
   targetRole?: string;
@@ -108,9 +109,11 @@ export interface ParsedCv {
   projects?: Array<{
     id: string;
     title: string;
-    description: string;
+    description?: string;
     technologies: string[];
     bullets?: string[];
+    github?: string;
+    link?: string;
   }>;
   categorizedSkillGroups?: Array<{
     id: string;

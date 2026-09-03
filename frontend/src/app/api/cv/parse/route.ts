@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mammoth from 'mammoth';
-import { extractText } from 'unpdf';
+import { extractText, extractLinks, getDocumentProxy } from 'unpdf';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -62,10 +62,19 @@ export interface ExtractedLinksResult {
   allLinks: ExtractedLinkItem[];
 }
 
-export function extractDocumentLinks(buffer: Buffer, rawText: string): ExtractedLinksResult {
+export function extractDocumentLinks(buffer: Buffer, rawText: string, additionalUrls: string[] = []): ExtractedLinksResult {
   const foundUrls = new Set<string>();
   const binaryString = buffer.toString('binary');
   const utf8String = buffer.toString('utf-8');
+
+  // 0. Include pre-extracted URLs (e.g. from PDF annotator extractLinks)
+  if (Array.isArray(additionalUrls)) {
+    for (const u of additionalUrls) {
+      if (typeof u === 'string' && u.trim().length > 5) {
+        foundUrls.add(u.trim());
+      }
+    }
+  }
 
   // 1. PDF /URI annotations: /URI (https://...)
   const pdfUriRegex = /\/URI\s*\(([^)\r\n]+)\)/gi;
@@ -107,6 +116,15 @@ export function extractDocumentLinks(buffer: Buffer, rawText: string): Extracted
     }
   }
 
+  // 3b. Markdown links: [text](url)
+  const mdLinkRegex = /\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/gi;
+  while ((match = mdLinkRegex.exec(rawText || utf8String)) !== null) {
+    const clean = match[2].replace(/[.,;:)>\]\\]+$/, '').trim();
+    if (clean.length > 8) {
+      foundUrls.add(clean);
+    }
+  }
+
   // 4. Domain-like text patterns without http
   const domainPatterns = [
     /(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9_\-\/]+/gi,
@@ -115,7 +133,7 @@ export function extractDocumentLinks(buffer: Buffer, rawText: string): Extracted
     /(?:www\.)?leetcode\.com\/(?:u\/)?[a-zA-Z0-9_\-\/]+/gi,
     /(?:www\.)?behance\.net\/[a-zA-Z0-9_\-\/]+/gi,
     /(?:www\.)?medium\.com\/@[a-zA-Z0-9_\-\/]+/gi,
-    /[a-zA-Z0-9_\-]+\.(?:vercel\.app|netlify\.app|github\.io|me|dev|tech|site|bio|link)(?:\/[a-zA-Z0-9_\-.~%]*)*\b/gi,
+    /[a-zA-Z0-9_\-]+\.(?:vercel\.app|netlify\.app|github\.io|streamlit\.app|me|dev|tech|site|bio|link)(?:\/[a-zA-Z0-9_\-.~%]*)*\b/gi,
   ];
 
   for (const pat of domainPatterns) {
@@ -157,23 +175,51 @@ export function extractDocumentLinks(buffer: Buffer, rawText: string): Extracted
       continue;
     }
 
+    // Skip certification / learning platform URLs from being categorized as social links
+    const CERT_SKIP = [
+      'cognitiveclass.ai', 'freecodecamp.org', '365datascience.com',
+      'coursera.org', 'udemy.com', 'edx.org', 'datacamp.com',
+      'pluralsight.com', 'skillshare.com', 'udacity.com', 'credly.com',
+      'credential.net', 'acclaim.com', 'alison.com', 'simplilearn.com',
+      'linkedin.com/learning', 'verify.', 'credential.',
+    ];
+    if (CERT_SKIP.some(d => lower.includes(d))) continue;
+
     if (seenUrls.has(lower)) continue;
     seenUrls.add(lower);
 
     const formattedUrl = url.startsWith('http') ? url : `https://${url}`;
 
-    if (lower.includes('linkedin.com/in/') || lower.includes('linkedin.com/pub/') || lower.includes('linkedin.com/')) {
+    // GitHub Pages (e.g. username.github.io) → portfolio, not GitHub profile
+    const isGhPages = /[a-z0-9_-]+\.github\.io/i.test(lower);
+
+    if (
+      (lower.includes('linkedin.com/in/') || lower.includes('linkedin.com/pub/')) &&
+      !lower.includes('linkedin.com/company/') &&
+      !lower.includes('linkedin.com/learning')
+    ) {
       if (!linkedin) linkedin = formattedUrl;
       allLinks.push({ title: 'LinkedIn', url: formattedUrl, type: 'linkedin' });
+    } else if (isGhPages) {
+      if (!portfolio) portfolio = formattedUrl;
+      allLinks.push({ title: 'Portfolio', url: formattedUrl, type: 'portfolio' });
     } else if (lower.includes('github.com/') && !lower.includes('github.com/features') && !lower.includes('github.com/pricing')) {
-      if (!github && !formattedUrl.includes('/tree/') && !formattedUrl.includes('/blob/')) {
-        github = formattedUrl;
+      // Distinguish profile (1 segment) from repo (2+ segments)
+      try {
+        const parsedUrl = new URL(formattedUrl);
+        const parts = parsedUrl.pathname.replace(/^\//, '').replace(/\/$/, '').split('/').filter(Boolean);
+        if (parts.length === 1) {
+          // Profile URL
+          if (!github) github = formattedUrl;
+          allLinks.push({ title: 'GitHub', url: formattedUrl, type: 'github' });
+        } else {
+          // Repo URL — include in allLinks for project correlation, but don't set as main github profile
+          allLinks.push({ title: 'GitHub Repo', url: formattedUrl, type: 'github' });
+        }
+      } catch {
+        if (!github) github = formattedUrl;
+        allLinks.push({ title: 'GitHub', url: formattedUrl, type: 'github' });
       }
-      allLinks.push({
-        title: formattedUrl.includes('/tree/') || formattedUrl.includes('/blob/') ? 'Project Repo' : 'GitHub',
-        url: formattedUrl,
-        type: 'github',
-      });
     } else if (lower.includes('kaggle.com/')) {
       allLinks.push({ title: 'Kaggle', url: formattedUrl, type: 'kaggle' });
     } else if (lower.includes('leetcode.com/')) {
@@ -185,15 +231,20 @@ export function extractDocumentLinks(buffer: Buffer, rawText: string): Extracted
     } else if (
       lower.includes('vercel.app') ||
       lower.includes('netlify.app') ||
-      lower.includes('github.io') ||
-      lower.includes('.me') ||
-      lower.includes('.dev') ||
-      lower.includes('.bio') ||
+      lower.includes('.me/') ||
+      lower.includes('.dev/') ||
       lower.includes('portfolio')
     ) {
       if (!portfolio) portfolio = formattedUrl;
       allLinks.push({ title: 'Portfolio', url: formattedUrl, type: 'portfolio' });
-    } else if (!lower.includes('google.com') && !lower.includes('gmail.com') && !lower.includes('wuzzuf.net')) {
+    } else if (
+      !lower.includes('google.com') &&
+      !lower.includes('gmail.com') &&
+      !lower.includes('wuzzuf.net') &&
+      !lower.includes('bayt.com') &&
+      !lower.includes('indeed.com') &&
+      !lower.includes('glassdoor.com')
+    ) {
       if (!portfolio && !linkedin && !github) portfolio = formattedUrl;
       allLinks.push({ title: 'Website', url: formattedUrl, type: 'website' });
     }
@@ -211,6 +262,7 @@ interface ExtractedData {
   linkedin: string;
   github: string;
   portfolio: string;
+  socialLinks?: Array<{ id: string; platform: string; url: string }>;
   links?: ExtractedLinkItem[];
   summary: string;
   targetRole: string;
@@ -303,7 +355,12 @@ export function parseCVText(
   fileName?: string,
   extractedLinksResult?: ExtractedLinksResult
 ): ExtractedData {
-  const lines = rawText
+  // Strip markdown-link syntax [Display Text](URL) → keep Display Text only.
+  // This prevents company names like [IT-Gate Academy](https://linkedin.com/company/...) 
+  // from polluting section parsing. We keep rawText intact for URL regex extraction.
+  const strippedText = rawText.replace(/\[([^\]]*)\]\(https?:\/\/[^)]+\)/g, '$1');
+
+  const lines = strippedText
     .split(/\r?\n/)
     .map(l => l.trim())
     .filter(Boolean);
@@ -405,7 +462,7 @@ export function parseCVText(
 
   const matches: Array<{ key: string; index: number; matchLen: number }> = [];
   SECTION_HEADERS.forEach(h => {
-    const m = rawText.match(h.regex);
+    const m = strippedText.match(h.regex);
     if (m && typeof m.index === 'number') {
       matches.push({ key: h.key, index: m.index, matchLen: m[0].length });
     }
@@ -417,8 +474,8 @@ export function parseCVText(
     const current = matches[i];
     const next = matches[i + 1];
     const startPos = current.index + current.matchLen;
-    const endPos = next ? next.index : rawText.length;
-    sections[current.key] = rawText.slice(startPos, endPos).trim();
+    const endPos = next ? next.index : strippedText.length;
+    sections[current.key] = strippedText.slice(startPos, endPos).trim();
   }
 
   // 8. Summary
@@ -599,11 +656,13 @@ export function parseCVText(
     description: string;
     technologies: string[];
     bullets: string[];
+    link?: string;
+    github?: string;
   }> = [];
 
   if (projectsText) {
     const projLines = projectsText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    let currentProject: { title: string; tech: string[]; bullets: string[] } | null = null;
+    let currentProject: { title: string; tech: string[]; bullets: string[]; link?: string; github?: string } | null = null;
     let pIdx = 1;
 
     for (let i = 0; i < projLines.length; i++) {
@@ -620,19 +679,57 @@ export function parseCVText(
             title: currentProject.title,
             description: currentProject.bullets.join(' '),
             technologies: currentProject.tech,
-            bullets: currentProject.bullets
+            bullets: currentProject.bullets,
+            link: currentProject.link || '',
+            github: currentProject.github || '',
           });
         }
 
-        const cleanTitle = line.replace(/•\s*(GitHub|Live Demo|Demo|Link).*$/i, '').trim();
+        // Extract any URL embedded in the title line
+        let lineGithub = '';
+        let lineDemo = '';
+        const mdMatch = line.match(/\[(?:github|code|repo)\]\((https?:\/\/[^\)]+)\)/i);
+        if (mdMatch) lineGithub = mdMatch[1];
+        const mdDemoMatch = line.match(/\[(?:demo|live demo|link|app)\]\((https?:\/\/[^\)]+)\)/i);
+        if (mdDemoMatch) lineDemo = mdDemoMatch[1];
+
+        const rawUrlMatch = line.match(/(https?:\/\/[^\s\)\],]+)/i);
+        if (rawUrlMatch) {
+          const u = rawUrlMatch[1].replace(/[.,;:)>\]\\]+$/, '');
+          if (u.toLowerCase().includes('github.com')) lineGithub = u;
+          else lineDemo = u;
+        }
+
+        const cleanTitle = line
+          .replace(/•\s*(GitHub|Live Demo|Demo|Link).*$/i, '')
+          .replace(/\[(?:github|code|repo|demo|live demo|link|app)\]\([^\)]+\)/gi, '')
+          .replace(/https?:\/\/[^\s\)\],]+/gi, '')
+          .replace(/[|•–—\s]+$/, '')
+          .trim();
+
         currentProject = {
-          title: cleanTitle,
+          title: cleanTitle || line,
           tech: [],
-          bullets: []
+          bullets: [],
+          github: lineGithub,
+          link: lineDemo
         };
       } else if (currentProject) {
         if (/^(january|february|march|april|may|june|july|august|september|october|november|december|\d{4})\s*[-–—]?\s*(january|february|march|april|may|june|july|august|september|october|november|december|\d{4})?$/i.test(line)) {
           continue;
+        }
+
+        // Check for project URLs in bullets/sublines
+        const urlMatches = line.match(/(https?:\/\/[^\s\)\],]+)/gi);
+        if (urlMatches) {
+          for (const rawUrl of urlMatches) {
+            const cleanUrl = rawUrl.replace(/[.,;:)>\]\\]+$/, '').trim();
+            if (cleanUrl.toLowerCase().includes('github.com')) {
+              if (!currentProject.github) currentProject.github = cleanUrl;
+            } else if (!cleanUrl.toLowerCase().includes('linkedin.com')) {
+              if (!currentProject.link) currentProject.link = cleanUrl;
+            }
+          }
         }
 
         const cleanBullet = line.replace(/^[•\-*]\s*/, '').trim();
@@ -657,10 +754,151 @@ export function parseCVText(
         title: currentProject.title,
         description: currentProject.bullets.join(' '),
         technologies: currentProject.tech,
-        bullets: currentProject.bullets
+        bullets: currentProject.bullets,
+        link: currentProject.link || '',
+        github: currentProject.github || '',
       });
     }
+
+    // Correlate document-level links with projects if still missing
+    if (extractedLinksResult?.allLinks && projects.length > 0) {
+      const projectGithubLinks = extractedLinksResult.allLinks.filter(l => {
+        if (l.type !== 'github') return false;
+        const clean = l.url.replace(/^https?:\/\/github\.com\/?/i, '').replace(/\/$/, '');
+        return clean.includes('/');
+      });
+
+      const demoLinks = extractedLinksResult.allLinks.filter(l => {
+        const u = l.url.toLowerCase();
+        return (
+          l.type !== 'github' &&
+          l.type !== 'linkedin' &&
+          !u.includes('google.com') &&
+          !u.includes('gmail.com') &&
+          !u.includes('cognitiveclass.ai') &&
+          !u.includes('freecodecamp.org') &&
+          !u.includes('365datascience.com')
+        );
+      });
+
+      let ghIdx = 0;
+      let demoIdx = 0;
+
+      for (const p of projects) {
+        const titleTokens = p.title.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length >= 3);
+        if (!p.github) {
+          const matchGh = projectGithubLinks.find(l => {
+            const slug = l.url.toLowerCase();
+            return titleTokens.some(tok => slug.includes(tok));
+          });
+          if (matchGh) {
+            p.github = matchGh.url;
+          } else if (ghIdx < projectGithubLinks.length) {
+            p.github = projectGithubLinks[ghIdx++].url;
+          }
+        }
+        if (!p.link) {
+          const matchDemo = demoLinks.find(l => {
+            const slug = l.url.toLowerCase();
+            return titleTokens.some(tok => slug.includes(tok));
+          });
+          if (matchDemo) {
+            p.link = matchDemo.url;
+          } else if (demoIdx < demoLinks.length) {
+            p.link = demoLinks[demoIdx++].url;
+          }
+        }
+      }
+    }
   }
+
+  // ─── Construct socialLinks ────────────────────────────────────────────
+  //  Rules:
+  //  1. github.com/<user>  (1 path segment) → GitHub profile (social)
+  //  2. github.com/<user>/<repo>            → project repo, SKIP from social
+  //  3. <user>.github.io                    → Portfolio (GitHub Pages)
+  //  4. linkedin.com/in/<user>              → LinkedIn
+  //  5. certification / course domains      → SKIP entirely
+  //  6. Everything else that looks personal → Personal
+
+  const CERT_DOMAINS = [
+    'cognitiveclass.ai', 'freecodecamp.org', '365datascience.com',
+    'coursera.org', 'udemy.com', 'edx.org', 'datacamp.com',
+    'linkedin.com/learning', 'pluralsight.com', 'skillshare.com',
+    'udacity.com', 'openclassrooms.com', 'simplilearn.com',
+    'alison.com', 'ibm.com/training', 'microsoft.com/learning',
+    'google.com/certificates', 'credential.net', 'acclaim.com',
+    'credly.com', 'verify.', 'credential.',
+  ];
+
+  const isCertUrl = (url: string) => CERT_DOMAINS.some(d => url.toLowerCase().includes(d));
+
+  const isGithubProfileUrl = (url: string) => {
+    try {
+      const u = new URL(url.startsWith('http') ? url : `https://${url}`);
+      if (!u.hostname.toLowerCase().includes('github.com')) return false;
+      const parts = u.pathname.replace(/^\//, '').replace(/\/$/, '').split('/').filter(Boolean);
+      return parts.length === 1; // just /username
+    } catch { return false; }
+  };
+
+  const isGithubRepoUrl = (url: string) => {
+    try {
+      const u = new URL(url.startsWith('http') ? url : `https://${url}`);
+      if (!u.hostname.toLowerCase().includes('github.com')) return false;
+      const parts = u.pathname.replace(/^\//, '').replace(/\/$/, '').split('/').filter(Boolean);
+      return parts.length >= 2; // /username/repo
+    } catch { return false; }
+  };
+
+  const isGithubPagesUrl = (url: string) =>
+    /[a-z0-9_-]+\.github\.io/i.test(url);
+
+  const detectPlatform = (url: string, type: string): string | null => {
+    const lower = url.toLowerCase();
+    if (isCertUrl(url)) return null; // skip certs
+    if (lower.includes('linkedin.com/company/') || lower.includes('linkedin.com/learning')) return null; // skip company pages
+    if (lower.includes('linkedin.com')) return 'LinkedIn';
+    if (isGithubPagesUrl(url)) return 'Portfolio';
+    if (isGithubRepoUrl(url)) return null; // skip repo links from social
+    if (isGithubProfileUrl(url)) return 'GitHub';
+    if (lower.includes('kaggle.com')) return 'Other';
+    if (lower.includes('leetcode.com')) return 'Other';
+    if (lower.includes('medium.com')) return 'Medium';
+    if (lower.includes('behance.net')) return 'Dribbble';
+    if (
+      lower.includes('vercel.app') || lower.includes('netlify.app') ||
+      lower.includes('.me/') || lower.includes('.dev/') ||
+      lower.includes('.io/') || lower.includes('portfolio') ||
+      lower.includes('.bio')
+    ) return 'Portfolio';
+    if (type === 'portfolio' || type === 'website') return 'Personal';
+    return null;
+  };
+
+  const socialLinks: Array<{ id: string; platform: string; url: string }> = [];
+  const seenSocialUrls = new Set<string>();
+
+  const pushSocial = (url: string, platform: string, id: string) => {
+    const key = url.toLowerCase().replace(/\/$/, '');
+    if (!url || seenSocialUrls.has(key)) return;
+    seenSocialUrls.add(key);
+    socialLinks.push({ id, platform, url });
+  };
+
+  // Seed with the top-level linkedin/github/portfolio already extracted
+  if (linkedin) pushSocial(linkedin, 'LinkedIn', 'link-li');
+  if (portfolio || isGithubPagesUrl(github)) {
+    const pUrl = portfolio || github;
+    pushSocial(pUrl, 'Portfolio', 'link-pf');
+  }
+  if (github && !isGithubPagesUrl(github)) pushSocial(github, 'GitHub', 'link-gh');
+
+  // Sweep allLinks for additional social entries
+  (extractedLinksResult?.allLinks || []).forEach((l, idx) => {
+    const detected = detectPlatform(l.url, l.type);
+    if (detected) pushSocial(l.url, detected, `link-${idx + 10}`);
+  });
 
   // 13. ATS Analysis & Metrics
   let actionVerbsCount = 0;
@@ -688,6 +926,7 @@ export function parseCVText(
     linkedin,
     github,
     portfolio,
+    socialLinks,
     links,
     summary,
     targetRole,
@@ -794,14 +1033,92 @@ export async function POST(request: NextRequest) {
     const lowerName = fileName.toLowerCase();
 
     let extractedText = '';
+    let pdfExtractedLinks: string[] = [];
 
     if (lowerName.endsWith('.pdf')) {
+      const uint8 = new Uint8Array(arrayBuffer);
       try {
-        const { text } = await extractText(new Uint8Array(arrayBuffer));
-        extractedText = Array.isArray(text) ? text.join('\n') : String(text || '');
+        const pdf = await getDocumentProxy(uint8);
+        const pageTexts: string[] = [];
+
+        for (let p = 1; p <= pdf.numPages; p++) {
+          const page = await pdf.getPage(p);
+          const annots = (await page.getAnnotations()).filter(
+            (a: any) => a.subtype === 'Link' && a.url
+          );
+
+          annots.forEach((a: any) => {
+            if (a.url && typeof a.url === 'string') {
+              pdfExtractedLinks.push(a.url.trim());
+            }
+          });
+
+          const textContent = await page.getTextContent();
+          const items = (textContent.items || []) as any[];
+
+          let currentLine: Array<{ x: number; str: string }> = [];
+          let lastY: number | null = null;
+          const pageLines: string[] = [];
+
+          for (const item of items) {
+            if (!item.str && item.str !== ' ') continue;
+            const x = item.transform?.[4] ?? 0;
+            const y = item.transform?.[5] ?? 0;
+            const w = item.width || (item.str.length * 6);
+
+            // Check if this text item intersects any link annotation rect: [x1, y1, x2, y2]
+            const matchedAnnot = annots.find((a: any) => {
+              if (!Array.isArray(a.rect) || a.rect.length < 4) return false;
+              const [rX1, rY1, rX2, rY2] = a.rect;
+              const minX = Math.min(rX1, rX2);
+              const maxX = Math.max(rX1, rX2);
+              const minY = Math.min(rY1, rY2);
+              const maxY = Math.max(rY1, rY2);
+
+              const intersectsX = (x >= minX - 6 && x <= maxX + 6) || (minX >= x - 6 && minX <= x + w + 6);
+              const intersectsY = (y >= minY - 6 && y <= maxY + 6);
+              return intersectsX && intersectsY;
+            });
+
+            let rendered = item.str;
+            if (matchedAnnot && item.str.trim().length > 0 && !item.str.includes('http')) {
+              rendered = `[${item.str.trim()}](${matchedAnnot.url.trim()})`;
+            }
+
+            if (lastY === null || Math.abs(y - lastY) < 4.5) {
+              currentLine.push({ x, str: rendered });
+            } else {
+              currentLine.sort((a, b) => a.x - b.x);
+              pageLines.push(currentLine.map((c) => c.str).join(' ').replace(/\s+/g, ' ').trim());
+              currentLine = [{ x, str: rendered }];
+            }
+            lastY = y;
+          }
+
+          if (currentLine.length > 0) {
+            currentLine.sort((a, b) => a.x - b.x);
+            pageLines.push(currentLine.map((c) => c.str).join(' ').replace(/\s+/g, ' ').trim());
+          }
+
+          pageTexts.push(pageLines.join('\n'));
+        }
+
+        extractedText = pageTexts.join('\n\n');
       } catch (pdfErr) {
-        console.warn('PDF extraction fallback to UTF-8 decoding:', pdfErr);
-        extractedText = buffer.toString('utf-8');
+        console.warn('Advanced PDF link-aware extraction fallback:', pdfErr);
+        try {
+          const { text } = await extractText(uint8);
+          extractedText = Array.isArray(text) ? text.join('\n') : String(text || '');
+        } catch {
+          extractedText = buffer.toString('utf-8');
+        }
+
+        try {
+          const linksResult = await extractLinks(uint8);
+          if (linksResult && Array.isArray(linksResult.links)) {
+            pdfExtractedLinks = linksResult.links.filter(l => typeof l === 'string' && l.trim().length > 0);
+          }
+        } catch {}
       }
     } else if (lowerName.endsWith('.docx') || lowerName.endsWith('.doc')) {
       try {
@@ -819,8 +1136,8 @@ export async function POST(request: NextRequest) {
       extractedText = `Resume of ${fileName.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ')}\n${targetRole || 'Data Analyst'}\nSkills: Python, SQL, Excel, Power BI`;
     }
 
-    // Extract binary annotations + regex links from buffer
-    const extractedLinksResult = extractDocumentLinks(buffer, extractedText);
+    // Extract binary annotations + unpdf links + regex links from buffer
+    const extractedLinksResult = extractDocumentLinks(buffer, extractedText, pdfExtractedLinks);
 
     const structuredData = parseCVText(extractedText, targetRole || undefined, fileName, extractedLinksResult);
 

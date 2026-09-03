@@ -78,6 +78,15 @@ export function CVVersionSelector() {
       const json = await res.json();
       const data = json.data;
 
+      // Build structured social links
+      const parsedSocialLinks = Array.isArray(data.socialLinks) && data.socialLinks.length > 0
+        ? data.socialLinks
+        : [
+            data.linkedin ? { id: 'link-li', platform: 'LinkedIn', url: data.linkedin } : null,
+            data.github ? { id: 'link-gh', platform: 'GitHub', url: data.github } : null,
+            data.portfolio ? { id: 'link-pf', platform: 'Portfolio', url: data.portfolio } : null,
+          ].filter(Boolean);
+
       const newCvData: CVData = {
         contact: {
           fullName: data.fullName || 'User',
@@ -85,13 +94,25 @@ export function CVVersionSelector() {
           phone: data.phone || '',
           email: data.email || '',
           location: data.location || 'Cairo, Egypt',
-          linkedin: data.linkedin || ''
+          linkedin: data.linkedin || '',
+          github: data.github || '',
+          portfolio: data.portfolio || '',
+          socialLinks: parsedSocialLinks as any
         },
         summary: data.summary || '',
         skillsSummary: null,
         experience: Array.isArray(data.experiences) && data.experiences.length > 0 ? data.experiences : [],
         education: Array.isArray(data.education) && data.education.length > 0 ? data.education : [],
-        projects: Array.isArray(data.projects) && data.projects.length > 0 ? data.projects : [],
+        projects: Array.isArray(data.projects) && data.projects.length > 0 ? data.projects.map((p: any, idx: number) => ({
+          id: p.id || `prj-${idx + 1}`,
+          title: p.title || `Project ${idx + 1}`,
+          technologies: Array.isArray(p.technologies) ? p.technologies : [],
+          github: p.github || '',
+          link: p.link || '',
+          bullets: Array.isArray(p.bullets) && p.bullets.length > 0
+            ? p.bullets
+            : (p.description ? [p.description] : [])
+        })) : [],
         skills: Array.isArray(data.categorizedSkillGroups) && data.categorizedSkillGroups.length > 0
           ? data.categorizedSkillGroups
           : (data.skills?.length ? [{ id: 'tech-1', label: 'Technical Skills', skills: data.skills }] : []),

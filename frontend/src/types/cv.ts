@@ -91,7 +91,15 @@ export type TemplateId = 'ats-classic' | 'compact' | 'two-column' | 'simple' | '
 
 export type SaveStatus = 'saved' | 'saving';
 
-export type FixId = 'keywords' | 'metrics' | 'skills-summary';
+export type FixId =
+  | 'keywords'
+  | 'metrics'
+  | 'skills-summary'
+  | 'summary-missing'
+  | 'summary-short'
+  | 'linkedin-missing'
+  | 'few-bullets'
+  | 'few-skills';
 
 export type ScoreBand = 'excellent' | 'good' | 'average' | 'poor';
 
@@ -104,4 +112,6 @@ export interface CVVersion {
   createdAt: string;
   updatedAt: string;
   isActive: boolean;
+  atsScore?: number;
+  analysis?: any;
 }

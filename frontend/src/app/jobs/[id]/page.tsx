@@ -238,14 +238,21 @@ export default function JobDetailsPage() {
               <span>•</span>
               <span>{job.applicantsCount} {isAr ? "متقدمين" : "applicants"}</span>
               <span>•</span>
-              {(job.salaryRangeAr === 'تحدد أثناء المقابلة' || job.salaryRange === 'Disclosed upon interview') ? (
+              {(
+                !job.salaryRange ||
+                job.salaryRange.includes('interview') ||
+                job.salaryRange.includes('Disclosed') ||
+                job.salaryRangeAr?.includes('تحدد أثناء المقابلة') ||
+                job.salaryRangeAr?.includes('يتحدد أثناء المقابلة') ||
+                job.salaryRange === 'تحدد أثناء المقابلة'
+              ) ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">
                   🤝 {isAr ? 'يتحدد أثناء المقابلة' : 'Disclosed upon interview'}
                 </span>
               ) : (
                 <>
                   <span className="font-bold text-emerald-700 dark:text-emerald-400">
-                    💰 {isAr ? job.salaryRangeAr : job.salaryRange}
+                    💰 {isAr ? job.salaryRangeAr.replace(/(دوام كامل|دوام جزئي).*/i, '').trim() : job.salaryRange.replace(/(Full Time|Part Time).*/i, '').trim()}
                   </span>
                   <span className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/30 text-[10.5px] text-emerald-600 dark:text-emerald-400 font-semibold">
                     {isAr ? 'معلن' : 'Disclosed'}

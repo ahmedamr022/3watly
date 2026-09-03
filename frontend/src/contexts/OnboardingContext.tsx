@@ -192,6 +192,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           linkedin: data.linkedin || '',
           github: data.github || '',
           portfolio: data.portfolio || '',
+          socialLinks: Array.isArray(data.socialLinks) ? data.socialLinks : [],
           links: Array.isArray(data.links) ? data.links : [],
           summary: data.summary || '',
           filename: nextFile.name,
@@ -219,7 +220,15 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           detectedSkills,
           categorizedSkills: data.categorizedSkills,
           categorizedSkillGroups: data.categorizedSkillGroups,
-          projects: data.projects || [],
+          projects: Array.isArray(data.projects) ? data.projects.map((p: any, idx: number) => ({
+            id: p.id || `prj-${idx + 1}`,
+            title: p.title || `Project ${idx + 1}`,
+            description: p.description || '',
+            technologies: Array.isArray(p.technologies) ? p.technologies : [],
+            bullets: Array.isArray(p.bullets) ? p.bullets : [],
+            github: p.github || '',
+            link: p.link || ''
+          })) : [],
           atsReport: data.atsReport,
           actionPlan: data.actionPlan
         };

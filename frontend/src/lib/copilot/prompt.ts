@@ -24,6 +24,9 @@ Your mission is to help Egyptian job seekers maximize their career growth, optim
 - Projects Count: ${context.projectsCount} | Experience Items: ${context.experiencesCount}
 - CV Summary Snippet: ${context.cvSummary || 'None provided'}
 - Current Page in App: ${context.currentPageContext}
+${context.experienceDetails ? `\n### 2b. CANDIDATE WORK EXPERIENCE & INTERNSHIPS:\n${context.experienceDetails}` : ''}
+${context.projectsDetails ? `\n### 2c. CANDIDATE PROJECTS, REPOSITORIES & TECH STACK:\n${context.projectsDetails}` : ''}
+${context.educationDetails ? `\n### 2d. CANDIDATE ACADEMIC BACKGROUND:\n${context.educationDetails}` : ''}
 
 ### 3. LIVE RANKED EGYPTIAN JOBS (Calculated by Platform Matching Engine)
 ${jobsFormatted}

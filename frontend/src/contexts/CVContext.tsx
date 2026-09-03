@@ -78,6 +78,14 @@ function syncActiveCVToPlatform(version: CVVersion) {
       phone: version.cvData.contact.phone,
       location: version.cvData.contact.location,
       linkedin: version.cvData.contact.linkedin,
+      github: version.cvData.contact.github || '',
+      portfolio: version.cvData.contact.portfolio || '',
+      socialLinks: version.cvData.contact.socialLinks || [],
+      links: (version.cvData.contact.socialLinks || []).map(sl => ({
+        title: sl.platform,
+        url: sl.url,
+        type: sl.platform.toLowerCase() as any
+      })),
       summary: version.cvData.summary,
       targetRole: version.targetRole || version.cvData.contact.jobTitle,
       skills: flatSkills,
@@ -85,7 +93,12 @@ function syncActiveCVToPlatform(version: CVVersion) {
       experiences: version.cvData.experience,
       education: version.cvData.education,
       educationHistory: version.cvData.education,
-      projects: version.cvData.projects
+      projects: version.cvData.projects,
+      atsScore: version.atsScore ?? (version.analysis?.score ?? analyzeCV(version.cvData, version.templateId).score),
+      atsReport: {
+        score: version.atsScore ?? (version.analysis?.score ?? analyzeCV(version.cvData, version.templateId).score),
+        band: version.analysis?.band
+      }
     };
 
     localStorage.setItem('3watly_parsed_cv', JSON.stringify(parsedData));
@@ -238,14 +251,32 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
               website: 'Personal'
             };
             const parsedSocialLinks: import('../types/cv').SocialLink[] = [];
-            if (Array.isArray(p.links) && p.links.length > 0) {
+
+            // 1. Use pre-structured socialLinks from the parser (new path)
+            if (Array.isArray(p.socialLinks) && p.socialLinks.length > 0) {
+              p.socialLinks.forEach((l: any) => {
+                if (l.url && !parsedSocialLinks.some((sl) => sl.url === l.url)) {
+                  parsedSocialLinks.push({
+                    id: l.id || `link-${parsedSocialLinks.length}`,
+                    platform: (l.platform as import('../types/cv').SocialPlatform) || 'Other',
+                    url: l.url
+                  });
+                }
+              });
+            }
+
+            // 2. Fallback: use raw links array from ExtractedLinkItem[]
+            if (parsedSocialLinks.length === 0 && Array.isArray(p.links) && p.links.length > 0) {
               p.links.forEach((l: any, idx: number) => {
                 const platform = platformMap[l.type] ?? 'Other';
                 if (l.url && !parsedSocialLinks.some(sl => sl.url === l.url)) {
                   parsedSocialLinks.push({ id: `link-${idx}`, platform, url: l.url });
                 }
               });
-            } else {
+            }
+
+            // 3. Fallback: build from individual linkedin/github/portfolio fields
+            if (parsedSocialLinks.length === 0) {
               if (p.linkedin) parsedSocialLinks.push({ id: 'link-li', platform: 'LinkedIn', url: p.linkedin });
               if (p.github) parsedSocialLinks.push({ id: 'link-gh', platform: 'GitHub', url: p.github });
               if (p.portfolio) parsedSocialLinks.push({ id: 'link-pf', platform: 'Portfolio', url: p.portfolio });
@@ -338,18 +369,23 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
 
     saveTimer.current = window.setTimeout(async () => {
+      let versionToSync: CVVersion | null = null;
+
       setVersions(prev => {
         const next = prev.map(v => {
           if (v.id === versionIdToSave) {
+            const liveAnalysis = analyzeCV(updatedCv, currentTemplate);
             const updated: CVVersion = {
               ...v,
               cvData: updatedCv,
               templateId: currentTemplate,
-              updatedAt: new Date().toISOString()
+              updatedAt: new Date().toISOString(),
+              atsScore: liveAnalysis.score,
+              analysis: liveAnalysis
             };
-            // If this is the active version, sync to platform
+            // Capture for sync AFTER render — never call side effects inside setState updater
             if (v.id === activeVersionId) {
-              syncActiveCVToPlatform(updated);
+              versionToSync = updated;
             }
             return updated;
           }
@@ -363,6 +399,13 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
         return next;
       });
+
+      // Dispatch event OUTSIDE setState updater to avoid "setState during render" error
+      if (versionToSync) {
+        setTimeout(() => {
+          syncActiveCVToPlatform(versionToSync!);
+        }, 0);
+      }
 
       setSaveStatus('saved');
     }, 450);
@@ -585,8 +628,114 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const applyFix = useCallback(
     (id: FixId): string => {
       let toastMessage = '';
+
+      // Role-specific default content helpers
+      const getRoleKey = (jobTitle: string) => {
+        const t = (jobTitle || '').toLowerCase();
+        if (/machine learning|ml|ai|computer vision|deep learning/.test(t)) return 'ml';
+        if (/frontend|react|web/.test(t)) return 'frontend';
+        if (/backend|node|php|laravel/.test(t)) return 'backend';
+        return 'data';
+      };
+
+      const ROLE_SUMMARY: Record<string, string> = {
+        ml: 'Aspiring Machine Learning Engineer with hands-on experience in model development, computer vision, and data preprocessing. Proficient in Python, TensorFlow, and Scikit-Learn. Passionate about applying AI to solve real-world problems in the Egyptian tech ecosystem.',
+        frontend: 'Frontend Developer with solid experience building responsive, performant web interfaces using React and Next.js. Skilled in TypeScript, Tailwind CSS, and modern UI/UX principles.',
+        backend: 'Backend Engineer with experience building scalable REST APIs and database-driven systems. Proficient in Node.js/Python and relational databases.',
+        data: 'Junior Data Analyst with hands-on experience in Exploratory Data Analysis (EDA), data visualization, and machine learning. Skilled in Python, SQL, and Power BI. Passionate about uncovering insights that drive data-informed decisions in the Egyptian market.',
+      };
+
+      const ROLE_SKILLS: Record<string, string[]> = {
+        ml: ['Python', 'TensorFlow', 'PyTorch', 'Scikit-Learn', 'OpenCV', 'Pandas', 'NumPy', 'Deep Learning', 'Computer Vision', 'Git'],
+        frontend: ['React', 'TypeScript', 'Next.js', 'Tailwind CSS', 'JavaScript', 'HTML5', 'CSS3', 'Git', 'REST APIs', 'Redux'],
+        backend: ['Node.js', 'Python', 'SQL', 'PostgreSQL', 'REST APIs', 'Docker', 'Git', 'Express', 'Redis', 'Linux'],
+        data: ['SQL', 'Python', 'Power BI', 'Excel', 'Pandas', 'Tableau', 'Data Visualization', 'Statistical Analysis', 'Data Cleaning', 'Git'],
+      };
+
+      const ROLE_BULLETS: Record<string, string[]> = {
+        ml: [
+          'Developed and trained machine learning models to solve real-world classification and regression problems.',
+          'Implemented data preprocessing and feature engineering pipelines to improve model performance.',
+          'Conducted exploratory data analysis (EDA) to uncover trends and patterns in large datasets.',
+        ],
+        frontend: [
+          'Built responsive and accessible web interfaces using React and Tailwind CSS.',
+          'Integrated REST APIs and managed application state using React Query and Context.',
+          'Collaborated with designers to translate Figma mockups into production-ready components.',
+        ],
+        backend: [
+          'Designed and implemented RESTful APIs serving high-traffic client applications.',
+          'Optimized SQL queries and database schemas to improve response times.',
+          'Wrote unit and integration tests to ensure code reliability and maintainability.',
+        ],
+        data: [
+          'Analyzed datasets using Python (Pandas, NumPy) to extract actionable business insights.',
+          'Built interactive dashboards in Power BI / Tableau to support executive decision-making.',
+          'Cleaned and transformed raw data from multiple sources to ensure consistency and accuracy.',
+        ],
+      };
+
       update((prev) => {
+        const roleKey = getRoleKey(prev.contact.jobTitle || '');
+
         switch (id) {
+          case 'summary-missing': {
+            const summaryText = ROLE_SUMMARY[roleKey];
+            toastMessage = 'Added an ATS-optimized Professional Summary.';
+            return { ...prev, summary: summaryText };
+          }
+
+          case 'summary-short': {
+            const existing = prev.summary.trim();
+            const extension = ` ${ROLE_SUMMARY[roleKey].split('. ').slice(-1)[0]}`;
+            const expanded = existing.endsWith('.') ? `${existing}${extension}` : `${existing}. ${extension.trim()}`;
+            toastMessage = 'Expanded your Professional Summary with more ATS-friendly content.';
+            return { ...prev, summary: expanded };
+          }
+
+          case 'linkedin-missing': {
+            toastMessage = 'Added a LinkedIn placeholder — update it with your actual profile link.';
+            return {
+              ...prev,
+              contact: {
+                ...prev.contact,
+                linkedin: 'https://www.linkedin.com/in/your-profile',
+              },
+            };
+          }
+
+          case 'few-bullets': {
+            const additions = ROLE_BULLETS[roleKey];
+            const exp = prev.experience.map((item) => {
+              const nonEmpty = item.bullets.filter((b) => b.trim().length > 0);
+              if (nonEmpty.length < 2) {
+                const needed = Math.max(0, 3 - nonEmpty.length);
+                return { ...item, bullets: [...nonEmpty, ...additions.slice(0, needed)] };
+              }
+              return item;
+            });
+            toastMessage = 'Added descriptive, action-led bullets to thin experience entries.';
+            return { ...prev, experience: exp };
+          }
+
+          case 'few-skills': {
+            const candidates = ROLE_SKILLS[roleKey];
+            const currentSkillsLower = prev.skills.flatMap((g) => g.skills.map((s) => s.toLowerCase()));
+            const toAdd = candidates.filter((s) => !currentSkillsLower.includes(s.toLowerCase())).slice(0, 5);
+            if (toAdd.length === 0) {
+              toastMessage = 'Your skills section is already comprehensive!';
+              return prev;
+            }
+            const skills = [...prev.skills];
+            if (skills.length > 0) {
+              skills[0] = { ...skills[0], skills: [...new Set([...skills[0].skills, ...toAdd])] };
+            } else {
+              skills.push({ id: 'skill-tech', label: 'Technical Skills', skills: toAdd });
+            }
+            toastMessage = `Added ${toAdd.join(', ')} to your Technical Skills group.`;
+            return { ...prev, skills };
+          }
+
           case 'keywords': {
             const missing = analysis.keywords.missing.slice(0, 3);
             if (missing.length === 0) {
@@ -595,11 +744,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
             }
             toastMessage = `Added ${missing.join(', ')} to your Technical Skills group.`;
             const skills = [...prev.skills];
-            const target = skills[0] ?? {
-              id: 'skill-tech',
-              label: 'Technical Skills',
-              skills: []
-            };
+            const target = skills[0] ?? { id: 'skill-tech', label: 'Technical Skills', skills: [] };
             const nextSkills = Array.from(new Set([...target.skills, ...missing]));
             if (skills.length === 0) {
               return { ...prev, skills: [{ ...target, skills: nextSkills }] };
@@ -607,29 +752,27 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
             skills[0] = { ...target, skills: nextSkills };
             return { ...prev, skills };
           }
+
           case 'metrics': {
             const exp = prev.experience.map((item, index) => {
-              const bullets = item.bullets.map((b, bIdx) =>
-                enhanceBullet(b, index + bIdx)
-              );
+              const bullets = item.bullets.map((b, bIdx) => enhanceBullet(b, index + bIdx));
               return { ...item, bullets };
             });
-            toastMessage = 'Enhanced bullets with measurable impact outcomes.';
+            toastMessage = 'Strengthened experience bullets with action verbs and impact language.';
             return { ...prev, experience: exp };
           }
+
           case 'skills-summary': {
-            const topList = prev.skills
-              .flatMap((g) => g.skills)
-              .slice(0, 8)
-              .join(' · ');
+            const topList = prev.skills.flatMap((g) => g.skills).slice(0, 8).join(' · ');
             toastMessage = 'Added an ATS-focused Skills Summary banner.';
             return {
               ...prev,
               skillsSummary: topList
                 ? `Core Competencies: ${topList}`
-                : 'Core Competencies: SQL · Python · Excel · Power BI · Data Modeling'
+                : 'Core Competencies: SQL · Python · Excel · Power BI · Data Modeling · Git',
             };
           }
+
           default:
             return prev;
         }
