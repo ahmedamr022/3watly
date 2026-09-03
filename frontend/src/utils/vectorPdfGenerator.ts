@@ -7,11 +7,23 @@ interface VectorPdfOptions {
 }
 
 /**
+ * Format any raw URL/handle into a valid web hyperlink.
+ */
+function formatUrl(rawUrl?: string): string {
+  if (!rawUrl) return '';
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('mailto:') || trimmed.startsWith('tel:')) return trimmed;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  return `https://${trimmed}`;
+}
+
+/**
  * Pure Vector PDF Generator:
- * - 100% Vector text (selectable, searchable, ATS compliant)
- * - 100% Genuine clickable links (LinkedIn, GitHub, Portfolio, Email, Projects)
+ * - 100% Vector selectable text (ATS compliant)
+ * - 100% Clickable hyperlinks for Email (mailto:), Phone (tel:), LinkedIn, GitHub, Portfolio, Projects (Live & Repo), and URLs in text
  * - True mathematical pagination (1 or 2 pages based on content)
- * - Direct file download straight to browser (no print popup, no browser URL/headers)
+ * - Direct file download straight to browser
  */
 export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = {}): void {
   const doc = new jsPDF({
@@ -46,7 +58,7 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
   };
 
   // 1. Header: Name
-  const fullName = cv.contact.fullName?.trim() || 'Ahmed Amr';
+  const fullName = cv.contact.fullName?.trim() || 'Candidate Name';
   doc.setFont(fontBold, 'bold');
   doc.setFontSize(19);
   doc.setTextColor(15, 23, 42); // slate-900
@@ -62,21 +74,58 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
     cursorY += 14;
   }
 
-  // Header: Contact Row 1 (Email • Phone • Location)
-  const contactParts: string[] = [];
-  if (cv.contact.email?.trim()) contactParts.push(cv.contact.email.trim());
-  if (cv.contact.phone?.trim()) contactParts.push(cv.contact.phone.trim());
-  if (cv.contact.location?.trim()) contactParts.push(cv.contact.location.trim());
+  // Header: Contact Row 1 (Email [Clickable mailto:] • Phone [Clickable tel:] • Location)
+  const email = cv.contact.email?.trim() || '';
+  const phone = cv.contact.phone?.trim() || '';
+  const location = cv.contact.location?.trim() || '';
 
-  if (contactParts.length > 0) {
+  const contactItems: Array<{ text: string; url?: string }> = [];
+  if (email) {
+    contactItems.push({ text: email, url: `mailto:${email}` });
+  }
+  if (phone) {
+    contactItems.push({ text: phone, url: `tel:${phone.replace(/[^\d+]/g, '')}` });
+  }
+  if (location) {
+    contactItems.push({ text: location });
+  }
+
+  if (contactItems.length > 0) {
     doc.setFont(fontRegular, 'normal');
     doc.setFontSize(9);
-    doc.setTextColor(71, 85, 105); // slate-600
-    doc.text(contactParts.join('  •  '), pageWidth / 2, cursorY, { align: 'center' });
+
+    const dotStr = '  •  ';
+    const dotWidth = doc.getTextWidth(dotStr);
+
+    let totalWidth = 0;
+    contactItems.forEach((item, idx) => {
+      totalWidth += doc.getTextWidth(item.text);
+      if (idx < contactItems.length - 1) totalWidth += dotWidth;
+    });
+
+    let currentX = (pageWidth - totalWidth) / 2;
+    contactItems.forEach((item, idx) => {
+      const itemWidth = doc.getTextWidth(item.text);
+      if (item.url) {
+        doc.setTextColor(29, 78, 216); // blue-700
+        doc.textWithLink(item.text, currentX, cursorY, { url: item.url });
+      } else {
+        doc.setTextColor(71, 85, 105); // slate-600
+        doc.text(item.text, currentX, cursorY);
+      }
+      currentX += itemWidth;
+
+      if (idx < contactItems.length - 1) {
+        doc.setTextColor(148, 163, 184); // slate-400
+        doc.text(dotStr, currentX, cursorY);
+        currentX += dotWidth;
+      }
+    });
+
     cursorY += 13;
   }
 
-  // Header: Contact Row 2 (Clickable Social Links)
+  // Header: Contact Row 2 (Clickable Social & Portfolio Links)
   const activeLinks = (Array.isArray(cv.contact.socialLinks) && cv.contact.socialLinks.length > 0)
     ? cv.contact.socialLinks.filter(l => Boolean(l.url && l.url.trim()))
     : [
@@ -90,7 +139,6 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
     doc.setFontSize(9);
     doc.setTextColor(29, 78, 216); // blue-700
 
-    // Measure total width to center clickable links
     const dotStr = '  •  ';
     const dotWidth = doc.getTextWidth(dotStr);
     let totalWidth = 0;
@@ -103,9 +151,9 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
     activeLinks.forEach((link, idx) => {
       const label = link.platform || 'Link';
       const labelWidth = doc.getTextWidth(label);
-      
-      const formatUrl = (u: string) => (u.startsWith('http://') || u.startsWith('https://') ? u : `https://${u}`);
-      doc.textWithLink(label, currentX, cursorY, { url: formatUrl(link.url) });
+      const targetUrl = formatUrl(link.url);
+
+      doc.textWithLink(label, currentX, cursorY, { url: targetUrl });
       currentX += labelWidth;
 
       if (idx < activeLinks.length - 1) {
@@ -134,6 +182,40 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
     cursorY += 10;
   };
 
+  // Helper to render text with auto-detected inline hyperlinks
+  const renderTextWithInlineLinks = (text: string, x: number, maxWidth: number) => {
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|github\.com\/[^\s]+|linkedin\.com\/[^\s]+)/gi;
+    const lines = doc.splitTextToSize(text, maxWidth);
+
+    lines.forEach((line: string) => {
+      checkPageBreak(12.5);
+
+      if (!urlRegex.test(line)) {
+        doc.setTextColor(30, 41, 59);
+        doc.text(line, x, cursorY);
+      } else {
+        // Line contains link, match and render segments
+        let lineX = x;
+        const words = line.split(' ');
+        words.forEach((word, wIdx) => {
+          const isLink = /^(https?:\/\/|www\.|github\.com\/|linkedin\.com\/)/i.test(word);
+          const wordWithSpace = wIdx < words.length - 1 ? `${word} ` : word;
+          const wordWidth = doc.getTextWidth(wordWithSpace);
+
+          if (isLink) {
+            doc.setTextColor(29, 78, 216);
+            doc.textWithLink(wordWithSpace, lineX, cursorY, { url: formatUrl(word) });
+          } else {
+            doc.setTextColor(30, 41, 59);
+            doc.text(wordWithSpace, lineX, cursorY);
+          }
+          lineX += wordWidth;
+        });
+      }
+      cursorY += 12;
+    });
+  };
+
   // Section Ordering
   const order = cv.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects'];
 
@@ -144,13 +226,7 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
       renderSectionHeading('Professional Summary');
       doc.setFont(fontRegular, 'normal');
       doc.setFontSize(9.2);
-      doc.setTextColor(30, 41, 59); // slate-800
-      const lines = doc.splitTextToSize(cv.summary.trim(), contentWidth);
-      lines.forEach((line: string) => {
-        checkPageBreak(13);
-        doc.text(line, marginX, cursorY);
-        cursorY += 12.5;
-      });
+      renderTextWithInlineLinks(cv.summary.trim(), marginX, contentWidth);
       cursorY += 3;
     }
 
@@ -191,21 +267,15 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
         if (item.bullets && item.bullets.length > 0) {
           doc.setFont(fontRegular, 'normal');
           doc.setFontSize(9);
-          doc.setTextColor(30, 41, 59);
           item.bullets.forEach((bullet) => {
             if (!bullet.trim()) return;
-            const bulletLines = doc.splitTextToSize(bullet.trim(), contentWidth - 14);
-            checkPageBreak(bulletLines.length * 12 + 4);
-            
+            checkPageBreak(16);
+
             // Bullet dot
             doc.setTextColor(100, 116, 139);
             doc.text('•', marginX + 2, cursorY);
-            doc.setTextColor(30, 41, 59);
 
-            bulletLines.forEach((line: string, lIdx: number) => {
-              doc.text(line, marginX + 12, cursorY);
-              cursorY += 11.8;
-            });
+            renderTextWithInlineLinks(bullet.trim(), marginX + 12, contentWidth - 14);
           });
         }
         cursorY += 4;
@@ -250,7 +320,7 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
       cv.skills.forEach((group) => {
         if (!group.skills || group.skills.length === 0) return;
         checkPageBreak(15);
-        
+
         doc.setFont(fontBold, 'bold');
         doc.setFontSize(9.2);
         doc.setTextColor(15, 23, 42);
@@ -262,7 +332,7 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
         doc.setTextColor(51, 65, 85);
         const skillList = group.skills.join(', ');
         const skillLines = doc.splitTextToSize(skillList, contentWidth - labelWidth - 4);
-        
+
         skillLines.forEach((line: string, lIdx: number) => {
           if (lIdx === 0) {
             doc.text(line, marginX + labelWidth + 2, cursorY);
@@ -281,17 +351,44 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
       renderSectionHeading('Projects');
       cv.projects.forEach((item) => {
         checkPageBreak(30);
+
+        // Project Title with Clickable Project Links
         doc.setFont(fontBold, 'bold');
         doc.setFontSize(9.8);
         doc.setTextColor(15, 23, 42);
 
-        // Project Title with clickable link if available
+        const projectTitle = item.title || 'Project Title';
+        const titleWidth = doc.getTextWidth(projectTitle);
+
         if (item.link?.trim()) {
-          doc.textWithLink(item.title || 'Project Title', marginX, cursorY, { url: item.link.trim() });
+          doc.setTextColor(29, 78, 216); // blue-700
+          doc.textWithLink(projectTitle, marginX, cursorY, { url: formatUrl(item.link) });
         } else {
-          doc.text(item.title || 'Project Title', marginX, cursorY);
+          doc.text(projectTitle, marginX, cursorY);
         }
 
+        let linkOffsetX = marginX + titleWidth + 6;
+
+        // Render Clickable GitHub Link if available
+        if (item.github?.trim()) {
+          doc.setFont(fontRegular, 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(29, 78, 216);
+          const ghLabel = '[GitHub]';
+          doc.textWithLink(ghLabel, linkOffsetX, cursorY, { url: formatUrl(item.github) });
+          linkOffsetX += doc.getTextWidth(ghLabel) + 5;
+        }
+
+        // Render Clickable Live Demo Link if separate from title
+        if (item.link?.trim() && !projectTitle.includes('http')) {
+          doc.setFont(fontRegular, 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(29, 78, 216);
+          const demoLabel = '[Live Demo]';
+          doc.textWithLink(demoLabel, linkOffsetX, cursorY, { url: formatUrl(item.link) });
+        }
+
+        // Technologies on right
         if (item.technologies && item.technologies.length > 0) {
           doc.setFont(fontRegular, 'normal');
           doc.setFontSize(8.5);
@@ -304,20 +401,14 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
         if (item.bullets && item.bullets.length > 0) {
           doc.setFont(fontRegular, 'normal');
           doc.setFontSize(9);
-          doc.setTextColor(30, 41, 59);
           item.bullets.forEach((bullet) => {
             if (!bullet.trim()) return;
-            const bulletLines = doc.splitTextToSize(bullet.trim(), contentWidth - 14);
-            checkPageBreak(bulletLines.length * 12 + 4);
+            checkPageBreak(16);
 
             doc.setTextColor(100, 116, 139);
             doc.text('•', marginX + 2, cursorY);
-            doc.setTextColor(30, 41, 59);
 
-            bulletLines.forEach((line: string) => {
-              doc.text(line, marginX + 12, cursorY);
-              cursorY += 11.8;
-            });
+            renderTextWithInlineLinks(bullet.trim(), marginX + 12, contentWidth - 14);
           });
         }
         cursorY += 4;

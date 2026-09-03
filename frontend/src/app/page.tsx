@@ -13,7 +13,9 @@ import {
   Briefcase,
   BarChart3,
   FileText,
-  ChevronDown
+  ChevronDown,
+  Menu,
+  X
 } from "lucide-react";
 import { HeroBackdrop } from "@/components/landing/HeroBackdrop";
 import { HeroVisual } from "@/components/landing/HeroVisual";
@@ -38,6 +40,7 @@ export default function LandingPage() {
   const [activeNav, setActiveNav] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isClickScrollingRef = useRef(false);
 
   const handleLoginClick = (e: React.MouseEvent) => {
@@ -165,7 +168,7 @@ export default function LandingPage() {
           </nav>
 
           {/* Right Action Controls: Language Toggle + Theme Toggle + Log In + Sign Up */}
-          <div className="flex items-center gap-2 sm:gap-3.5">
+          <div className="flex items-center gap-1.5 sm:gap-3.5">
             {/* Language Switcher */}
             <LanguageToggle />
 
@@ -176,20 +179,79 @@ export default function LandingPage() {
             <button
               type="button"
               onClick={handleLoginClick}
-              className="text-[14px] font-bold text-[#1E293B] dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 px-2 py-1.5 transition-colors cursor-pointer"
+              className="text-[13px] sm:text-[14px] font-bold text-[#1E293B] dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 px-2 py-1.5 transition-colors cursor-pointer"
             >
               {isAr ? "تسجيل الدخول" : "Log In"}
             </button>
 
             <Link 
               href="/signup" 
-              className="px-4 sm:px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13.5px] font-bold shadow-md shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all duration-200"
+              className="inline-flex items-center justify-center px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12.5px] sm:text-[13.5px] font-bold shadow-md shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
             >
-              {isAr ? "أنشئ حسابك مجاناً" : "Sign Up Free"}
+              {isAr ? "ابدأ الآن" : "Get Started"}
             </Link>
+
+            {/* Mobile Hamburger Toggle */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer ml-1"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
 
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t border-slate-200 dark:border-white/10 bg-white/95 dark:bg-[#060913]/95 backdrop-blur-2xl px-5 py-4 space-y-3"
+            >
+              <nav className="flex flex-col space-y-1">
+                {navigationLinks.map((link) => (
+                  <a
+                    key={link.id}
+                    href={link.href}
+                    onClick={() => {
+                      handleNavClick(link.id);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-3 py-2.5 px-3 rounded-xl text-slate-700 dark:text-slate-200 font-semibold text-[14px] hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                  >
+                    <span>{link.icon}</span>
+                    <span>{link.label}</span>
+                  </a>
+                ))}
+              </nav>
+
+              <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    setMobileMenuOpen(false);
+                    handleLoginClick(e);
+                  }}
+                  className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-center font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                >
+                  {isAr ? "تسجيل الدخول" : "Log In"}
+                </button>
+                <Link
+                  href="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-center shadow-md shadow-blue-600/20 transition-colors"
+                >
+                  {isAr ? "أنشئ حسابك مجاناً" : "Sign Up Free"}
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Spacer for Fixed Header */}

@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import type { JobItem } from '@/data/jobs';
 import type { JobDataQuality, SkillSource } from '@/lib/scraper/wuzzuf';
+import {
+  cleanEnglishOverview,
+  cleanArabicOverview,
+  cleanEnglishResponsibilities,
+  cleanArabicResponsibilities,
+  cleanEnglishRequirements,
+  cleanArabicRequirements
+} from '@/utils/jobLocalization';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -278,6 +286,7 @@ export async function GET(request: NextRequest) {
     const limit         = Math.min(parseInt(searchParams.get('limit') || '1000', 10), 1000);
     const userSkillsParam = searchParams.get('skills') || '';
     const targetRole    = searchParams.get('targetRole')?.trim().toLowerCase() || '';
+    const postedAfter   = searchParams.get('postedAfter')?.trim() || ''; // ISO date string for filtering
 
     const userSkills = userSkillsParam
       ? userSkillsParam.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
@@ -308,6 +317,11 @@ export async function GET(request: NextRequest) {
           query = query.ilike('work_type', '%hybrid%');
         } else if (workType === 'onsite') {
           query = query.ilike('work_type', '%on-site%');
+        }
+
+        // Server-side date filter: only return jobs posted after a given date
+        if (postedAfter) {
+          query = query.gte('posted_at', postedAfter);
         }
 
         const { data, error } = await query
@@ -439,12 +453,14 @@ export async function GET(request: NextRequest) {
         experienceYearsAr: expYearsAr,
         matchedSkills,
         missingSkills,
-        description: row.description || `Opportunity at ${row.company || 'a leading company'}`,
-        descriptionAr: row.description_ar || row.description || `فرصة عمل في ${row.company || 'شركة رائدة'}`,
-        responsibilities: descLines.slice(0, 5).length > 0 ? descLines.slice(0, 5) : [`Core ${row.title} responsibilities`],
-        responsibilitiesAr: descLines.slice(0, 5).length > 0 ? descLines.slice(0, 5) : [`مهام ${row.title} الأساسية`],
-        requirements: reqLines.slice(0, 5).length > 0 ? reqLines.slice(0, 5) : reqSkills.slice(0, 5).map(s => `Experience with ${s}`),
-        requirementsAr: reqLines.slice(0, 5).length > 0 ? reqLines.slice(0, 5) : reqSkills.slice(0, 5).map(s => `خبرة في ${s}`),
+        required_skills: reqSkills,
+        skills: reqSkills,
+        description: cleanEnglishOverview(row.title, row.company, row.location, row.description),
+        descriptionAr: cleanArabicOverview(row.title_ar || row.title, row.company_ar || row.company, row.location_ar || row.location, row.description_ar || row.description),
+        responsibilities: cleanEnglishResponsibilities(row.title, descLines, reqSkills),
+        responsibilitiesAr: cleanArabicResponsibilities(row.title_ar || row.title, descLines, reqSkills),
+        requirements: cleanEnglishRequirements(row.title, reqLines, reqSkills),
+        requirementsAr: cleanArabicRequirements(row.title_ar || row.title, reqLines, reqSkills),
         // Internal fields for sorting/analytics (not in JobItem interface but carried through)
         _postedAt: row.posted_at || null,
         _matchConfidence: matchScore === null ? 'unavailable' : matchConfidence,
@@ -483,8 +499,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Strip internal fields before sending to client
-    const clientJobs: JobItem[] = results.map(({ _postedAt, _matchConfidence, ...job }) => job);
+    // Strip internal fields before sending to client, but keep postedAt for notification filtering
+    const clientJobs = results.map(({ _postedAt, _matchConfidence, ...job }) => ({
+      ...job,
+      postedAt: _postedAt || null,
+    }));
 
     return NextResponse.json({
       jobs: clientJobs,

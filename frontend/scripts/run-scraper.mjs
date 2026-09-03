@@ -166,10 +166,11 @@ async function scrapeWuzzuf() {
           try {
             const card = $(el);
 
-            const link = card.find('h2 a, a[class*="css-o171kl"]').first();
+            const link = card.find('h2 a[href*="/jobs/p/"], h2 a[href*="/job/"], h2 a[href*="/internship/"], h3 a[href*="/jobs/p/"], h3 a[href*="/job/"], a[href*="/jobs/p/"], a[href*="/job/"], a[href*="/internship/"], h2 a').first();
             const title = link.text().trim();
             let applyUrl = link.attr('href') || '';
             if (!title || !applyUrl) return;
+            if (/\/jobs\/careers\/|\/company\/|\/companies\/|\/careers\/|search\/|location=/i.test(applyUrl)) return;
             if (applyUrl.startsWith('/')) applyUrl = 'https://wuzzuf.net' + applyUrl;
 
             // Company Name Extraction (3-layer fallback: Link text -> Alt text -> Career URL regex)
@@ -241,8 +242,10 @@ async function scrapeWuzzuf() {
               seniority,
               salary_range: salary,
               required_skills: skills,
-              description: `فرصة عمل متميزة لمنصب ${title} في شركة ${company} (${location}). بيئة عمل متطورة تركز على أحدث التقنيات والنمو المهني.`,
-              requirements: `• إتقان أدوات وتقنيات: ${skills.slice(0, 4).join(', ')}.\n• خبرة عملية مثبتة في نفس التخصص.\n• مهارات تحليلية وتفكير نقدي وحل المشكلات.\n• قدرة على العمل الجماعي والتواصل الفعال.`,
+              description: `A great opportunity for a ${title} position at ${company} in ${location}. The role provides a professional environment focused on modern technologies and continuous career growth.`,
+              description_ar: `فرصة عمل متميزة لمنصب ${titleAr} في شركة ${company} (${locationAr}). بيئة عمل متطورة تركز على أحدث التقنيات والنمو المهني.`,
+              requirements: `• Strong practical knowledge of relevant tools and technologies: ${skills.slice(0, 4).join(', ')}.\n• Previous hands-on experience in the same or related field.\n• Strong analytical, critical-thinking, and problem-solving skills.\n• Excellent communication and teamwork abilities.`,
+              requirements_ar: `• إتقان أدوات وتقنيات: ${skills.slice(0, 4).join('، ')}.\n• خبرة عملية مثبتة في نفس التخصص.\n• مهارات تحليلية وتفكير نقدي وحل المشكلات.\n• قدرة على العمل الجماعي والتواصل الفعال.`,
               apply_url: applyUrl,
               source: 'wuzzuf',
               posted_at: new Date().toISOString(),

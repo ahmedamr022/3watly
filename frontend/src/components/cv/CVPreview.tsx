@@ -32,76 +32,76 @@ interface StyleConfig {
 
 const STYLES: Record<TemplateId, StyleConfig> = {
   'ats-classic': {
-    page: 'px-9 py-8',
-    name: 'text-[28px] font-extrabold tracking-tight text-slate-900 dark:text-white',
-    role: 'mt-0.5 text-[15px] font-bold text-blue-700 dark:text-blue-400',
+    page: 'px-4 py-5 sm:px-9 sm:py-8',
+    name: 'text-[24px] sm:text-[28px] font-extrabold tracking-tight text-slate-900 dark:text-white',
+    role: 'mt-0.5 text-[14px] sm:text-[15px] font-bold text-blue-700 dark:text-blue-400',
     contact: 'mt-2 text-[12px] text-slate-600 dark:text-slate-400',
-    heading: 'text-[13px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
+    heading: 'text-[12.5px] sm:text-[13px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
     headingRule: 'mt-1 border-b-2 border-slate-300 dark:border-white/20',
-    body: 'text-[12.5px] leading-[1.6] text-slate-800 dark:text-slate-300',
-    itemTitle: 'text-[14px] font-bold text-slate-900 dark:text-white',
-    itemSub: 'text-[13px] font-semibold text-blue-700 dark:text-blue-400',
-    meta: 'text-[11.5px] text-slate-500 dark:text-slate-400',
+    body: 'text-[12px] sm:text-[12.5px] leading-[1.6] text-slate-800 dark:text-slate-300',
+    itemTitle: 'text-[13.5px] sm:text-[14px] font-bold text-slate-900 dark:text-white',
+    itemSub: 'text-[12.5px] sm:text-[13px] font-semibold text-blue-700 dark:text-blue-400',
+    meta: 'text-[11px] sm:text-[11.5px] text-slate-500 dark:text-slate-400',
     gap: 'mt-4',
     itemGap: 'mt-2.5',
     fontFamily: 'Georgia, "Times New Roman", serif'
   },
   'compact': {
-    page: 'px-7 py-6',
-    name: 'text-[24px] font-extrabold tracking-tight text-slate-900 dark:text-white',
-    role: 'text-[13.5px] font-bold text-blue-700 dark:text-blue-400',
+    page: 'px-4 py-4 sm:px-7 sm:py-6',
+    name: 'text-[22px] sm:text-[24px] font-extrabold tracking-tight text-slate-900 dark:text-white',
+    role: 'text-[13px] sm:text-[13.5px] font-bold text-blue-700 dark:text-blue-400',
     contact: 'mt-1.5 text-[11px] text-slate-600 dark:text-slate-400',
     heading: 'text-[11.5px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
     headingRule: 'mt-0.5 border-b border-slate-300 dark:border-white/20',
-    body: 'text-[11.5px] leading-[1.45] text-slate-800 dark:text-slate-300',
-    itemTitle: 'text-[13px] font-bold text-slate-900 dark:text-white',
-    itemSub: 'text-[12px] font-semibold text-blue-700 dark:text-blue-400',
-    meta: 'text-[11px] text-slate-500 dark:text-slate-400',
+    body: 'text-[11px] sm:text-[11.5px] leading-[1.45] text-slate-800 dark:text-slate-300',
+    itemTitle: 'text-[12.5px] sm:text-[13px] font-bold text-slate-900 dark:text-white',
+    itemSub: 'text-[11.5px] sm:text-[12px] font-semibold text-blue-700 dark:text-blue-400',
+    meta: 'text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400',
     gap: 'mt-3',
     itemGap: 'mt-1.5',
     fontFamily: 'system-ui, -apple-system, sans-serif'
   },
   'two-column': {
-    page: 'px-8 py-7',
-    name: 'text-[26px] font-extrabold tracking-tight text-slate-900 dark:text-white',
-    role: 'mt-0.5 text-[14px] font-bold text-blue-700 dark:text-blue-400',
-    contact: 'mt-2 text-[11.5px] text-slate-600 dark:text-slate-400',
-    heading: 'text-[12.5px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
+    page: 'px-4 py-5 sm:px-8 sm:py-7',
+    name: 'text-[24px] sm:text-[26px] font-extrabold tracking-tight text-slate-900 dark:text-white',
+    role: 'mt-0.5 text-[13.5px] sm:text-[14px] font-bold text-blue-700 dark:text-blue-400',
+    contact: 'mt-2 text-[11px] sm:text-[11.5px] text-slate-600 dark:text-slate-400',
+    heading: 'text-[12px] sm:text-[12.5px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
     headingRule: 'mt-1 border-b border-slate-300 dark:border-white/20',
-    body: 'text-[12px] leading-[1.55] text-slate-800 dark:text-slate-300',
-    itemTitle: 'text-[13.5px] font-bold text-slate-900 dark:text-white',
-    itemSub: 'text-[12.5px] font-semibold text-blue-700 dark:text-blue-400',
-    meta: 'text-[11px] text-slate-500 dark:text-slate-400',
+    body: 'text-[11.5px] sm:text-[12px] leading-[1.55] text-slate-800 dark:text-slate-300',
+    itemTitle: 'text-[13px] sm:text-[13.5px] font-bold text-slate-900 dark:text-white',
+    itemSub: 'text-[12px] sm:text-[12.5px] font-semibold text-blue-700 dark:text-blue-400',
+    meta: 'text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400',
     gap: 'mt-4',
     itemGap: 'mt-2',
     fontFamily: 'Inter, system-ui, sans-serif'
   },
   'simple': {
-    page: 'px-10 py-9',
-    name: 'text-[28px] font-serif font-bold tracking-normal text-slate-900 dark:text-white text-center',
-    role: 'mt-1 text-[14.5px] font-serif italic text-slate-600 dark:text-slate-300 text-center',
-    contact: 'mt-2.5 text-[11.5px] text-slate-600 dark:text-slate-400 text-center',
-    heading: 'text-[13px] font-serif font-bold uppercase tracking-widest text-slate-900 dark:text-white text-center',
+    page: 'px-4 py-5 sm:px-10 sm:py-9',
+    name: 'text-[24px] sm:text-[28px] font-serif font-bold tracking-normal text-slate-900 dark:text-white text-center',
+    role: 'mt-1 text-[13.5px] sm:text-[14.5px] font-serif italic text-slate-600 dark:text-slate-300 text-center',
+    contact: 'mt-2.5 text-[11px] sm:text-[11.5px] text-slate-600 dark:text-slate-400 text-center',
+    heading: 'text-[12px] sm:text-[13px] font-serif font-bold uppercase tracking-widest text-slate-900 dark:text-white text-center',
     headingRule: 'mt-1 border-b border-slate-400 dark:border-white/30',
-    body: 'text-[12.5px] font-serif leading-[1.65] text-slate-800 dark:text-slate-300',
-    itemTitle: 'text-[14px] font-serif font-bold text-slate-900 dark:text-white',
-    itemSub: 'text-[13px] font-serif italic text-slate-700 dark:text-slate-300',
-    meta: 'text-[11.5px] text-slate-500 dark:text-slate-400',
+    body: 'text-[12px] sm:text-[12.5px] font-serif leading-[1.65] text-slate-800 dark:text-slate-300',
+    itemTitle: 'text-[13.5px] sm:text-[14px] font-serif font-bold text-slate-900 dark:text-white',
+    itemSub: 'text-[12.5px] sm:text-[13px] font-serif italic text-slate-700 dark:text-slate-300',
+    meta: 'text-[11px] sm:text-[11.5px] text-slate-500 dark:text-slate-400',
     gap: 'mt-4',
     itemGap: 'mt-2.5',
     fontFamily: 'Georgia, "Times New Roman", serif'
   },
   'modern-minimal': {
-    page: 'px-9 py-8',
-    name: 'text-[28px] font-extrabold tracking-tight text-slate-900 dark:text-white',
-    role: 'mt-0.5 text-[15px] font-bold text-blue-700 dark:text-blue-400',
+    page: 'px-4 py-5 sm:px-9 sm:py-8',
+    name: 'text-[24px] sm:text-[28px] font-extrabold tracking-tight text-slate-900 dark:text-white',
+    role: 'mt-0.5 text-[14px] sm:text-[15px] font-bold text-blue-700 dark:text-blue-400',
     contact: 'mt-2 text-[12px] text-slate-600 dark:text-slate-400',
-    heading: 'text-[13px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
+    heading: 'text-[12.5px] sm:text-[13px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
     headingRule: 'mt-1 border-b-2 border-slate-300 dark:border-white/20',
-    body: 'text-[12.5px] leading-[1.6] text-slate-800 dark:text-slate-300',
-    itemTitle: 'text-[14px] font-bold text-slate-900 dark:text-white',
-    itemSub: 'text-[13px] font-semibold text-blue-700 dark:text-blue-400',
-    meta: 'text-[11.5px] text-slate-500 dark:text-slate-400',
+    body: 'text-[12px] sm:text-[12.5px] leading-[1.6] text-slate-800 dark:text-slate-300',
+    itemTitle: 'text-[13.5px] sm:text-[14px] font-bold text-slate-900 dark:text-white',
+    itemSub: 'text-[12.5px] sm:text-[13px] font-semibold text-blue-700 dark:text-blue-400',
+    meta: 'text-[11px] sm:text-[11.5px] text-slate-500 dark:text-slate-400',
     gap: 'mt-4',
     itemGap: 'mt-2.5',
     fontFamily: 'Georgia, "Times New Roman", serif'
@@ -168,7 +168,12 @@ export function CVPreview() {
               {cv.contact.phone && (
                 <>
                   {cv.contact.email && <span className="text-slate-300 dark:text-slate-600">•</span>}
-                  <span>{cv.contact.phone}</span>
+                  <a
+                    href={`tel:${cv.contact.phone.replace(/[^\d+]/g, '')}`}
+                    className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    {cv.contact.phone}
+                  </a>
                 </>
               )}
               {cv.contact.location && (
@@ -201,9 +206,9 @@ export function CVPreview() {
 
           {/* Render 2-Column or Single Column */}
           {isTwoColumn ? (
-            <div className="grid grid-cols-12 gap-6 pt-4 items-start">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 pt-4 items-start">
               {/* Left Column (Skills + Education) */}
-              <div className="col-span-4 space-y-4 border-r border-slate-200 dark:border-white/10 pr-4">
+              <div className="col-span-1 sm:col-span-4 space-y-4 border-b sm:border-b-0 sm:border-r border-slate-200 dark:border-white/10 pb-4 sm:pb-0 sm:pr-4">
                 {sections.includes('skills') && (
                   <section>
                     <h2 className={style.heading}>{SECTION_META['skills'].label}</h2>
@@ -221,7 +226,7 @@ export function CVPreview() {
               </div>
 
               {/* Right Column (Summary + Experience + Projects) */}
-              <div className="col-span-8 space-y-4">
+              <div className="col-span-1 sm:col-span-8 space-y-4">
                 {sections.includes('summary') && (
                   <section>
                     <h2 className={style.heading}>{SECTION_META['summary'].label}</h2>

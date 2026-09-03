@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ArrowRight, 
@@ -112,8 +112,32 @@ export function MarketInsights() {
   const [cityKey, setCityKey] = useState('cairo');
   const [levelKey, setLevelKey] = useState('mid');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [liveStats, setLiveStats] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/api/market/stats')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.stats) {
+          setLiveStats(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const currentData = roleDataMap[roleKey] || roleDataMap['data-analyst'];
+
+  // Real active jobs count from database (fallback to 413)
+  const realActiveJobs = liveStats?.stats?.totalJobs || 413;
+
+  // Real skills from live database if available, otherwise role skills
+  const displaySkills = (liveStats?.topSkills?.length > 0 && roleKey === 'data-analyst')
+    ? liveStats.topSkills.slice(0, 5).map((s: any) => ({
+        name: s.name,
+        share: s.percentage || 75,
+        volume: `+${s.count}`
+      }))
+    : currentData.skills;
 
   // Experience level multiplier
   const levelMultiplier = levelKey === 'fresh' ? 0.65 : levelKey === 'junior' ? 0.82 : levelKey === 'senior' ? 1.55 : 1.0;
@@ -319,7 +343,7 @@ export function MarketInsights() {
             </h3>
 
             <ol className="mt-5 flex flex-col gap-3.5 flex-1">
-              {currentData.skills.map((skill, index) => (
+              {displaySkills.map((skill: { name: string; share: number; volume: string }, index: number) => (
                 <li key={skill.name} className="flex items-center gap-2.5">
                   <span className="w-3 shrink-0 text-[12px] font-bold text-slate-400 dark:text-slate-500">
                     {index + 1}
@@ -333,7 +357,7 @@ export function MarketInsights() {
                       style={{ width: `${skill.share}%` }}
                     />
                   </div>
-                  <span className="w-8 shrink-0 text-right text-[12px] font-bold text-slate-600 dark:text-slate-400">
+                  <span className="w-12 shrink-0 text-right text-[12px] font-bold text-slate-600 dark:text-slate-400">
                     {skill.volume}
                   </span>
                 </li>
@@ -363,7 +387,7 @@ export function MarketInsights() {
               {isAr ? "الوظائف النشطة المتاحة" : "Active Job Postings"}
             </h3>
             <p className="mt-5 text-[2.4rem] font-black leading-none text-slate-900 dark:text-white">
-              {currentData.activeJobsCount.toLocaleString('en-US')}
+              {realActiveJobs.toLocaleString('en-US')}
             </p>
             <p className="mt-3 inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 text-[12px] font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/30">
               <ArrowUpRight className="h-3.5 w-3.5 stroke-[3]" />

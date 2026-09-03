@@ -35,6 +35,7 @@ interface AuthContextType {
   updateFullName: (name: string) => Promise<void>;
   updateTargetRole: (role: string) => Promise<void>;
   setOnboardingCompleted: (completed: boolean) => Promise<void>;
+  deleteAccount: (confirmation?: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -644,6 +645,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Permanently delete authenticated user account, related records & session
+  const deleteAccount = async (confirmation: string = 'DELETE') => {
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (user?.token) {
+        headers['Authorization'] = `Bearer ${user.token}`;
+      } else {
+        const supabase = createClient();
+        if (supabase) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            headers['Authorization'] = `Bearer ${session.access_token}`;
+          }
+        }
+      }
+
+      const res = await fetch('/api/user/delete', {
+        method: 'DELETE',
+        headers,
+        body: JSON.stringify({ confirmation }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        return {
+          success: false,
+          error: data?.error || 'Unable to delete your account right now. Please try again.',
+        };
+      }
+
+      // Invalidate session, tokens, cookies, and client storage
+      await logout();
+      return { success: true };
+    } catch (err: any) {
+      console.error('deleteAccount error in AuthContext:', err);
+      return {
+        success: false,
+        error: err?.message || 'A network error occurred while deleting your account.',
+      };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -660,7 +707,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         removeAvatar,
         updateFullName,
         updateTargetRole,
-        setOnboardingCompleted
+        setOnboardingCompleted,
+        deleteAccount
       }}
     >
       {children}

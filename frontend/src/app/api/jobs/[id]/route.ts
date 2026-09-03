@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import type { JobItem } from '@/data/jobs';
+import {
+  cleanEnglishOverview,
+  cleanArabicOverview,
+  cleanEnglishResponsibilities,
+  cleanArabicResponsibilities,
+  cleanEnglishRequirements,
+  cleanArabicRequirements
+} from '@/utils/jobLocalization';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -295,12 +303,12 @@ function mapRowToJobItem(row: any, userSkills: string[], targetRole: string = ''
     experienceYearsAr: expYearsAr,
     matchedSkills,
     missingSkills,
-    description: row.description || `Exciting opportunity for ${row.title} at ${row.company} in ${row.location || 'Egypt'}.`,
-    descriptionAr: row.description_ar || row.description || `فرصة عمل متميزة لمنصب ${row.title} في شركة ${row.company}.`,
-    responsibilities: descLines.length > 0 ? descLines.slice(0, 5) : responsibilitiesFallback,
-    responsibilitiesAr: descLines.length > 0 ? descLines.slice(0, 5) : responsibilitiesFallback,
-    requirements: reqLines.length > 0 ? reqLines.slice(0, 6) : requirementsFallback,
-    requirementsAr: reqLines.length > 0 ? reqLines.slice(0, 6) : requirementsFallback,
+    description: cleanEnglishOverview(row.title, row.company, row.location, row.description),
+    descriptionAr: cleanArabicOverview(row.title_ar || row.title, row.company_ar || row.company, row.location_ar || row.location, row.description_ar || row.description),
+    responsibilities: cleanEnglishResponsibilities(row.title, descLines, reqSkills),
+    responsibilitiesAr: cleanArabicResponsibilities(row.title_ar || row.title, descLines, reqSkills),
+    requirements: cleanEnglishRequirements(row.title, reqLines, reqSkills),
+    requirementsAr: cleanArabicRequirements(row.title_ar || row.title, reqLines, reqSkills),
   };
 }
 

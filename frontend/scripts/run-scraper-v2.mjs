@@ -81,7 +81,9 @@ const SKILL_ALIASES = {
 const SKILL_BLACKLIST = new Set([
   'experienced','experience','senior','junior','mid level','expert','manager','specialist',
   'internship','intern','student','entry level','fresh graduate','fresher','graduate',
-  'it','information technology','software development','engineering',
+  'it','information technology','information technology (it)','software development','engineering',
+  'engineering - mechanical/electrical','manufacturing/production','operations/management',
+  'creative/design/art','engineering - other','business administration','quality control',
   'general','other','miscellaneous','research','ability','skills','knowledge','understanding',
   'strong','good','excellent','proficient','familiar','basic','advanced',
   'full time','part time','contract','freelance','remote','on-site','hybrid',
@@ -315,11 +317,23 @@ function extractTitle($card, $) {
   ) || null;
 }
 function extractJobUrl($card) {
-  const href = $card.find('h2 a[href*="/job/"]').first().attr('href') ||
+  const href = $card.find('h2 a[href*="/jobs/p/"]').first().attr('href') ||
+               $card.find('h2 a[href*="/job/"]').first().attr('href') ||
+               $card.find('h2 a[href*="/internship/"]').first().attr('href') ||
+               $card.find('h3 a[href*="/jobs/p/"]').first().attr('href') ||
+               $card.find('h3 a[href*="/job/"]').first().attr('href') ||
+               $card.find('a[href*="/jobs/p/"]').first().attr('href') ||
                $card.find('a[href*="/job/"]').first().attr('href') ||
-               $card.find('a[href*="/jobs/"]').first().attr('href');
+               $card.find('a[href*="/internship/"]').first().attr('href');
+
   if (!href) return null;
-  try { return new URL(href, WUZZUF_BASE).toString(); } catch { return null; }
+
+  // Reject company profiles, directories, searches
+  if (/\/jobs\/careers\/|\/company\/|\/companies\/|\/careers\/|search\/|location=|city=|skills=|filters=/i.test(href)) {
+    return null;
+  }
+
+  try { return new URL(href, WUZZUF_BASE).toString(); } catch { return href.startsWith('http') ? href : `${WUZZUF_BASE}${href}`; }
 }
 function extractCompany($card) {
   let c = $card.find('a[href*="/jobs/careers/"]').first().text().trim();
@@ -480,13 +494,14 @@ async function scrapeQuery(query, maxPages = 2) {
       const $ = cheerio.load(html);
       const seenUrls = new Set();
       $('a[href*="/job/"],a[href*="/jobs/p/"]').each((_, link) => {
-        const href = $(link).attr('href');
-        if (!href) return;
-        const fullUrl = href.startsWith('http') ? href : `${WUZZUF_BASE}${href}`;
-        if (seenUrls.has(fullUrl)) return;
-        const $card = $(link).closest('article,li,[class*="css-1gatmva"],[class*="css-pkv5jc"],div.job-card-wuzzuf');
-        if (!$card.length || !$card.find('h2,h3').length) return;
-        seenUrls.add(fullUrl);
+        try {
+          const href = $(link).attr('href');
+          if (!href) return;
+          const fullUrl = href.startsWith('http') ? href : `${WUZZUF_BASE}${href}`;
+          if (seenUrls.has(fullUrl)) return;
+          const $card = $(link).closest('article,li,[class*="css-1gatmva"],[class*="css-pkv5jc"],div.job-card-wuzzuf');
+          if (!$card.length || !$card.find('h2,h3').length) return;
+          seenUrls.add(fullUrl);
 
           const title = extractTitle($card, $);
           const applyUrl = extractJobUrl($card) || fullUrl;
@@ -536,8 +551,10 @@ async function scrapeQuery(query, maxPages = 2) {
             preferred_skills: [],
             skill_source: skillSources,
             data_quality: dataQuality,
-            description: `فرصة عمل في ${company ?? 'شركة رائدة'} — ${title} (${location})`,
-            requirements: verifiedFromTags.slice(0,4).map(s => `• ${s}`).join('\n'),
+            description: `Exciting opportunity for a ${title} position at ${company ?? 'a leading company'} in ${location}.`,
+            description_ar: `فرصة عمل في ${company ?? 'شركة رائدة'} — ${translateTitle(title)} (${translateLocation(location)})`,
+            requirements: verifiedFromTags.slice(0, 4).map(s => `• Experience with ${s}`).join('\n'),
+            requirements_ar: verifiedFromTags.slice(0, 4).map(s => `• خبرة في ${s}`).join('\n'),
             apply_url: applyUrl, source: 'wuzzuf',
             posted_at: postedAt, last_enriched_at: null,
           });

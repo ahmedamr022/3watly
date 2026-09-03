@@ -57,6 +57,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import type { JobItem } from '@/data/jobs';
+import {
+  cleanEnglishOverview,
+  cleanArabicOverview,
+  cleanEnglishResponsibilities,
+  cleanArabicResponsibilities,
+  cleanEnglishRequirements,
+  cleanArabicRequirements
+} from '@/utils/jobLocalization';
 
 export default function JobDetailsPage() {
   const params = useParams();
@@ -589,7 +597,9 @@ export default function JobDetailsPage() {
                     {isAr ? "الوصف الوظيفي والمهام" : "Job Overview & Requirements"}
                   </h2>
                   <p className="mt-2 text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                    {isAr ? job.descriptionAr : job.description}
+                    {isAr
+                      ? cleanArabicOverview(job.titleAr, job.companyAr, job.locationAr, job.descriptionAr)
+                      : cleanEnglishOverview(job.title, job.company, job.location, job.description)}
                   </p>
                 </div>
 
@@ -608,7 +618,10 @@ export default function JobDetailsPage() {
                         <span>{isAr ? "المسؤوليات والمهام الرئيسية" : "Key Responsibilities"}</span>
                       </h3>
                       <ul className="space-y-1.5 ltr:pl-1 rtl:pr-1 text-[12.5px] text-slate-600 dark:text-slate-300">
-                        {(isAr ? (job.responsibilitiesAr || job.responsibilities || []) : (job.responsibilities || [])).map((item, idx) => (
+                        {(isAr
+                          ? cleanArabicResponsibilities(job.titleAr, job.responsibilitiesAr, (job.matchedSkills || []).map(s => s.name))
+                          : cleanEnglishResponsibilities(job.title, job.responsibilities, (job.matchedSkills || []).map(s => s.name))
+                        ).map((item, idx) => (
                           <li key={idx} className="flex items-start gap-2">
                             <span className="h-1.5 w-1.5 rounded-full bg-[#1B57E0] mt-1.5 shrink-0" />
                             <span>{item}</span>
@@ -626,7 +639,10 @@ export default function JobDetailsPage() {
                         <span>{isAr ? "متطلبات التعيين والمؤهلات" : "Requirements"}</span>
                       </h3>
                       <ul className="space-y-1.5 ltr:pl-1 rtl:pr-1 text-[12.5px] text-slate-600 dark:text-slate-300">
-                        {(isAr ? (job.requirementsAr || job.requirements || []) : (job.requirements || [])).map((item, idx) => (
+                        {(isAr
+                          ? cleanArabicRequirements(job.titleAr, job.requirementsAr, (job.matchedSkills || []).map(s => s.name))
+                          : cleanEnglishRequirements(job.title, job.requirements, (job.matchedSkills || []).map(s => s.name))
+                        ).map((item, idx) => (
                           <li key={idx} className="flex items-start gap-2">
                             <span className="h-1.5 w-1.5 rounded-full bg-[#12B76A] mt-1.5 shrink-0" />
                             <span>{item}</span>

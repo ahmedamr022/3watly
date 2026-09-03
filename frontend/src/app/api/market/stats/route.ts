@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const remoteCount = jobs.filter((j) => j.is_remote || (j.work_type && j.work_type.toLowerCase().includes('remote')) || (j.work_type && j.work_type.toLowerCase().includes('hybrid'))).length;
     const remotePercentage = totalJobs > 0 ? Math.round((remoteCount / (jobs.length || 1)) * 100) : 38;
 
-    // Blacklist: seniority levels, generic adjectives, and experience descriptors that are NOT real skills
+    // Blacklist: seniority levels, generic adjectives, job categories, and experience descriptors that are NOT real skills
     const MARKET_SKILL_BLACKLIST = new Set([
       'experienced', 'experience', 'senior', 'junior', 'mid level', 'mid-level',
       'entry level', 'entry-level', 'expert', 'manager', 'specialist', 'internship',
@@ -65,7 +65,13 @@ export async function GET(request: NextRequest) {
       'professional', 'proficient', 'strong', 'knowledge', 'ability', 'skills',
       'communication', 'teamwork', 'problem solving', 'problem-solving', 'analytical',
       'leadership', 'motivated', 'detail oriented', 'detail-oriented', 'fast learner',
-      'years', 'year', 'months', 'month', 'plus', 'minimum', 'required', 'preferred'
+      'years', 'year', 'months', 'month', 'plus', 'minimum', 'required', 'preferred',
+      'information technology (it)', 'information technology', 'it/software development', 'it',
+      'engineering - mechanical/electrical', 'manufacturing/production', 'operations/management',
+      'creative/design/art', 'engineering - other', 'business administration', 'quality control',
+      'engineering - telecom/technology', 'customer service/support', 'sales/retail',
+      'accounting/finance', 'project/program management', 'human resources', 'marketing/pr/advertising',
+      'education/teaching', 'training/instructor', 'development', 'engineering'
     ]);
 
     // Aggregate skill frequencies

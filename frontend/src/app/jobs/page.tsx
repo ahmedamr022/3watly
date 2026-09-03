@@ -741,12 +741,12 @@ function JobsPageContent() {
                       </div>
 
                       {/* Action Buttons (Direct Apply + View Details + Bookmark) */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
                         <a
                           href={job.applyUrl || (job as any).apply_url || `/jobs/${job.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 hover:shadow-md text-white text-[12.5px] font-bold shadow-xs hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 cursor-pointer"
+                          className="inline-flex flex-1 sm:flex-initial items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 hover:shadow-md text-white text-[12px] sm:text-[12.5px] font-bold shadow-xs hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 cursor-pointer text-center"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                           <span>{isAr ? "تقديم سريع ↗" : "Quick Apply ↗"}</span>
@@ -754,7 +754,7 @@ function JobsPageContent() {
 
                         <Link
                           href={`/jobs/${job.id}`}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white text-[13px] font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+                          className="inline-flex flex-1 sm:flex-initial items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white text-[12.5px] sm:text-[13px] font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer text-center"
                         >
                           <span>{isAr ? "عرض التفاصيل والمطابقة" : "View Details & Fit"}</span>
                           <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
@@ -763,7 +763,7 @@ function JobsPageContent() {
                         <button
                           type="button"
                           onClick={() => toggleSave(job.id)}
-                          className={`p-2.5 rounded-xl border transition-colors cursor-pointer ${
+                          className={`p-2.5 rounded-xl border transition-colors cursor-pointer shrink-0 ${
                             isSaved
                               ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
                               : 'border-slate-200 dark:border-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-white'

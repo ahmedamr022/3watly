@@ -10,6 +10,7 @@ const PROTECTED_PREFIXES = [
   '/skills',
   '/ats-diagnostics',
   '/settings',
+  '/profile',
   '/onboarding',
 ];
 

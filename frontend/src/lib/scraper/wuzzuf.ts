@@ -38,7 +38,9 @@ export interface ScrapedJob {
   skill_source: SkillSource[];
   data_quality: JobDataQuality;
   description: string;
+  description_ar?: string;
   requirements: string;
+  requirements_ar?: string;
   apply_url: string;
   source: string;
   /** null when we cannot determine the real date — never store new Date() as fake */
@@ -137,8 +139,10 @@ const SKILL_ALIASES: Record<string, string> = {
 const SKILL_BLACKLIST = new Set([
   'experienced', 'experience', 'senior', 'junior', 'mid level', 'expert', 'manager', 'specialist',
   'internship', 'intern', 'student', 'entry level', 'fresh graduate', 'fresher', 'graduate',
-  'it', 'information technology', 'it/software development', 'software development',
+  'it', 'information technology', 'information technology (it)', 'it/software development', 'software development',
   'engineering', 'general', 'other', 'miscellaneous', 'various',
+  'engineering - mechanical/electrical', 'manufacturing/production', 'operations/management',
+  'creative/design/art', 'engineering - other', 'business administration', 'quality control',
   'research', 'ability', 'skills', 'knowledge', 'understanding',
   'strong', 'good', 'excellent', 'proficient', 'familiar', 'basic', 'advanced',
   'working knowledge', 'proven', 'demonstrated', 'solid',
@@ -439,17 +443,34 @@ function extractTitle($card: ReturnType<CheerioAPI>): string | null {
 }
 
 function extractJobUrl($card: ReturnType<CheerioAPI>): string | null {
-  // Priority: h2/h3 link > any job-pattern link
+  // Direct individual job offer links: Priority h2/h3 heading link > direct /jobs/p/ or /job/ or /internship/ link
   const href =
+    $card.find('h2 a[href*="/jobs/p/"]').first().attr('href') ||
     $card.find('h2 a[href*="/job/"]').first().attr('href') ||
+    $card.find('h2 a[href*="/internship/"]').first().attr('href') ||
+    $card.find('h3 a[href*="/jobs/p/"]').first().attr('href') ||
     $card.find('h3 a[href*="/job/"]').first().attr('href') ||
+    $card.find('a[href*="/jobs/p/"]').first().attr('href') ||
     $card.find('a[href*="/job/"]').first().attr('href') ||
-    $card.find('a[href*="/jobs/"]').first().attr('href');
+    $card.find('a[href*="/internship/"]').first().attr('href');
+
   if (!href) return null;
+
+  // Explicitly reject company profiles, company careers pages, search queries, filter URLs
+  if (/\/jobs\/careers\/|\/company\/|\/companies\/|\/careers\/|search\/|location=|city=|skills=|filters=/i.test(href)) {
+    return null;
+  }
+
   try {
-    return new URL(href, WUZZUF_BASE).toString();
+    const fullUrl = new URL(href, WUZZUF_BASE).toString();
+    // Validate that pathname actually looks like a direct job offer
+    if (/\/jobs\/p\/|\/job\/|\/internship\//i.test(fullUrl)) {
+      return fullUrl;
+    }
+    return fullUrl;
   } catch {
-    return href.startsWith('http') ? href : `${WUZZUF_BASE}${href}`;
+    const fallback = href.startsWith('http') ? href : `${WUZZUF_BASE}${href}`;
+    return fallback;
   }
 }
 
@@ -861,8 +882,10 @@ async function scrapeWuzzufQuery(query: string, maxPages = 2): Promise<ScrapedJo
             preferred_skills: [],
             skill_source: skillSources,
             data_quality: dataQuality,
-            description: `فرصة عمل في ${company ?? 'شركة رائدة'} — ${title} (${location})`,
-            requirements: verifiedFromTags.slice(0, 4).map(s => `• ${s}`).join('\n'),
+            description: `Exciting opportunity for a ${title} position at ${company ?? 'a leading company'} in ${location}.`,
+            description_ar: `فرصة عمل في ${company ?? 'شركة رائدة'} — ${translateTitleToAr(title)} (${translateLocationToAr(location)})`,
+            requirements: verifiedFromTags.slice(0, 4).map(s => `• Experience with ${s}`).join('\n'),
+            requirements_ar: verifiedFromTags.slice(0, 4).map(s => `• خبرة في ${s}`).join('\n'),
             apply_url: applyUrl,
             source: 'wuzzuf',
             posted_at: postedAt,

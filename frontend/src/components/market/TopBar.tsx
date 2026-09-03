@@ -14,17 +14,11 @@ import {
   CheckCheckIcon } from
 'lucide-react';
 import { useClickOutside } from '../../hooks/useClickOutside';
-import { initialNotifications, searchIndex, SearchEntry } from '../../data/market';
+import { searchIndex, SearchEntry } from '../../data/market';
+import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { resolveDisplayName } from '@/utils/formatName';
-
-const notificationTargets: Record<string, string> = {
-  n1: '/skills',
-  n2: '/job-matches',
-  n3: '/salary-insights',
-  n4: '/reports'
-};
 
 type TopBarProps = {
   onSearchSelect: (entry: SearchEntry) => void;
@@ -37,7 +31,7 @@ export function TopBar({ onSearchSelect, onToggleNav, navCollapsed }: TopBarProp
   const { user, logout } = useAuth();
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [bellOpen, setBellOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
 
@@ -51,7 +45,7 @@ export function TopBar({ onSearchSelect, onToggleNav, navCollapsed }: TopBarProp
   const bellRef = useClickOutside<HTMLDivElement>(bellOpen, () => setBellOpen(false));
   const userRef = useClickOutside<HTMLDivElement>(userOpen, () => setUserOpen(false));
 
-  const unread = notifications.filter((n) => n.unread).length;
+  const unread = unreadCount;
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -187,7 +181,7 @@ export function TopBar({ onSearchSelect, onToggleNav, navCollapsed }: TopBarProp
                 type="button"
                 disabled={unread === 0}
                 onClick={() => {
-                  setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+                  markAllAsRead();
                   toast.success('All notifications marked as read');
                 }}
                 className="flex items-center gap-1.5 text-[12px] font-semibold text-brand-600 transition-colors duration-150 ease-out hover:text-brand-700 disabled:cursor-not-allowed disabled:text-ink-400">
@@ -197,31 +191,39 @@ export function TopBar({ onSearchSelect, onToggleNav, navCollapsed }: TopBarProp
                 </button>
               </div>
 
-              <ul className="max-h-[300px] overflow-y-auto">
-                {notifications.map((n) =>
-              <li key={n.id} className="border-b border-line last:border-b-0">
-                    <button
-                  type="button"
-                  onClick={() => {
-                    setNotifications((prev) => prev.map((x) => x.id === n.id ? { ...x, unread: false } : x));
-                    setBellOpen(false);
-                    router.push(notificationTargets[n.id] ?? '/alerts');
-                  }}
-                  className="flex w-full gap-2.5 px-4 py-3 text-left transition-colors duration-150 ease-out hover:bg-canvas">
-                  
-                      <span
-                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.unread ? 'bg-brand-600' : 'bg-transparent'}`} />
-                  
-                      <span className="min-w-0 flex-1">
-                        <span className={`block text-[13px] ${n.unread ? 'font-bold text-ink-900' : 'font-semibold text-ink-700'}`}>
-                          {n.title}
-                        </span>
-                        <span className="mt-0.5 block text-[12px] leading-[1.5] text-ink-500">{n.body}</span>
-                        <span className="mt-1 block text-[11px] text-ink-400">{n.time}</span>
-                      </span>
-                    </button>
+              <ul className="max-h-[320px] overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <li className="px-4 py-6 text-center text-[12.5px] text-ink-500">
+                    No new matched job alerts
                   </li>
-              )}
+                ) : (
+                  notifications.map((n) =>
+                    <li key={n.id} className="border-b border-line last:border-b-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          markAsRead(n.id);
+                          setBellOpen(false);
+                          router.push(n.url);
+                        }}
+                        className={`flex w-full gap-2.5 px-4 py-3 text-left transition-colors duration-150 ease-out hover:bg-canvas ${
+                          n.read ? 'opacity-75' : 'bg-brand-50/40'
+                        }`}>
+                        
+                        <span
+                          className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${!n.read ? 'bg-brand-600' : 'bg-transparent'}`} />
+                        
+                        <span className="min-w-0 flex-1">
+                          <span className={`block text-[13px] ${!n.read ? 'font-bold text-ink-900' : 'font-semibold text-ink-700'} truncate`}>
+                            {n.title}
+                          </span>
+                          <span className="mt-0.5 block text-[12px] leading-[1.5] text-ink-500 line-clamp-1">{n.description}</span>
+                          <span className="mt-1 block text-[11px] text-ink-400">{n.time}</span>
+                        </span>
+                      </button>
+                    </li>
+                  )
+                )}
               </ul>
 
               <div className="border-t border-line p-2">

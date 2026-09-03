@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   User, 
   Bell, 
@@ -21,7 +22,10 @@ import {
   ShieldCheck, 
   Eye, 
   EyeOff,
-  X
+  X,
+  AlertTriangle,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -59,8 +63,9 @@ function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { isAr } = useLanguage();
-  const { user, updateAvatar, removeAvatar, updateFullName } = useAuth();
+  const { user, updateAvatar, removeAvatar, updateFullName, deleteAccount } = useAuth();
   const { file, role } = useOnboarding();
   
   // View mode: 'settings' | 'edit-profile'
@@ -76,6 +81,7 @@ export default function SettingsPage() {
   // Modals
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [twoFactorModalOpen, setTwoFactorModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   
   // Password form states
   const [currentPassword, setCurrentPassword] = useState('');
@@ -83,6 +89,10 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
+
+  // Delete account form states
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // File input ref for avatar
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -246,6 +256,36 @@ export default function SettingsPage() {
         ? (newVal ? 'تم تفعيل المصادقة الثنائية بنجاح' : 'تم تعطيل المصادقة الثنائية') 
         : (newVal ? 'Two-Factor Authentication enabled' : 'Two-Factor Authentication disabled')
     );
+  };
+
+  // Handle permanent account deletion
+  const handleDeleteAccountSubmit = async () => {
+    if (deleteConfirmationText.trim().toUpperCase() !== 'DELETE') {
+      toast.error(isAr ? 'يرجى كتابة DELETE للتأكيد' : 'Please type DELETE to confirm');
+      return;
+    }
+
+    try {
+      setIsDeletingAccount(true);
+      const res = await deleteAccount('DELETE');
+
+      if (!res.success) {
+        toast.error(res.error || (isAr ? "تعذر حذف الحساب حالياً. يرجى المحاولة لاحقاً." : "Unable to delete your account right now. Please try again."));
+        setIsDeletingAccount(false);
+        return;
+      }
+
+      toast.success(isAr ? "تم حذف حسابك وبياناتك بنجاح." : "Your account has been permanently deleted.");
+      setDeleteModalOpen(false);
+      
+      // Invalidate and redirect to login page
+      setTimeout(() => {
+        router.replace('/login');
+      }, 500);
+    } catch (err: any) {
+      toast.error(isAr ? "حدث خطأ غير متوقع أثناء حذف الحساب." : "An unexpected error occurred. Please try again.");
+      setIsDeletingAccount(false);
+    }
   };
 
   // Get Initials for Avatar
@@ -567,23 +607,29 @@ export default function SettingsPage() {
                     {isAr ? "الصورة الشخصية" : "Profile Photo"}
                   </h3>
 
-                  <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-700 text-white font-extrabold text-[36px] flex items-center justify-center shadow-lg shadow-blue-500/20 ring-4 ring-blue-50 dark:ring-blue-950/40">
-                    {user?.avatarUrl ? (
-                      <img 
-                        src={user.avatarUrl} 
-                        alt={profile.fullName} 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      userInitials
-                    )}
+                  <div className="relative w-28 h-28 sm:w-32 sm:h-32">
+                    {/* Circular Avatar */}
+                    <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-700 text-white font-extrabold text-[32px] sm:text-[36px] flex items-center justify-center shadow-lg shadow-blue-500/20 ring-4 ring-blue-50 dark:ring-blue-950/40">
+                      {user?.avatarUrl ? (
+                        <img 
+                          src={user.avatarUrl} 
+                          alt={profile.fullName} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        userInitials
+                      )}
+                    </div>
 
-                    <div 
+                    {/* Camera Action Button (outside overflow-hidden) */}
+                    <button 
+                      type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-2 ltr:right-2 rtl:left-2 w-8 h-8 rounded-full bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-white/20 text-blue-600 dark:text-blue-400 shadow-md flex items-center justify-center hover:scale-110 transition-transform cursor-pointer"
+                      className="absolute -bottom-1 -end-1 w-9 h-9 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30 border-2 border-white dark:border-[#0B1120] flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer z-10"
+                      aria-label={isAr ? "تغيير الصورة" : "Change photo"}
                     >
                       <Camera className="w-4 h-4" />
-                    </div>
+                    </button>
                   </div>
 
                   <p className="text-[12px] text-slate-400">
@@ -801,6 +847,41 @@ export default function SettingsPage() {
 
             </form>
 
+            {/* ========================================================================= */}
+            {/* DANGER ZONE: DELETE ACCOUNT                                               */}
+            {/* ========================================================================= */}
+            <div className="mt-6 rounded-[20px] border border-rose-200/80 dark:border-rose-900/40 bg-rose-50/30 dark:bg-rose-950/10 p-6 sm:p-7 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                <div className="flex items-start sm:items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-[15px] font-bold text-rose-600 dark:text-rose-400">
+                      {isAr ? "منطقة الخطر (Danger Zone)" : "Danger Zone"}
+                    </h3>
+                    <p className="text-[12.5px] text-slate-600 dark:text-slate-400 mt-0.5 max-w-xl leading-relaxed">
+                      {isAr 
+                        ? "حذف حسابك نهائياً وجميع البيانات المرتبطة به. هذا الإجراء دائم ولا يمكن التراجع عنه." 
+                        : "Delete your account and permanently remove your account data, CVs, and preferences. This action is permanent."}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteConfirmationText('');
+                    setDeleteModalOpen(true);
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[13px] font-bold transition-all shadow-sm shadow-rose-600/25 hover:shadow-md hover:shadow-rose-600/30 flex items-center justify-center gap-2 cursor-pointer self-start sm:self-center shrink-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>{isAr ? "حذف الحساب" : "Delete Account"}</span>
+                </button>
+              </div>
+            </div>
+
             <div className="text-center pt-6 text-[12px] text-slate-400 dark:text-slate-500">
               © 2026 3WATLY. All rights reserved.
             </div>
@@ -972,6 +1053,97 @@ export default function SettingsPage() {
                 className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 text-[13px] font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
               >
                 {isAr ? "إغلاق" : "Close"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 3: DELETE ACCOUNT CONFIRMATION                                      */}
+      {/* ========================================================================= */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+          <div className="w-full max-w-[460px] rounded-[24px] bg-white dark:bg-[#0D1527] border border-rose-200 dark:border-rose-900/40 p-6 shadow-2xl space-y-5">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-[16px] font-bold text-[#0B132B] dark:text-white">
+                    {isAr ? "هل أنت متأكد من حذف الحساب؟" : "Are you sure you want to delete your account?"}
+                  </h3>
+                  <p className="text-[12px] text-rose-600 dark:text-rose-400 font-medium">
+                    {isAr ? "هذا الإجراء نهائي ولا يمكن التراجع عنه." : "This action is permanent and cannot be undone."}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                disabled={isDeletingAccount}
+                onClick={() => setDeleteModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Warning Body */}
+            <div className="space-y-3.5 text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              <p>
+                {isAr
+                  ? "سيتم حذف حسابك وجميع السير الذاتية المحفوظة، وتاريخ المحادثات، وتفضيلات الوظائف بشكل دائم من قواعد البيانات."
+                  : "Your account, associated profile data, parsed CVs, copilot history, and preferences will be permanently removed from our databases."}
+              </p>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#070B14] border border-slate-200/80 dark:border-white/10 space-y-2">
+                <label className="block text-[12px] font-bold text-slate-700 dark:text-slate-300">
+                  {isAr 
+                    ? 'لتأكيد الحذف، اكتب "DELETE" في الحقل أدناه:' 
+                    : 'To confirm, type "DELETE" in the box below:'}
+                </label>
+                <input
+                  type="text"
+                  disabled={isDeletingAccount}
+                  value={deleteConfirmationText}
+                  onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                  placeholder="DELETE"
+                  className="w-full h-10 px-3.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1120] text-[13.5px] font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 transition-all uppercase"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeletingAccount}
+                onClick={() => setDeleteModalOpen(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 text-[13px] font-semibold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isAr ? "إلغاء" : "Cancel"}
+              </button>
+
+              <button
+                type="button"
+                disabled={deleteConfirmationText.trim().toUpperCase() !== 'DELETE' || isDeletingAccount}
+                onClick={handleDeleteAccountSubmit}
+                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 text-white text-[13px] font-bold transition-all shadow-md shadow-rose-600/20 disabled:shadow-none flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+              >
+                {isDeletingAccount ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{isAr ? "جاري الحذف..." : "Deleting account..."}</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>{isAr ? "حذف الحساب نهائياً" : "Delete Account"}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

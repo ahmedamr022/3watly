@@ -33,34 +33,32 @@ export default function DashboardPage() {
   const { analysis } = useCV();
 
   const [userParsedCv, setUserParsedCv] = useState<any>(null);
-  const [liveJobs, setLiveJobs] = useState<any[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem('3watly_dashboard_jobs');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch {}
-    }
-    return [];
-  });
-  const [loadingJobs, setLoadingJobs] = useState(liveJobs.length === 0);
-
-  const [marketStats, setMarketStats] = useState<any>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem('3watly_market_stats');
-        if (cached) return JSON.parse(cached);
-      } catch {}
-    }
-    return null;
-  });
+  const [liveJobs, setLiveJobs] = useState<any[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [marketStats, setMarketStats] = useState<any>(null);
 
   React.useEffect(() => {
     let mounted = true;
 
-    // 1. Immediately hydrate client CV from storage
+    // 1. Immediately hydrate client cached data from localStorage
+    try {
+      const cachedJobs = localStorage.getItem('3watly_dashboard_jobs');
+      if (cachedJobs) {
+        const parsed = JSON.parse(cachedJobs);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setLiveJobs(parsed);
+          setLoadingJobs(false);
+        }
+      }
+    } catch {}
+
+    try {
+      const cachedStats = localStorage.getItem('3watly_market_stats');
+      if (cachedStats) {
+        setMarketStats(JSON.parse(cachedStats));
+      }
+    } catch {}
+
     try {
       const savedCv = localStorage.getItem('3watly_parsed_cv');
       if (savedCv) setUserParsedCv(JSON.parse(savedCv));
@@ -124,30 +122,47 @@ export default function DashboardPage() {
     : ['Power BI', 'SQL'];
 
   const topJobs = React.useMemo(() => {
-    return liveJobs.slice(0, 3).map((job: any) => ({
-      id: String(job.id),
-      title: job.title,
-      titleAr: job.titleAr || job.title,
-      company: job.company,
-      companyAr: job.companyAr || job.company,
-      companyLogo: job.companyLogo || job.company_logo || null,
-      location: job.location || 'Cairo, Egypt',
-      locationAr: job.locationAr || job.location || 'القاهرة، مصر',
-      matchScore: job.matchScore || 82,
-      skills: (Array.isArray(job.matchedSkills) && job.matchedSkills.length > 0)
-        ? job.matchedSkills.map((s: any) => typeof s === 'string' ? s : s.name).slice(0, 3)
-        : (Array.isArray(job.required_skills) && job.required_skills.length > 0)
-        ? job.required_skills.slice(0, 3)
-        : (Array.isArray(job.skills) && job.skills.length > 0)
-        ? job.skills.slice(0, 3)
-        : ['SQL', 'Python', 'Git'],
-      extraSkillsCount: Math.max(
-        0,
-        ((job.required_skills?.length || job.matchedSkills?.length || job.skills?.length || 0) - 3)
-      ),
-      postedAgo: job.postedAgo || 'Recently',
-      postedAgoAr: job.postedAgoAr || 'مؤخراً',
-    }));
+    return liveJobs.slice(0, 3).map((job: any) => {
+      // Gather all legitimate job skills
+      const rawJobSkills: string[] = Array.isArray(job.required_skills) && job.required_skills.length > 0
+        ? job.required_skills
+        : Array.isArray(job.skills) && job.skills.length > 0
+        ? job.skills
+        : Array.isArray(job.matchedSkills) && job.matchedSkills.length > 0
+        ? job.matchedSkills.map((s: any) => typeof s === 'string' ? s : s.name)
+        : [];
+
+      const matchedNames = new Set(
+        (Array.isArray(job.matchedSkills) ? job.matchedSkills : []).map((s: any) =>
+          (typeof s === 'string' ? s : s.name).toLowerCase()
+        )
+      );
+
+      const allDisplaySkills = rawJobSkills.map((skillName: string) => ({
+        name: skillName,
+        isMatched: matchedNames.has(skillName.toLowerCase()),
+      }));
+
+      // Show up to 4 real skills
+      const displaySkills = allDisplaySkills.slice(0, 4);
+      const extraSkillsCount = Math.max(0, rawJobSkills.length - 4);
+
+      return {
+        id: String(job.id),
+        title: job.title,
+        titleAr: job.titleAr || job.title,
+        company: job.company,
+        companyAr: job.companyAr || job.company,
+        companyLogo: job.companyLogo || job.company_logo || null,
+        location: job.location || 'Cairo, Egypt',
+        locationAr: job.locationAr || job.location || 'القاهرة، مصر',
+        matchScore: job.matchScore || 82,
+        skills: displaySkills,
+        extraSkillsCount,
+        postedAgo: job.postedAgo || 'Recently',
+        postedAgoAr: job.postedAgoAr || 'مؤخراً',
+      };
+    });
   }, [liveJobs]);
 
   return (
@@ -156,27 +171,26 @@ export default function DashboardPage() {
         
         {/* ========================================================================= */}
         {/* 1. TOP 4 STAT CARDS (Matching Image 1 Exactly)                           */}
-        {/* ========================================================================= */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           
           {/* Card 1: Total Analyzed Jobs */}
-          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#EEF3FE] dark:bg-blue-950/70 text-[#1B57E0] dark:text-[#60A5FA]">
-                <Briefcase className="w-6 h-6 stroke-[2.2]" />
+          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-4 sm:p-4.5 xl:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between gap-2.5 sm:gap-3 xl:gap-3.5 min-w-0 group">
+            <div className="flex items-center gap-2.5 sm:gap-3 xl:gap-3.5 min-w-0 flex-1">
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 xl:h-12 xl:w-12 shrink-0 items-center justify-center rounded-[14px] sm:rounded-2xl bg-[#EEF3FE] dark:bg-blue-950/70 text-[#1B57E0] dark:text-[#60A5FA] shadow-2xs transition-transform group-hover:scale-105">
+                <Briefcase className="w-5 h-5 sm:w-5.5 sm:h-5.5 xl:w-6 xl:h-6 stroke-[2.2]" />
               </div>
-              <div className="min-w-0">
-                <span className="block text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
+              <div className="min-w-0 flex-1">
+                <span className="block text-[11.5px] sm:text-[12px] xl:text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
                   {isAr ? "إجمالي الوظائف المحللة" : "Total Analyzed Jobs"}
                 </span>
-                <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
+                <p className="text-[20px] sm:text-[22px] xl:text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5 tracking-tight truncate">
                   {marketStats ? marketStats.totalJobs.toLocaleString('en-US') : (
-                    <span className="inline-block h-7 w-20 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
+                    <span className="inline-block h-6 w-20 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
                   )}
                 </p>
-                <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
-                  <span>↑ 8%</span>
-                  <span className="font-normal text-slate-400 dark:text-slate-500 text-[11px]">
+                <div className="mt-0.5 sm:mt-1 flex items-center gap-1 text-[11px] sm:text-[11.5px] xl:text-[12px] font-bold text-[#12B76A] truncate">
+                  <span className="shrink-0">↑ 8%</span>
+                  <span className="font-normal text-slate-400 dark:text-slate-500 text-[10.5px] sm:text-[11px] truncate">
                     {isAr ? "مقارنة بآخر 30 يوم" : "vs last 30 days"}
                   </span>
                 </div>
@@ -184,7 +198,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Blue Sparkline Wave */}
-            <div className="h-9 w-20 shrink-0 ltr:ml-2 rtl:mr-2">
+            <div className="h-7 sm:h-8 xl:h-9 w-12 sm:w-15 xl:w-20 shrink-0 ltr:ml-1 sm:ltr:ml-2 rtl:mr-1 sm:rtl:mr-2">
               <svg viewBox="0 0 100 40" className="h-full w-full overflow-visible">
                 <path
                   d="M0 32 Q20 35 35 20 T65 24 T85 10 T100 6"
@@ -199,23 +213,23 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 2: Hiring Companies */}
-          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8F8F0] dark:bg-emerald-950/70 text-[#12B76A] dark:text-[#34D399]">
-                <Building2 className="w-6 h-6 stroke-[2.2]" />
+          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-4 sm:p-4.5 xl:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between gap-2.5 sm:gap-3 xl:gap-3.5 min-w-0 group">
+            <div className="flex items-center gap-2.5 sm:gap-3 xl:gap-3.5 min-w-0 flex-1">
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 xl:h-12 xl:w-12 shrink-0 items-center justify-center rounded-[14px] sm:rounded-2xl bg-[#E8F8F0] dark:bg-emerald-950/70 text-[#12B76A] dark:text-[#34D399] shadow-2xs transition-transform group-hover:scale-105">
+                <Building2 className="w-5 h-5 sm:w-5.5 sm:h-5.5 xl:w-6 xl:h-6 stroke-[2.2]" />
               </div>
-              <div className="min-w-0">
-                <span className="block text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
+              <div className="min-w-0 flex-1">
+                <span className="block text-[11.5px] sm:text-[12px] xl:text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
                   {isAr ? "الشركات الموظفة" : "Hiring Companies"}
                 </span>
-                <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
+                <p className="text-[20px] sm:text-[22px] xl:text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5 tracking-tight truncate">
                   {marketStats ? marketStats.totalCompanies.toLocaleString('en-US') : (
-                    <span className="inline-block h-7 w-16 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
+                    <span className="inline-block h-6 w-16 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
                   )}
                 </p>
-                <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
-                  <span>↑ 6.3%</span>
-                  <span className="font-normal text-slate-400 dark:text-slate-500 text-[11px]">
+                <div className="mt-0.5 sm:mt-1 flex items-center gap-1 text-[11px] sm:text-[11.5px] xl:text-[12px] font-bold text-[#12B76A] truncate">
+                  <span className="shrink-0">↑ 6.3%</span>
+                  <span className="font-normal text-slate-400 dark:text-slate-500 text-[10.5px] sm:text-[11px] truncate">
                     {isAr ? "مقارنة بآخر 30 يوم" : "vs last 30 days"}
                   </span>
                 </div>
@@ -223,7 +237,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Green Sparkline Wave */}
-            <div className="h-9 w-20 shrink-0 ltr:ml-2 rtl:mr-2">
+            <div className="h-7 sm:h-8 xl:h-9 w-12 sm:w-15 xl:w-20 shrink-0 ltr:ml-1 sm:ltr:ml-2 rtl:mr-1 sm:rtl:mr-2">
               <svg viewBox="0 0 100 40" className="h-full w-full overflow-visible">
                 <path
                   d="M0 34 Q25 36 40 22 T70 26 T88 12 T100 6"
@@ -238,23 +252,23 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 3: Remote/Hybrid Ratio */}
-          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#F3E8FF] dark:bg-purple-950/70 text-[#9333EA] dark:text-[#C084FC]">
-                <Monitor className="w-6 h-6 stroke-[2.2]" />
+          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-4 sm:p-4.5 xl:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between gap-2.5 sm:gap-3 xl:gap-3.5 min-w-0 group">
+            <div className="flex items-center gap-2.5 sm:gap-3 xl:gap-3.5 min-w-0 flex-1">
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 xl:h-12 xl:w-12 shrink-0 items-center justify-center rounded-[14px] sm:rounded-2xl bg-[#F3E8FF] dark:bg-purple-950/70 text-[#9333EA] dark:text-[#C084FC] shadow-2xs transition-transform group-hover:scale-105">
+                <Monitor className="w-5 h-5 sm:w-5.5 sm:h-5.5 xl:w-6 xl:h-6 stroke-[2.2]" />
               </div>
-              <div className="min-w-0">
-                <span className="block text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
+              <div className="min-w-0 flex-1">
+                <span className="block text-[11.5px] sm:text-[12px] xl:text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
                   {isAr ? "نسبة العمل عن بُعد/هجين" : "Remote/Hybrid Ratio"}
                 </span>
-                <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
+                <p suppressHydrationWarning className="text-[20px] sm:text-[22px] xl:text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5 tracking-tight truncate">
                   {marketStats ? `${marketStats.remoteJobsPercentage}%` : (
-                    <span className="inline-block h-7 w-14 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
+                    <span className="inline-block h-6 w-14 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
                   )}
                 </p>
-                <div className="mt-1 flex items-center gap-1 text-[12px] font-bold text-[#12B76A]">
-                  <span>↑ 4.7%</span>
-                  <span className="font-normal text-slate-400 dark:text-slate-500 text-[11px]">
+                <div className="mt-0.5 sm:mt-1 flex items-center gap-1 text-[11px] sm:text-[11.5px] xl:text-[12px] font-bold text-[#12B76A] truncate">
+                  <span className="shrink-0">↑ 4.7%</span>
+                  <span className="font-normal text-slate-400 dark:text-slate-500 text-[10.5px] sm:text-[11px] truncate">
                     {isAr ? "مقارنة بآخر 30 يوم" : "vs last 30 days"}
                   </span>
                 </div>
@@ -262,7 +276,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Purple Sparkline Wave */}
-            <div className="h-9 w-20 shrink-0 ltr:ml-2 rtl:mr-2">
+            <div className="h-7 sm:h-8 xl:h-9 w-12 sm:w-15 xl:w-20 shrink-0 ltr:ml-1 sm:ltr:ml-2 rtl:mr-1 sm:rtl:mr-2">
               <svg viewBox="0 0 100 40" className="h-full w-full overflow-visible">
                 <path
                   d="M0 32 Q25 24 45 28 T75 14 T90 20 T100 6"
@@ -277,33 +291,36 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 4: Top In-Demand Skill */}
-          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FFF7ED] dark:bg-amber-950/70 text-[#F97316]">
-                <Star className="w-6 h-6 stroke-[2.2] fill-transparent" />
+          <div className="rounded-[20px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-4 sm:p-4.5 xl:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all flex items-center justify-between gap-2 sm:gap-2.5 xl:gap-3 group min-w-0">
+            <div className="flex items-center gap-2.5 sm:gap-3 xl:gap-3.5 min-w-0 flex-1">
+              {/* Dedicated Icon Container */}
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 xl:h-12 xl:w-12 shrink-0 items-center justify-center rounded-[14px] sm:rounded-2xl bg-[#FFF7ED] dark:bg-amber-950/70 text-[#F97316] transition-transform group-hover:scale-105 shadow-2xs">
+                <Star className="w-5 h-5 sm:w-5.5 sm:h-5.5 xl:w-6 xl:h-6 stroke-[2.2] fill-transparent" />
               </div>
-              <div className="min-w-0">
-                <span className="block text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
+
+              {/* Text Block: Adapts naturally with balanced line wrapping */}
+              <div className="min-w-0 flex-1">
+                <span className="block text-[11.5px] sm:text-[12px] xl:text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate">
                   {isAr ? "المهارة الأكثر طلباً" : "Top In-Demand Skill"}
                 </span>
-                <p suppressHydrationWarning className="text-[26px] font-black text-[#0B132B] dark:text-white leading-tight mt-0.5">
+                <p suppressHydrationWarning className="text-[14.5px] sm:text-[16px] xl:text-[19px] 2xl:text-[22px] font-black text-[#0B132B] dark:text-white leading-[1.2] mt-0.5 tracking-tight break-words line-clamp-2">
                   {marketStats ? marketStats.topSkillName : (
-                    <span className="inline-block h-7 w-16 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
+                    <span className="inline-block h-6 w-20 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
                   )}
                 </p>
-                <span suppressHydrationWarning className="block text-[11.5px] font-normal text-slate-500 dark:text-slate-400 mt-1 truncate">
+                <span suppressHydrationWarning className="block text-[10.5px] sm:text-[11px] xl:text-[11.5px] font-normal text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 truncate">
                   {marketStats ? (isAr ? `مطلوبة في ${marketStats.topSkillPercentage}% من الوظائف` : `${marketStats.topSkillPercentage}% of active roles`) : ''}
                 </span>
               </div>
             </div>
 
-            {/* Ascending Orange Bars */}
-            <div className="flex items-end gap-1.5 h-8 shrink-0 ltr:ml-2 rtl:mr-2">
-              <span className="w-2 h-2.5 rounded-full bg-[#F97316]/30" />
-              <span className="w-2 h-4 rounded-full bg-[#F97316]/50" />
-              <span className="w-2 h-5.5 rounded-full bg-[#F97316]/70" />
-              <span className="w-2 h-7 rounded-full bg-[#F97316]/90" />
-              <span className="w-2 h-8 rounded-full bg-[#F97316]" />
+            {/* Ascending Orange Bars: Responsive sizing with strict shrink-0 */}
+            <div className="flex items-end gap-1 sm:gap-1.5 h-6.5 sm:h-7 xl:h-8 shrink-0 ltr:ml-1 sm:ltr:ml-2 rtl:mr-1 sm:rtl:mr-2 self-center">
+              <span className="w-1 sm:w-1.5 xl:w-2 h-2 sm:h-2.5 rounded-full bg-[#F97316]/30" />
+              <span className="w-1 sm:w-1.5 xl:w-2 h-3 sm:h-4 rounded-full bg-[#F97316]/50" />
+              <span className="w-1 sm:w-1.5 xl:w-2 h-4 sm:h-5.5 rounded-full bg-[#F97316]/70" />
+              <span className="w-1 sm:w-1.5 xl:w-2 h-5.5 sm:h-7 rounded-full bg-[#F97316]/90" />
+              <span className="w-1 sm:w-1.5 xl:w-2 h-6.5 sm:h-8 rounded-full bg-[#F97316]" />
             </div>
           </div>
 
@@ -639,17 +656,21 @@ export default function DashboardPage() {
                     </p>
 
                     {/* Skill Pills */}
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {job.skills.map((skill: string) => (
+                    <div className="mt-3 flex flex-wrap items-center gap-1.5 min-h-[30px]">
+                      {job.skills.map((skill: { name: string; isMatched: boolean }) => (
                         <span
-                          key={skill}
-                          className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-[#0B1120]/5 text-[11px] font-medium text-slate-600 dark:text-slate-300"
+                          key={skill.name}
+                          className={`px-2.5 py-0.5 rounded-md text-[11px] font-semibold border transition-colors ${
+                            skill.isMatched
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                              : 'bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/10'
+                          }`}
                         >
-                          {skill}
+                          {skill.name}
                         </span>
                       ))}
                       {job.extraSkillsCount > 0 && (
-                        <span className="px-1.5 py-0.5 rounded-lg bg-slate-100 dark:bg-[#0B1120]/5 text-[10.5px] font-medium text-slate-400">
+                        <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-[10.5px] font-bold text-blue-600 dark:text-blue-400 border border-blue-500/20">
                           +{job.extraSkillsCount}
                         </span>
                       )}
@@ -661,15 +682,23 @@ export default function DashboardPage() {
                     <span className="text-[11px] font-normal text-slate-400 dark:text-slate-500">
                       {isAr ? job.postedAgoAr : job.postedAgo}
                     </span>
-                    <button
-                      type="button"
+                    <span
+                      role="button"
+                      tabIndex={0}
                       onClick={(e) => toggleBookmark(job.id, e)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleBookmark(job.id, e as any);
+                        }
+                      }}
                       className={`p-1 rounded-lg transition-colors cursor-pointer ${
                         isSaved ? 'text-blue-600 fill-blue-600' : 'text-slate-400 hover:text-slate-600'
                       }`}
+                      aria-label={isSaved ? "Remove bookmark" : "Bookmark job"}
                     >
                       <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-                    </button>
+                    </span>
                   </div>
                 </Link>
               );
