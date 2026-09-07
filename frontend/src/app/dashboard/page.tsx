@@ -39,8 +39,33 @@ export default function DashboardPage() {
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [marketStats, setMarketStats] = useState<any>(null);
 
-  // Listen for platform-wide active CV change event
+  // 1. Immediately hydrate client cached data from localStorage once on mount & listen for CV changes
   React.useEffect(() => {
+    try {
+      const savedCv = localStorage.getItem('3watly_parsed_cv');
+      if (savedCv) {
+        setUserParsedCv(JSON.parse(savedCv));
+      }
+    } catch {}
+
+    try {
+      const cachedJobs = localStorage.getItem('3watly_dashboard_jobs');
+      if (cachedJobs) {
+        const parsed = JSON.parse(cachedJobs);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setLiveJobs(parsed);
+          setLoadingJobs(false);
+        }
+      }
+    } catch {}
+
+    try {
+      const cachedStats = localStorage.getItem('3watly_market_stats');
+      if (cachedStats) {
+        setMarketStats(JSON.parse(cachedStats));
+      }
+    } catch {}
+
     const handleCvChanged = () => {
       try {
         const savedCv = localStorage.getItem('3watly_parsed_cv');
@@ -144,35 +169,10 @@ export default function DashboardPage() {
     );
   }, [userParsedCv, activeVersion, cv]);
 
+  const candidateSkillsKey = React.useMemo(() => candidateSkills.join(','), [candidateSkills]);
+
   React.useEffect(() => {
     let mounted = true;
-
-    // 1. Immediately hydrate client cached data from localStorage
-    try {
-      const cachedJobs = localStorage.getItem('3watly_dashboard_jobs');
-      if (cachedJobs) {
-        const parsed = JSON.parse(cachedJobs);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setLiveJobs(parsed);
-          setLoadingJobs(false);
-        }
-      }
-    } catch {}
-
-    try {
-      const cachedStats = localStorage.getItem('3watly_market_stats');
-      if (cachedStats) {
-        setMarketStats(JSON.parse(cachedStats));
-      }
-    } catch {}
-
-    try {
-      const savedCv = localStorage.getItem('3watly_parsed_cv');
-      if (savedCv) {
-        const p = JSON.parse(savedCv);
-        setUserParsedCv(p);
-      }
-    } catch {}
 
     const queryParams: Record<string, string> = {
       limit: '40',
@@ -181,7 +181,7 @@ export default function DashboardPage() {
     if (candidateSkills.length > 0) queryParams.skills = candidateSkills.join(',');
     if (candidateRole) queryParams.targetRole = candidateRole;
 
-    // 2. Parallel background fetch for jobs + market stats
+    // Parallel background fetch for jobs + market stats
     Promise.all([
       ApiService.getJobs(queryParams).catch(() => null),
       fetch('/api/market/stats').then((r) => r.json()).catch(() => null),
@@ -218,7 +218,7 @@ export default function DashboardPage() {
     });
 
     return () => { mounted = false; };
-  }, [candidateSkills, candidateRole]);
+  }, [candidateSkillsKey, candidateRole]);
 
   const [bookmarkedJobs, setBookmarkedJobs] = useState<string[]>([]);
 
