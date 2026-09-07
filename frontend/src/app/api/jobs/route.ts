@@ -298,7 +298,7 @@ export async function GET(request: NextRequest) {
 
     const userSkills = userSkillsParam
       ? userSkillsParam.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
-      : ['sql', 'python', 'power bi', 'excel', 'data modeling', 'react', 'git'];
+      : [];
 
     const supabase = await createClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -386,35 +386,40 @@ export async function GET(request: NextRequest) {
         roleBoost -= 35;
       }
 
-      const { score: matchScore, confidence: matchConfidence } = calculateMatchScore(
-        reqSkills, inferredSkills, userSkills, dataQuality, skillSources, roleBoost
-      );
+      const hasUserSkills = userSkills.length > 0;
+      const { score: matchScore, confidence: matchConfidence } = hasUserSkills
+        ? calculateMatchScore(reqSkills, inferredSkills, userSkills, dataQuality, skillSources, roleBoost)
+        : { score: null as any, confidence: 'none' };
 
       // Skills for display: verified matched/missing
-      const matchedSkills = [
-        ...reqSkills.filter(s => isSkillMatchedByUser(s, userSkills, false))
-          .map(s => ({ name: s, weight: 1.0 })),
-        // Show partial matches from inferred at reduced weight
-        ...inferredSkills.filter(s => isSkillMatchedByUser(s, userSkills, false))
-          .map(s => ({ name: s, weight: 0.4 })),
-      ].slice(0, 8);
+      const matchedSkills = hasUserSkills
+        ? [
+            ...reqSkills.filter(s => isSkillMatchedByUser(s, userSkills, false))
+              .map(s => ({ name: s, weight: 1.0 })),
+            // Show partial matches from inferred at reduced weight
+            ...inferredSkills.filter(s => isSkillMatchedByUser(s, userSkills, false))
+              .map(s => ({ name: s, weight: 0.4 })),
+          ].slice(0, 8)
+        : [];
 
-      const missingSkills = [
-        ...reqSkills.filter(s => !isSkillMatchedByUser(s, userSkills, false))
-          .map((s, idx) => ({
-            name: s,
-            weight: parseFloat(((reqSkills.length - idx) / Math.max(reqSkills.length, 1)).toFixed(2)),
-            marketNote: `Verified: found in job listing`,
-            marketNoteAr: `مُستخرجة من إعلان الوظيفة مباشرة`,
-          })),
-        ...preferredSkills.filter(s => !isSkillMatchedByUser(s, userSkills, false))
-          .map(s => ({
-            name: s,
-            weight: 0.3,
-            marketNote: `Preferred (nice to have)`,
-            marketNoteAr: `مُفضَّلة (ميزة إضافية)`,
-          })),
-      ].slice(0, 6);
+      const missingSkills = hasUserSkills
+        ? [
+            ...reqSkills.filter(s => !isSkillMatchedByUser(s, userSkills, false))
+              .map((s, idx) => ({
+                name: s,
+                weight: parseFloat(((reqSkills.length - idx) / Math.max(reqSkills.length, 1)).toFixed(2)),
+                marketNote: `Verified: found in job listing`,
+                marketNoteAr: `مُستخرجة من إعلان الوظيفة مباشرة`,
+              })),
+            ...preferredSkills.filter(s => !isSkillMatchedByUser(s, userSkills, false))
+              .map(s => ({
+                name: s,
+                weight: 0.3,
+                marketNote: `Preferred (nice to have)`,
+                marketNoteAr: `مُفضَّلة (ميزة إضافية)`,
+              })),
+          ].slice(0, 6)
+        : [];
 
       const wt = normalizeWorkType(row.work_type, !!row.is_remote);
       const senior: JobItem['seniority'] =
@@ -430,7 +435,7 @@ export async function GET(request: NextRequest) {
       const descLines = (row.description || '').split(/\n|•/).map((s: string) => s.trim()).filter(Boolean);
       const reqLines = (row.requirements || '').split(/\n|•/).map((s: string) => s.trim()).filter(Boolean);
 
-      const effectiveMatchScore = matchScore ?? 50; // UI gets a number; confidence shown separately
+      const effectiveMatchScore = hasUserSkills ? (matchScore ?? 50) : null;
 
       const job = {
         id: row.id,
@@ -506,7 +511,16 @@ export async function GET(request: NextRequest) {
 
     // ── Sorting ──
     if (sortBy === 'match') {
-      results.sort((a, b) => b.matchScore - a.matchScore);
+      if (userSkills.length > 0) {
+        results.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+      } else {
+        // Sort by recency when candidate has no skills / no CV yet
+        results.sort((a, b) => {
+          const aTime = a._postedAt ? new Date(a._postedAt).getTime() : 0;
+          const bTime = b._postedAt ? new Date(b._postedAt).getTime() : 0;
+          return bTime - aTime;
+        });
+      }
     } else if (sortBy === 'recent') {
       // Sort by real posted_at — nulls last
       results.sort((a, b) => {

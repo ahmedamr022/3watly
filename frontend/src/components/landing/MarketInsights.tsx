@@ -171,7 +171,7 @@ export function MarketInsights() {
   const activeIndustries = isAr ? arabicIndustries : englishIndustries;
 
   return (
-    <section id="insights" className="w-full bg-[#F8FAFC]/50 dark:bg-[#060913] py-16 px-6 sm:px-10 lg:px-16 border-t border-slate-100 dark:border-white/5 transition-colors duration-300">
+    <section id="insights" className="w-full bg-[#F8FAFC]/50 dark:bg-[#040816] py-16 px-6 sm:px-10 lg:px-16 border-t border-slate-100 dark:border-white/5 transition-colors duration-300">
       <div className="max-w-[1400px] mx-auto">
         
         {/* Section Heading */}

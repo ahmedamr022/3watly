@@ -186,10 +186,10 @@ export default function LandingPage() {
               {isAr ? "تسجيل الدخول" : "Log In"}
             </button>
 
-            {/* Sign Up Free */}
+            {/* Sign Up Free - Prominent Navbar CTA */}
             <Link 
               href="/signup" 
-              className="hidden xs:inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#0066FF] hover:bg-[#0052D6] text-white text-[12px] sm:text-[13.5px] font-bold shadow-md shadow-blue-600/30 hover:shadow-blue-600/45 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052E0] hover:from-[#0052E0] hover:to-[#0040C0] text-white text-[12px] sm:text-[13px] font-bold shadow-md shadow-blue-600/30 hover:shadow-blue-600/45 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
             >
               <span>{isAr ? "ابدأ الآن" : "Get Started"}</span>
               <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
@@ -268,17 +268,17 @@ export default function LandingPage() {
       {/* ========================================================================= */}
       {/* 2. UNIFIED HERO AREA (Matching 1920x1080 Viewport & Mobile Responsive)    */}
       {/* ========================================================================= */}
-      <section className="relative w-full overflow-hidden pt-16 sm:pt-20 lg:pt-20 pb-4 sm:pb-6 lg:pb-6 px-4 sm:px-6 lg:px-8 xl:px-12 min-h-auto lg:h-[calc(100vh-4rem)] lg:min-h-[700px] lg:max-h-[940px] flex flex-col justify-between">
+      <section className="relative w-full overflow-hidden pt-16 sm:pt-20 lg:pt-20 pb-4 sm:pb-6 lg:pb-6 px-4 sm:px-6 lg:px-6 xl:px-8 min-h-auto lg:h-[calc(100vh-4rem)] lg:min-h-[700px] lg:max-h-[940px] flex flex-col justify-between">
         {/* Full Section Background */}
         <HeroBackdrop />
 
-        <div className="max-w-[1440px] xl:max-w-[1480px] mx-auto relative z-10 w-full flex-1 flex flex-col justify-between">
+        <div className="max-w-[1440px] xl:max-w-[1520px] mx-auto relative z-10 w-full flex-1 flex flex-col justify-between">
           
           {/* Main Hero 2-Column Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-4 sm:pt-6 lg:pt-2 my-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center pt-4 sm:pt-6 lg:pt-6 my-auto">
             
-            {/* Left Content Column (Headline, Description, CTAs) */}
-            <div className="lg:col-span-5 max-w-[540px] rtl:lg:order-1 ltr:lg:order-2 flex flex-col items-center text-center lg:items-start lg:text-right space-y-4 sm:space-y-5 z-10 mx-auto lg:mx-0">
+            {/* Left/Right Content Column (Headline, Description, CTAs) */}
+            <div className="lg:col-span-6 max-w-[620px] flex flex-col items-center text-center lg:items-start rtl:lg:text-right ltr:lg:text-left space-y-4 sm:space-y-5 z-10 mx-auto lg:mx-0 lg:translate-y-6">
               
               {/* Pill Badge */}
               <div className="inline-flex items-center gap-2 sm:gap-2.5 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full border border-blue-200/80 dark:border-[#0066FF]/35 bg-white/80 dark:bg-[#001D4D]/60 backdrop-blur-md shadow-[0_4px_15px_rgba(0,102,255,0.08)] dark:shadow-[0_0_15px_rgba(0,102,255,0.2)]">
@@ -289,7 +289,7 @@ export default function LandingPage() {
               </div>
 
               {/* Main Headline with Vibrant Gradient on مسارك */}
-              <h1 className="text-[26px] xs:text-[30px] sm:text-[38px] lg:text-[44px] xl:text-[48px] font-black leading-[1.2] tracking-tight text-slate-900 dark:text-white">
+              <h1 className="text-[26px] xs:text-[30px] sm:text-[38px] lg:text-[44px] xl:text-[48px] font-black leading-[1.2] tracking-tight text-slate-900 dark:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
                 {isAr ? (
                   <>
                     ابني <span className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-500 dark:from-[#00F5A0] dark:via-[#00D2FF] dark:to-[#00A3FF] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(0,102,255,0.2)] dark:drop-shadow-[0_0_25px_rgba(0,210,255,0.45)]">مسارك</span> المهني،
@@ -305,7 +305,7 @@ export default function LandingPage() {
               </h1>
 
               {/* Sub-headline */}
-              <p className="text-[13.5px] sm:text-[15px] lg:text-[15.5px] text-slate-600 dark:text-[#94A3B8] leading-[1.7] max-w-[480px] font-normal">
+              <p className="text-[13.5px] sm:text-[15px] lg:text-[15.5px] text-slate-700 dark:text-slate-100 drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] leading-[1.7] max-w-[580px] font-medium">
                 {isAr ? (
                   <>
                     <span className="font-bold text-blue-600 dark:text-[#00D2FF]">عواطلي</span> يحلل سوق العمل المصري، يحدد فجوات مهاراتك، ويطابق خبراتك مع أفضل الفرص المناسبة عشان تطور مسارك المهني بثقة.
@@ -318,7 +318,7 @@ export default function LandingPage() {
               </p>
 
               {/* CTA Buttons Row */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 pt-1 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-center lg:items-start gap-3 pt-1 w-full sm:w-auto">
                 {/* Primary Button */}
                 <Link
                   href={user ? "/dashboard" : "/signup"}
@@ -329,7 +329,7 @@ export default function LandingPage() {
                       ? (isAr ? "الانتقال إلي لوحة التحكم" : "Go to Dashboard")
                       : (isAr ? "ابدأ الآن — مجاناً" : "Get Started — Free")}
                   </span>
-                  <ArrowRight className={`w-4 h-4 text-white transition-transform group-hover:-translate-x-1 ${isAr ? "rotate-180" : ""}`} />
+                  <ArrowRight className={`w-4 h-4 text-white transition-transform ${isAr ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`} />
                 </Link>
 
                 {/* Secondary Button */}
@@ -348,7 +348,7 @@ export default function LandingPage() {
 
             {/* 3D Visual Cards Column — Space reserved for HD 3D artwork backdrop */}
             <div 
-              className="hidden lg:flex lg:col-span-7 rtl:lg:order-2 ltr:lg:order-1 w-full min-h-[380px] lg:min-h-[440px] xl:min-h-[480px] items-center justify-center pointer-events-none" 
+              className="hidden lg:flex lg:col-span-6 w-full min-h-[380px] lg:min-h-[440px] xl:min-h-[480px] items-center justify-center pointer-events-none" 
               aria-hidden="true" 
             />
 

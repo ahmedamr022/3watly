@@ -57,7 +57,7 @@ function JobsPageContent() {
   // User skills & target role for personalized feed matching
   const userSkills = useMemo(() => {
     const raw = parsedCv?.skills || [];
-    return raw.length > 0 ? raw : ['sql', 'python', 'power bi', 'excel', 'data modeling', 'tableau'];
+    return Array.isArray(raw) ? raw : [];
   }, [parsedCv]);
 
   const targetRole = useMemo(() => {
@@ -679,26 +679,28 @@ function JobsPageContent() {
                         <div className="relative h-12 w-12">
                           <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
                             <circle cx="50" cy="50" r="40" fill="none" stroke="#E8F8F0" className="dark:stroke-emerald-950/60" strokeWidth="9" />
-                            <circle
-                              cx="50"
-                              cy="50"
-                              r="40"
-                              fill="none"
-                              stroke="#12B76A"
-                              strokeWidth="9"
-                              strokeLinecap="round"
-                              strokeDasharray={2 * Math.PI * 40}
-                              strokeDashoffset={2 * Math.PI * 40 * (1 - job.matchScore / 100)}
-                            />
+                            {job.matchScore != null && userSkills.length > 0 && (
+                              <circle
+                                cx="50"
+                                cy="50"
+                                r="40"
+                                fill="none"
+                                stroke="#12B76A"
+                                strokeWidth="9"
+                                strokeLinecap="round"
+                                strokeDasharray={2 * Math.PI * 40}
+                                strokeDashoffset={2 * Math.PI * 40 * (1 - job.matchScore / 100)}
+                              />
+                            )}
                           </svg>
                           <div className="absolute inset-0 flex items-center justify-center">
                             <span className="text-[12px] font-black text-[#0B132B] dark:text-white leading-none">
-                              {job.matchScore}%
+                              {job.matchScore != null && userSkills.length > 0 ? `${job.matchScore}%` : '--%'}
                             </span>
                           </div>
                         </div>
                         <span className="text-[10px] font-medium text-slate-400 mt-0.5">
-                          {isAr ? "توافق" : "Match"}
+                          {job.matchScore != null && userSkills.length > 0 ? (isAr ? "توافق" : "Match") : (isAr ? "يتطلب CV" : "Needs CV")}
                         </span>
                         <span className="text-[10.5px] text-slate-400 mt-1">
                           {isAr ? job.postedAgoAr : job.postedAgo}

@@ -97,7 +97,7 @@ export function FeatureStrip() {
               </div>
 
               {/* Text Container - Single line title and crisp subtitle */}
-              <div className="min-w-0 flex-1 text-right">
+              <div className="min-w-0 flex-1 text-left rtl:text-right">
                 <h4 className="text-[12px] sm:text-[12.5px] xl:text-[13.5px] font-bold text-slate-900 dark:text-white leading-tight whitespace-nowrap">
                   {item.title}
                 </h4>

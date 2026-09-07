@@ -32,12 +32,117 @@ import { useCV } from '@/contexts/CVContext';
 export default function DashboardPage() {
   const { isAr } = useLanguage();
   const { user } = useAuth();
-  const { analysis } = useCV();
+  const { activeVersion, cv, versions, analysis } = useCV();
 
   const [userParsedCv, setUserParsedCv] = useState<any>(null);
   const [liveJobs, setLiveJobs] = useState<any[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [marketStats, setMarketStats] = useState<any>(null);
+
+  // Listen for platform-wide active CV change event
+  React.useEffect(() => {
+    const handleCvChanged = () => {
+      try {
+        const savedCv = localStorage.getItem('3watly_parsed_cv');
+        if (savedCv) {
+          setUserParsedCv(JSON.parse(savedCv));
+        }
+      } catch {}
+    };
+    window.addEventListener('3watly_active_cv_changed', handleCvChanged);
+    return () => window.removeEventListener('3watly_active_cv_changed', handleCvChanged);
+  }, []);
+
+  // Check if candidate has an actual CV in CVContext or localStorage
+  const hasCv = React.useMemo(() => {
+    // 1. Check activeVersion in CVContext
+    if (activeVersion) {
+      const d = activeVersion.cvData;
+      const hasSkills = Array.isArray(d?.skills) && d.skills.some(g => Array.isArray(g.skills) && g.skills.length > 0);
+      const hasExp = Array.isArray(d?.experience) && d.experience.length > 0;
+      const hasEdu = Array.isArray(d?.education) && d.education.length > 0;
+      const hasProjects = Array.isArray(d?.projects) && d.projects.length > 0;
+      const hasName = Boolean(d?.contact?.fullName && d.contact.fullName.trim().length > 0);
+      const hasTitle = Boolean(d?.contact?.jobTitle && d.contact.jobTitle.trim().length > 0);
+      const hasSummary = Boolean(d?.summary && d.summary.trim().length > 0);
+      if (hasSkills || hasExp || hasEdu || hasProjects || hasName || hasTitle || hasSummary) {
+        return true;
+      }
+    }
+
+    // 2. Check current cv object in CVContext
+    if (cv) {
+      const hasSkills = Array.isArray(cv.skills) && cv.skills.some(g => Array.isArray(g.skills) && g.skills.length > 0);
+      const hasExp = Array.isArray(cv.experience) && cv.experience.length > 0;
+      const hasEdu = Array.isArray(cv.education) && cv.education.length > 0;
+      const hasName = Boolean(cv.contact?.fullName && cv.contact.fullName.trim().length > 0);
+      if (hasSkills || hasExp || hasEdu || hasName) {
+        return true;
+      }
+    }
+
+    // 3. Check any version in versions list
+    if (Array.isArray(versions) && versions.length > 0) {
+      const hasValidVer = versions.some(v => {
+        const d = v.cvData;
+        return (
+          (Array.isArray(d?.skills) && d.skills.some(g => g.skills?.length > 0)) ||
+          (Array.isArray(d?.experience) && d.experience.length > 0) ||
+          (Array.isArray(d?.education) && d.education.length > 0) ||
+          Boolean(d?.contact?.fullName && d.contact.fullName.trim().length > 0)
+        );
+      });
+      if (hasValidVer) return true;
+    }
+
+    // 4. Check userParsedCv from localStorage
+    if (userParsedCv) {
+      const hasSkills = Array.isArray(userParsedCv.skills) && userParsedCv.skills.length > 0;
+      const hasExp = (Array.isArray(userParsedCv.experiences) && userParsedCv.experiences.length > 0) ||
+                     (Array.isArray(userParsedCv.experience) && userParsedCv.experience.length > 0);
+      const hasEdu = (Array.isArray(userParsedCv.educationHistory) && userParsedCv.educationHistory.length > 0) ||
+                     (Array.isArray(userParsedCv.education) && userParsedCv.education.length > 0);
+      const hasName = Boolean(userParsedCv.fullName && userParsedCv.fullName.trim().length > 0);
+      const isQuickPlaceholder = (!hasExp && !hasEdu && userParsedCv.filename === 'Quick_Profile.pdf');
+      if (!isQuickPlaceholder && (hasSkills || hasExp || hasEdu || hasName)) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [activeVersion, cv, versions, userParsedCv]);
+
+  const isCvMissing = !hasCv;
+
+  const candidateSkills = React.useMemo(() => {
+    if (Array.isArray(userParsedCv?.skills) && userParsedCv.skills.length > 0) {
+      return userParsedCv.skills;
+    }
+    const target = activeVersion?.cvData || cv;
+    if (target?.skills) {
+      const flat: string[] = [];
+      target.skills.forEach(g => {
+        if (Array.isArray(g.skills)) {
+          g.skills.forEach(s => {
+            if (s && !flat.includes(s)) flat.push(s);
+          });
+        }
+      });
+      if (flat.length > 0) return flat;
+    }
+    return [];
+  }, [userParsedCv, activeVersion, cv]);
+
+  const candidateRole = React.useMemo(() => {
+    return (
+      userParsedCv?.targetRole ||
+      userParsedCv?.currentTitle ||
+      activeVersion?.targetRole ||
+      activeVersion?.cvData?.contact?.jobTitle ||
+      cv?.contact?.jobTitle ||
+      ''
+    );
+  }, [userParsedCv, activeVersion, cv]);
 
   React.useEffect(() => {
     let mounted = true;
@@ -61,63 +166,59 @@ export default function DashboardPage() {
       }
     } catch {}
 
-    let candidateSkills = '';
-    let candidateRole = '';
     try {
       const savedCv = localStorage.getItem('3watly_parsed_cv');
       if (savedCv) {
         const p = JSON.parse(savedCv);
         setUserParsedCv(p);
-        if (Array.isArray(p.skills)) candidateSkills = p.skills.join(',');
-        candidateRole = p.targetRole || p.currentTitle || '';
       }
     } catch {}
 
-      const queryParams: Record<string, string> = {
-        limit: '40',
-        sortBy: 'match',
-      };
-      if (candidateSkills) queryParams.skills = candidateSkills;
-      if (candidateRole) queryParams.targetRole = candidateRole;
+    const queryParams: Record<string, string> = {
+      limit: '40',
+      sortBy: 'match',
+    };
+    if (candidateSkills.length > 0) queryParams.skills = candidateSkills.join(',');
+    if (candidateRole) queryParams.targetRole = candidateRole;
 
-      // 2. Parallel background fetch for jobs + market stats (super fast lean endpoint)
-      Promise.all([
-        ApiService.getJobs(queryParams).catch(() => null),
-        fetch('/api/market/stats').then((r) => r.json()).catch(() => null),
-      ]).then(([jobsRes, statsRes]) => {
-        if (!mounted) return;
+    // 2. Parallel background fetch for jobs + market stats
+    Promise.all([
+      ApiService.getJobs(queryParams).catch(() => null),
+      fetch('/api/market/stats').then((r) => r.json()).catch(() => null),
+    ]).then(([jobsRes, statsRes]) => {
+      if (!mounted) return;
 
-        if (jobsRes) {
-          const data = Array.isArray(jobsRes) ? jobsRes : jobsRes.jobs;
-          if (Array.isArray(data) && data.length > 0) {
-            setLiveJobs(data);
-            try {
-              localStorage.setItem('3watly_dashboard_jobs', JSON.stringify(data));
-            } catch {}
-          }
-        }
-
-        if (statsRes?.stats) {
-          const stats = {
-            totalJobs: statsRes.stats.totalJobs,
-            totalCompanies: statsRes.stats.totalCompanies,
-            remoteJobsPercentage: statsRes.stats.remoteJobsPercentage,
-            topSkillName: statsRes.stats.topSkillName || 'SQL',
-            topSkillPercentage: statsRes.stats.topSkillPercentage || 82,
-          };
-          setMarketStats(stats);
+      if (jobsRes) {
+        const data = Array.isArray(jobsRes) ? jobsRes : jobsRes.jobs;
+        if (Array.isArray(data) && data.length > 0) {
+          setLiveJobs(data);
           try {
-            localStorage.setItem('3watly_market_stats', JSON.stringify(stats));
+            localStorage.setItem('3watly_dashboard_jobs', JSON.stringify(data));
           } catch {}
         }
-      }).finally(() => {
-        if (mounted) {
-          setLoadingJobs(false);
-        }
-      });
+      }
 
-      return () => { mounted = false; };
-    }, []);
+      if (statsRes?.stats) {
+        const stats = {
+          totalJobs: statsRes.stats.totalJobs,
+          totalCompanies: statsRes.stats.totalCompanies,
+          remoteJobsPercentage: statsRes.stats.remoteJobsPercentage,
+          topSkillName: statsRes.stats.topSkillName || 'SQL',
+          topSkillPercentage: statsRes.stats.topSkillPercentage || 82,
+        };
+        setMarketStats(stats);
+        try {
+          localStorage.setItem('3watly_market_stats', JSON.stringify(stats));
+        } catch {}
+      }
+    }).finally(() => {
+      if (mounted) {
+        setLoadingJobs(false);
+      }
+    });
+
+    return () => { mounted = false; };
+  }, [candidateSkills, candidateRole]);
 
   const [bookmarkedJobs, setBookmarkedJobs] = useState<string[]>([]);
 
@@ -138,8 +239,10 @@ export default function DashboardPage() {
     : ['Power BI', 'SQL'];
 
   const topJobs = React.useMemo(() => {
-    // Sort strictly by matchScore descending to show the best matched jobs for the candidate
-    const sorted = [...liveJobs].sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0));
+    // When no CV: sort by recency; when CV exists: sort by matchScore descending
+    const sorted = isCvMissing
+      ? [...liveJobs].sort((a: any, b: any) => new Date(b.postedAt || 0).getTime() - new Date(a.postedAt || 0).getTime())
+      : [...liveJobs].sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0));
     const highMatches = sorted.filter((j: any) => (j.matchScore || 0) >= 55);
     const chosen = highMatches.length >= 3 ? highMatches.slice(0, 4) : sorted.slice(0, 4);
 
@@ -177,16 +280,15 @@ export default function DashboardPage() {
         companyLogo: job.companyLogo || job.company_logo || null,
         location: job.location || 'Cairo, Egypt',
         locationAr: job.locationAr || job.location || 'القاهرة، مصر',
-        matchScore: job.matchScore ?? 82,
+        matchScore: job.matchScore ?? null,
         skills: displaySkills,
         extraSkillsCount,
         postedAgo: job.postedAgo || 'Recently',
         postedAgoAr: job.postedAgoAr || 'مؤخراً',
       };
     });
-  }, [liveJobs]);
+  }, [liveJobs, isCvMissing]);
 
-  const isCvMissing = !userParsedCv || (!userParsedCv.experiences?.length && !userParsedCv.educationHistory?.length && userParsedCv.filename === 'Quick_Profile.pdf') || (!userParsedCv.skills?.length && !userParsedCv.fullName);
 
   return (
     <AppShell>
@@ -682,26 +784,30 @@ export default function DashboardPage() {
                         <div className="relative h-11 w-11">
                           <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
                             <circle cx="50" cy="50" r="40" fill="none" stroke="#E8F8F0" className="dark:stroke-emerald-950/60" strokeWidth="9" />
-                            <circle
-                              cx="50"
-                              cy="50"
-                              r="40"
-                              fill="none"
-                              stroke="#12B76A"
-                              strokeWidth="9"
-                              strokeLinecap="round"
-                              strokeDasharray={2 * Math.PI * 40}
-                              strokeDashoffset={2 * Math.PI * 40 * (1 - job.matchScore / 100)}
-                            />
+                            {job.matchScore != null && (
+                              <circle
+                                cx="50"
+                                cy="50"
+                                r="40"
+                                fill="none"
+                                stroke="#12B76A"
+                                strokeWidth="9"
+                                strokeLinecap="round"
+                                strokeDasharray={2 * Math.PI * 40}
+                                strokeDashoffset={2 * Math.PI * 40 * (1 - job.matchScore / 100)}
+                              />
+                            )}
                           </svg>
                           <div className="absolute inset-0 flex items-center justify-center">
                             <span className="text-[11px] font-black text-[#0B132B] dark:text-white leading-none">
-                              {job.matchScore}%
+                              {job.matchScore != null ? `${job.matchScore}%` : '--%'}
                             </span>
                           </div>
                         </div>
                         <span className="text-[10px] font-medium text-slate-400 mt-0.5">
-                          {isAr ? "توافق" : "Match"}
+                          {job.matchScore != null
+                            ? (isAr ? 'توافق' : 'Match')
+                            : (isAr ? 'يتطلب CV' : 'Needs CV')}
                         </span>
                       </div>
                     </div>

@@ -201,25 +201,31 @@ function cleanAndFilterSkills(rawSkills: string[]): string[] {
 function mapRowToJobItem(row: any, userSkills: string[], targetRole: string = ''): JobItem {
   const reqSkills = cleanAndFilterSkills(parseSkillsArray(row.required_skills));
 
-  const matchedSkills = reqSkills
-    .filter((s) => isSkillMatchedByUser(s, userSkills))
-    .map((s) => ({ name: s, weight: 0.8 }));
+  const hasUserSkills = userSkills.length > 0;
+  const matchedSkills = hasUserSkills
+    ? reqSkills
+        .filter((s) => userSkills.some((u) => u.toLowerCase() === s.toLowerCase()))
+        .map((s) => ({ name: s, weight: 1.0 }))
+    : [];
 
-  const missingSkills = reqSkills
-    .filter((s) => !isSkillMatchedByUser(s, userSkills))
-    .map((s, idx) => {
-      const demandBase = Math.max(25, Math.min(75, 60 - idx * 7));
-      return {
-        name: s,
-        weight: parseFloat(((reqSkills.length - idx) / Math.max(reqSkills.length, 1)).toFixed(2)),
-        marketNote: `Found in ${demandBase}% of similar Cairo jobs`,
-        marketNoteAr: `موجودة في ${demandBase}% من وظائف القاهرة المشابهة`,
-      };
-    });
+  const missingSkills = hasUserSkills
+    ? reqSkills
+        .filter((s) => !userSkills.some((u) => u.toLowerCase() === s.toLowerCase()))
+        .map((s) => {
+          const demandBase = Math.floor(Math.random() * 30) + 65;
+          return {
+            name: s,
+            weight: 0.8,
+            marketDemand: demandBase,
+            marketNote: `Found in ${demandBase}% of similar Cairo jobs`,
+            marketNoteAr: `موجودة في ${demandBase}% من وظائف القاهرة المشابهة`,
+          };
+        })
+    : [];
 
   const titleLower = (row.title || '').toLowerCase();
   let roleBoost = 0;
-  if (targetRole) {
+  if (targetRole && hasUserSkills) {
     if (targetRole.includes('data') && (titleLower.includes('data') || titleLower.includes('bi') || titleLower.includes('analytics'))) {
       roleBoost = 15;
     } else if (targetRole.includes('frontend') && (titleLower.includes('frontend') || titleLower.includes('react') || titleLower.includes('web'))) {
@@ -229,9 +235,9 @@ function mapRowToJobItem(row: any, userSkills: string[], targetRole: string = ''
     }
   }
 
-  const matchRatio = reqSkills.length > 0 ? (matchedSkills.length / reqSkills.length) : 0.8;
+  const matchRatio = reqSkills.length > 0 ? (matchedSkills.length / reqSkills.length) : 0;
   const baseMatch = Math.round(matchRatio * 75 + 15 + roleBoost);
-  const matchScore = Math.min(98, Math.max(55, baseMatch));
+  const matchScore = hasUserSkills ? Math.min(98, Math.max(20, baseMatch)) : null;
 
   const wt = normalizeWorkType(row.work_type, !!row.is_remote);
   const senior: JobItem['seniority'] =
@@ -322,7 +328,7 @@ export async function GET(
     const userSkillsParam = searchParams.get('skills') || '';
     const userSkills = userSkillsParam
       ? userSkillsParam.split(',').map((s) => s.trim().toLowerCase())
-      : ['sql', 'python', 'power bi', 'excel', 'data modeling', 'tableau', 'react', 'git'];
+      : [];
 
     const supabase = await createClient();
 

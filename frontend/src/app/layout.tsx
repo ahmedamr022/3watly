@@ -50,6 +50,12 @@ export default function RootLayout({
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Preload Hero Background Artworks for instant, 0ms switching */}
+        <link rel="preload" as="image" type="image/webp" href="/images/hero-ar-dark.webp" fetchPriority="high" />
+        <link rel="preload" as="image" type="image/webp" href="/images/hero-ar-light.webp" />
+        <link rel="preload" as="image" type="image/webp" href="/images/hero-en-dark.webp" />
+        <link rel="preload" as="image" type="image/webp" href="/images/hero-en-light.webp" />
+
         <link rel="icon" href="/logo.png" sizes="any" />
         <link rel="shortcut icon" href="/logo.png" />
         <link rel="apple-touch-icon" href="/logo.png" />
