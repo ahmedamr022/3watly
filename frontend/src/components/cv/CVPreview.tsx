@@ -125,21 +125,33 @@ export function CVPreview() {
 
   // Helper to collect and normalize all social links (Displays name only: LinkedIn, GitHub, etc.)
   const activeSocialLinks = React.useMemo(() => {
+    const isExcluded = (u?: string) => {
+      if (!u) return true;
+      const lower = u.toLowerCase().trim();
+      if (lower.startsWith('tel:') || lower.startsWith('mailto:')) return true;
+      if (lower.includes('your-profile')) return true;
+      const digitsOnly = lower.replace(/[^\d]/g, '');
+      if (cv.contact.phone && digitsOnly.length >= 8 && cv.contact.phone.replace(/[^\d]/g, '').includes(digitsOnly)) {
+        return true;
+      }
+      return false;
+    };
+
     if (Array.isArray(cv.contact.socialLinks) && cv.contact.socialLinks.length > 0) {
-      return cv.contact.socialLinks.filter((l) => Boolean(l.url && l.url.trim()));
+      return cv.contact.socialLinks.filter((l) => Boolean(l.url && l.url.trim() && !isExcluded(l.url)));
     }
     const legacy: Array<{ id: string; platform: string; url: string }> = [];
-    if (cv.contact.linkedin?.trim()) {
+    if (cv.contact.linkedin?.trim() && !isExcluded(cv.contact.linkedin)) {
       legacy.push({ id: 'li', platform: 'LinkedIn', url: cv.contact.linkedin });
     }
-    if (cv.contact.github?.trim()) {
+    if (cv.contact.github?.trim() && !isExcluded(cv.contact.github)) {
       legacy.push({ id: 'gh', platform: 'GitHub', url: cv.contact.github });
     }
-    if (cv.contact.portfolio?.trim()) {
+    if (cv.contact.portfolio?.trim() && !isExcluded(cv.contact.portfolio)) {
       legacy.push({ id: 'pf', platform: 'Portfolio', url: cv.contact.portfolio });
     }
     return legacy;
-  }, [cv.contact.socialLinks, cv.contact.linkedin, cv.contact.github, cv.contact.portfolio]);
+  }, [cv.contact.socialLinks, cv.contact.linkedin, cv.contact.github, cv.contact.portfolio, cv.contact.phone]);
 
   const isTwoColumn = template === 'two-column';
 

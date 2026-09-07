@@ -716,14 +716,8 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
           }
 
           case 'linkedin-missing': {
-            toastMessage = 'Added a LinkedIn placeholder — update it with your actual profile link.';
-            return {
-              ...prev,
-              contact: {
-                ...prev.contact,
-                linkedin: 'https://www.linkedin.com/in/your-profile',
-              },
-            };
+            toastMessage = 'Please enter your actual LinkedIn profile URL in the Contact section.';
+            return prev;
           }
 
           case 'few-bullets': {

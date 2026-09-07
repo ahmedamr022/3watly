@@ -120,6 +120,13 @@ export interface ParsedCv {
     label: string;
     skills: string[];
   }>;
+  certificates?: Array<{
+    id: string;
+    name: string;
+    issuer: string;
+    url?: string;
+    date?: string;
+  }>;
   atsReport?: {
     score: number;
     structureScore: number;

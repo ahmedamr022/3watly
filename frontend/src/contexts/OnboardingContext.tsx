@@ -228,6 +228,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
             link: p.link || ''
           })) : [],
           atsReport: data.atsReport,
+          certificates: data.certificates || [],
           actionPlan: data.actionPlan
         };
 
