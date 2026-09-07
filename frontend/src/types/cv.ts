@@ -40,6 +40,7 @@ export interface ExperienceItem {
   id: string;
   role: string;
   company: string;
+  companyUrl?: string;
   startDate: string;
   endDate: string;
   current: boolean;

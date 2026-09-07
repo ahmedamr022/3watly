@@ -176,6 +176,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
                   id: exp.id || `exp-${idx + 1}`,
                   role: exp.role || p.currentTitle || 'Professional',
                   company: exp.company || '',
+                  companyUrl: exp.companyUrl || '',
                   startDate: exp.startDate || '',
                   endDate: exp.endDate || 'Present',
                   current: Boolean(exp.current),
@@ -413,62 +414,83 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
   // Switch which version is currently being edited in CV Builder
   const switchEditingVersion = useCallback((id: string) => {
-    const target = versions.find(v => v.id === id);
-    if (!target) return;
-
-    setEditingVersionId(target.id);
-    setHistory({
-      present: target.cvData,
-      past: [],
-      future: []
+    setVersions(prev => {
+      const target = prev.find(v => v.id === id);
+      if (target) {
+        setEditingVersionId(target.id);
+        setHistory({
+          present: target.cvData,
+          past: [],
+          future: []
+        });
+        setTemplate(target.templateId || 'ats-classic');
+        toast.info(`تم التبديل لمحرر: ${target.name}`);
+      }
+      return prev;
     });
-    setTemplate(target.templateId || 'ats-classic');
-    toast.info(`تم التبديل لمحرر: ${target.name}`);
-  }, [versions]);
+  }, []);
 
   // Set version as platform active (drives Jobs, ATS, Skill Gap, Copilot)
   const setActiveVersion = useCallback((id: string) => {
-    const target = versions.find(v => v.id === id);
-    if (!target) return;
-
-    setActiveVersionIdState(target.id);
     setVersions(prev => {
+      const target = prev.find(v => v.id === id);
+      if (!target) return prev;
+
+      setActiveVersionIdState(target.id);
       const next = prev.map(v => ({
         ...v,
         isActive: v.id === target.id
       }));
-      localStorage.setItem('3watly_cv_versions', JSON.stringify(next));
+      try {
+        localStorage.setItem('3watly_cv_versions', JSON.stringify(next));
+        localStorage.setItem('3watly_active_cv_id', target.id);
+      } catch {}
+
+      syncActiveCVToPlatform({ ...target, isActive: true });
+      toast.success(`تم تعيين "${target.name}" كنسخة أساسية نشطة للمنصة 🎯`);
       return next;
     });
+  }, []);
 
-    syncActiveCVToPlatform({ ...target, isActive: true });
-    toast.success(`تم تعيين "${target.name}" كنسخة أساسية نشطة للمنصة 🎯`);
-  }, [versions]);
-
-  // Create a brand new version
+  // Create a brand new version (immediately updates editor and preview state)
   const createVersion = useCallback((name: string, targetRole: string = 'Data Analyst', fromCv?: CVData) => {
     const newId = `ver-${Date.now()}`;
+    const cvPayload = fromCv || initialCV;
     const newVersion: CVVersion = {
       id: newId,
-      name: name.trim() || `نسخة ${versions.length + 1}`,
+      name: name.trim() || 'سيرة ذاتية جديدة',
       targetRole: targetRole.trim() || 'Data Analyst',
-      cvData: fromCv || initialCV,
+      cvData: cvPayload,
       templateId: 'ats-classic',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      isActive: false
+      isActive: true
     };
 
     setVersions(prev => {
-      const next = [...prev, newVersion];
-      localStorage.setItem('3watly_cv_versions', JSON.stringify(next));
+      const next = [newVersion, ...prev.map(v => ({ ...v, isActive: false }))];
+      try {
+        localStorage.setItem('3watly_cv_versions', JSON.stringify(next));
+        localStorage.setItem('3watly_active_cv_id', newId);
+        localStorage.setItem('3watly_cv_draft', JSON.stringify(cvPayload));
+      } catch {}
       return next;
     });
 
-    switchEditingVersion(newId);
-    toast.success(`تم إنشاء نسخة جديدة: "${newVersion.name}"`);
+    // Synchronously update editor & preview state
+    setEditingVersionId(newId);
+    setActiveVersionIdState(newId);
+    setHistory({
+      present: cvPayload,
+      past: [],
+      future: []
+    });
+    setTemplate('ats-classic');
+
+    syncActiveCVToPlatform(newVersion);
+    toast.success(`تم إنشاء وتفعيل: "${newVersion.name}" 🚀`);
     return newVersion;
-  }, [versions.length, switchEditingVersion]);
+  }, []);
 
   // Duplicate an existing version (e.g. tailor for specific job)
   const duplicateVersion = useCallback((id: string, newName?: string) => {

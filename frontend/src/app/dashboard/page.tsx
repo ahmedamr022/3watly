@@ -17,7 +17,9 @@ import {
   TrendingUp, 
   ArrowRight,
   Info,
-  Calendar
+  Calendar,
+  FileText,
+  UploadCloud
 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -59,49 +61,63 @@ export default function DashboardPage() {
       }
     } catch {}
 
+    let candidateSkills = '';
+    let candidateRole = '';
     try {
       const savedCv = localStorage.getItem('3watly_parsed_cv');
-      if (savedCv) setUserParsedCv(JSON.parse(savedCv));
+      if (savedCv) {
+        const p = JSON.parse(savedCv);
+        setUserParsedCv(p);
+        if (Array.isArray(p.skills)) candidateSkills = p.skills.join(',');
+        candidateRole = p.targetRole || p.currentTitle || '';
+      }
     } catch {}
 
-    // 2. Parallel background fetch for jobs + market stats (super fast lean endpoint)
-    Promise.all([
-      ApiService.getJobs({ limit: '6' }).catch(() => null),
-      fetch('/api/market/stats').then((r) => r.json()).catch(() => null),
-    ]).then(([jobsRes, statsRes]) => {
-      if (!mounted) return;
+      const queryParams: Record<string, string> = {
+        limit: '40',
+        sortBy: 'match',
+      };
+      if (candidateSkills) queryParams.skills = candidateSkills;
+      if (candidateRole) queryParams.targetRole = candidateRole;
 
-      if (jobsRes) {
-        const data = Array.isArray(jobsRes) ? jobsRes : jobsRes.jobs;
-        if (Array.isArray(data) && data.length > 0) {
-          setLiveJobs(data);
+      // 2. Parallel background fetch for jobs + market stats (super fast lean endpoint)
+      Promise.all([
+        ApiService.getJobs(queryParams).catch(() => null),
+        fetch('/api/market/stats').then((r) => r.json()).catch(() => null),
+      ]).then(([jobsRes, statsRes]) => {
+        if (!mounted) return;
+
+        if (jobsRes) {
+          const data = Array.isArray(jobsRes) ? jobsRes : jobsRes.jobs;
+          if (Array.isArray(data) && data.length > 0) {
+            setLiveJobs(data);
+            try {
+              localStorage.setItem('3watly_dashboard_jobs', JSON.stringify(data));
+            } catch {}
+          }
+        }
+
+        if (statsRes?.stats) {
+          const stats = {
+            totalJobs: statsRes.stats.totalJobs,
+            totalCompanies: statsRes.stats.totalCompanies,
+            remoteJobsPercentage: statsRes.stats.remoteJobsPercentage,
+            topSkillName: statsRes.stats.topSkillName || 'SQL',
+            topSkillPercentage: statsRes.stats.topSkillPercentage || 82,
+          };
+          setMarketStats(stats);
           try {
-            localStorage.setItem('3watly_dashboard_jobs', JSON.stringify(data));
+            localStorage.setItem('3watly_market_stats', JSON.stringify(stats));
           } catch {}
         }
-      }
+      }).finally(() => {
+        if (mounted) {
+          setLoadingJobs(false);
+        }
+      });
 
-      if (statsRes?.stats) {
-        const stats = {
-          totalJobs: statsRes.stats.totalJobs,
-          totalCompanies: statsRes.stats.totalCompanies,
-          remoteJobsPercentage: statsRes.stats.remoteJobsPercentage,
-          topSkillName: statsRes.stats.topSkillName || 'SQL',
-          topSkillPercentage: statsRes.stats.topSkillPercentage || 82,
-        };
-        setMarketStats(stats);
-        try {
-          localStorage.setItem('3watly_market_stats', JSON.stringify(stats));
-        } catch {}
-      }
-    }).finally(() => {
-      if (mounted) {
-        setLoadingJobs(false);
-      }
-    });
-
-    return () => { mounted = false; };
-  }, []);
+      return () => { mounted = false; };
+    }, []);
 
   const [bookmarkedJobs, setBookmarkedJobs] = useState<string[]>([]);
 
@@ -122,7 +138,12 @@ export default function DashboardPage() {
     : ['Power BI', 'SQL'];
 
   const topJobs = React.useMemo(() => {
-    return liveJobs.slice(0, 3).map((job: any) => {
+    // Sort strictly by matchScore descending to show the best matched jobs for the candidate
+    const sorted = [...liveJobs].sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0));
+    const highMatches = sorted.filter((j: any) => (j.matchScore || 0) >= 55);
+    const chosen = highMatches.length >= 3 ? highMatches.slice(0, 4) : sorted.slice(0, 4);
+
+    return chosen.map((job: any) => {
       // Gather all legitimate job skills
       const rawJobSkills: string[] = Array.isArray(job.required_skills) && job.required_skills.length > 0
         ? job.required_skills
@@ -156,7 +177,7 @@ export default function DashboardPage() {
         companyLogo: job.companyLogo || job.company_logo || null,
         location: job.location || 'Cairo, Egypt',
         locationAr: job.locationAr || job.location || 'القاهرة، مصر',
-        matchScore: job.matchScore || 82,
+        matchScore: job.matchScore ?? 82,
         skills: displaySkills,
         extraSkillsCount,
         postedAgo: job.postedAgo || 'Recently',
@@ -165,9 +186,44 @@ export default function DashboardPage() {
     });
   }, [liveJobs]);
 
+  const isCvMissing = !userParsedCv || (!userParsedCv.experiences?.length && !userParsedCv.educationHistory?.length && userParsedCv.filename === 'Quick_Profile.pdf') || (!userParsedCv.skills?.length && !userParsedCv.fullName);
+
   return (
     <AppShell>
       <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
+        
+        {/* Missing / Unuploaded CV Prompt Banner */}
+        {isCvMissing && (
+          <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-50/90 via-orange-50/70 to-blue-50/60 dark:from-amber-950/30 dark:via-orange-950/20 dark:to-blue-950/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white font-black shadow-md">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-[15px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>{isAr ? "لم تقم برفع سيرتك الذاتية بعد" : "No Resume Uploaded Yet"}</span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200">
+                    {isAr ? "موصى به" : "Recommended"}
+                  </span>
+                </h3>
+                <p className="text-[12.5px] text-slate-600 dark:text-slate-300 mt-0.5">
+                  {isAr
+                    ? "ارفع سيرتك الذاتية (PDF) أو أنشئها عبر المحرر الذكي للحصول على فحص ATS حقيقي ونسب توافق دقيقة 100% مع وظائف السوق."
+                    : "Upload your resume (PDF) or build one to unlock real ATS diagnostics and accurate job match percentages."}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
+              <Link
+                href="/cv-builder"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white font-bold text-[13px] shadow-sm transition-all cursor-pointer"
+              >
+                <UploadCloud className="w-4 h-4" />
+                <span>{isAr ? "رفع أو إنشاء CV" : "Upload / Build CV"}</span>
+              </Link>
+            </div>
+          </div>
+        )}
         
         {/* ========================================================================= */}
         {/* 1. TOP 4 STAT CARDS (Matching Image 1 Exactly)                           */}

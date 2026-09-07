@@ -65,8 +65,8 @@ export function FinalCta() {
       ];
 
   return (
-    <section className="w-full bg-white dark:bg-[#060913] pt-2 pb-6 px-4 sm:px-8 lg:px-12 transition-colors duration-300">
-      <div className="relative mx-auto max-w-[1360px] overflow-hidden rounded-[26px] border border-slate-200/90 dark:border-white/10 bg-[#F4F8FF] dark:bg-gradient-to-r dark:from-[#0D1424] dark:via-[#111D35] dark:to-[#0A1F26] p-5 sm:p-7 lg:p-8 shadow-lg shadow-slate-200/40 dark:shadow-2xl dark:shadow-black/80">
+    <section className="w-full bg-white dark:bg-[#040816] pt-2 pb-6 px-4 sm:px-8 lg:px-12 transition-colors duration-300">
+      <div className="relative mx-auto max-w-[1360px] overflow-hidden rounded-[26px] border border-slate-200/90 dark:border-cyan-500/25 bg-[#F4F8FF] dark:bg-gradient-to-r dark:from-[#060D1E] dark:via-[#081533] dark:to-[#040816] p-5 sm:p-7 lg:p-8 shadow-lg shadow-slate-200/40 dark:shadow-2xl dark:shadow-black/80">
         
         {/* Light Mode Background Image */}
         <div className="pointer-events-none absolute inset-0 select-none dark:hidden">
@@ -89,12 +89,12 @@ export function FinalCta() {
                 <>
                   مسارك المهني محتاج خطة واضحة.
                   <br />
-                  <span className="bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">عواطلي</span> يساعدك توصل لها.
+                  <span className="bg-gradient-to-r from-[#00F5A0] via-[#00D2FF] to-[#38BDF8] bg-clip-text text-transparent">عواطلي</span> يساعدك توصل لها.
                 </>
               ) : (
                 <>
                   Your career needs a clear direction.<br />
-                  <span className="bg-gradient-to-r from-[#1B57E0] to-[#10B981] bg-clip-text text-transparent">3WATLY</span> helps you reach it.
+                  <span className="bg-gradient-to-r from-[#00F5A0] via-[#00D2FF] to-[#38BDF8] bg-clip-text text-transparent">3WATLY</span> helps you reach it.
                 </>
               )}
             </h2>
@@ -110,7 +110,7 @@ export function FinalCta() {
               {ctaHighlights.map((item) => (
                 <div 
                   key={item.title} 
-                  className="flex items-center gap-2 bg-white/95 dark:bg-[#0B1120]/90 backdrop-blur-md rounded-xl px-2.5 py-1.5 border border-slate-200/80 dark:border-white/10 shadow-2xs"
+                  className="flex items-center gap-2 bg-white/95 dark:bg-[#060D1E]/90 backdrop-blur-md rounded-xl px-2.5 py-1.5 border border-slate-200/80 dark:border-white/10 shadow-2xs"
                 >
                   <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border ${item.tileBg}`}>
                     {item.icon}
@@ -126,7 +126,7 @@ export function FinalCta() {
             <div className="flex flex-wrap items-center gap-3 pt-1.5">
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-[#0052FF] hover:bg-[#0045D8] text-white text-[13.5px] font-bold shadow-md shadow-blue-600/25 hover:-translate-y-0.5 transition-all"
+                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-[13.5px] font-bold shadow-md shadow-blue-600/25 hover:-translate-y-0.5 transition-all"
               >
                 <span>{isAr ? "ابدأ مجاناً الآن" : "Get Started Free"}</span>
                 <ArrowRight className={`w-4 h-4 ${isAr ? "rotate-180" : ""}`} />
@@ -143,7 +143,7 @@ export function FinalCta() {
           <div className="relative mx-auto w-full max-w-[500px] lg:h-[260px]">
             
             {/* 1. Career Match Score Card */}
-            <div className="relative rounded-[22px] border border-white/95 dark:border-white/10 bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:top-0 lg:z-20 lg:w-[225px]">
+            <div className="relative rounded-[22px] border border-white/95 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white/95 dark:bg-[#060D1E]/95 backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:top-0 lg:z-20 lg:w-[225px]">
               <h3 className="text-[12px] font-bold text-slate-900 dark:text-white">
                 {isAr ? "مؤشر التوافق المهني" : "Career Match Score"}
               </h3>
@@ -176,7 +176,7 @@ export function FinalCta() {
             </div>
 
             {/* 2. Top Skills Card */}
-            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/10 bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:right-0 lg:rtl:left-0 lg:top-2 lg:z-10 lg:w-[275px] lg:ltr:pl-9 lg:rtl:pr-9">
+            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white/95 dark:bg-[#060D1E]/95 backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:right-0 lg:rtl:left-0 lg:top-2 lg:z-10 lg:w-[275px] lg:ltr:pl-9 lg:rtl:pr-9">
               <div className="flex items-center gap-1.5 text-[12px] font-bold text-slate-900 dark:text-white">
                 <GitFork className="w-3 h-3 text-slate-500" />
                 <span>{isAr ? "المهارات الأكثر طلباً" : "Top Skills"}</span>
@@ -222,7 +222,7 @@ export function FinalCta() {
             </div>
 
             {/* 3. Salary Insight Card */}
-            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/10 bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:bottom-0 lg:z-10 lg:w-[345px]">
+            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white/95 dark:bg-[#060D1E]/95 backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:bottom-0 lg:z-10 lg:w-[345px]">
               <div className="grid grid-cols-[130px_1fr] items-center gap-2">
                 <div>
                   <h3 className="text-[12px] font-bold text-slate-900 dark:text-white">
@@ -269,7 +269,7 @@ export function FinalCta() {
             </div>
 
             {/* 4. Market Demand Card */}
-            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/10 bg-white/95 dark:bg-[#0B1120] backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:right-0 lg:rtl:left-0 lg:bottom-0 lg:z-20 lg:w-[210px]">
+            <div className="mt-3 rounded-[22px] border border-white/95 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white/95 dark:bg-[#060D1E]/95 backdrop-blur-xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:mt-0 lg:absolute lg:ltr:right-0 lg:rtl:left-0 lg:bottom-0 lg:z-20 lg:w-[210px]">
               <h3 className="text-[12px] font-bold text-slate-900 dark:text-white">
                 {isAr ? "الطلب في السوق" : "Market Demand"}
               </h3>

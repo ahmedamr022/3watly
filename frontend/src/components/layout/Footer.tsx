@@ -35,7 +35,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="w-full bg-white dark:bg-[#070B14] border-t border-slate-100/90 dark:border-white/5 pt-12 pb-8 px-6 sm:px-10 lg:px-16 text-slate-600 dark:text-slate-400 transition-colors duration-300">
+    <footer className="w-full bg-white dark:bg-[#030610] border-t border-slate-100/90 dark:border-white/[0.06] pt-12 pb-8 px-6 sm:px-10 lg:px-16 text-slate-600 dark:text-slate-400 transition-colors duration-300">
       
       {/* Interactive Bilingual Legal Modal */}
       <LegalModal

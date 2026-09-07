@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   CheckCircle2Icon,
@@ -9,7 +9,9 @@ import {
   EyeOffIcon,
   Loader2Icon,
   Redo2Icon,
-  Undo2Icon
+  Undo2Icon,
+  UploadCloudIcon,
+  PlusCircleIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCV } from "@/contexts/CVContext";
@@ -17,7 +19,7 @@ import { TEMPLATES } from "@/data/cvData";
 import { EditorPanel } from "@/components/cv/EditorPanel";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { CVVersionSelector } from "@/components/cv/CVVersionManager";
-import type { TemplateId } from "@/types/cv";
+import type { CVData, TemplateId } from "@/types/cv";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Dropdown } from "@/components/ui/Dropdown";
@@ -33,11 +35,98 @@ export default function CVBuilderPage() {
     redo,
     canUndo,
     canRedo,
-    analysis
+    analysis,
+    createVersion
   } = useCV();
   const { isAr } = useLanguage();
   const [previewMode, setPreviewMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    toast.loading(
+      isAr ? "جاري قراءة وتحليل بيانات السيرة الذاتية واستخراج الروابط..." : "Parsing resume & extracting links...",
+      { id: "upload-direct-cv" }
+    );
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/cv/parse", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to parse CV");
+      }
+
+      const json = await res.json();
+      const data = json.data;
+
+      // Build structured social links
+      const parsedSocialLinks = Array.isArray(data.socialLinks) && data.socialLinks.length > 0
+        ? data.socialLinks
+        : [
+            data.linkedin ? { id: "link-li", platform: "LinkedIn", url: data.linkedin } : null,
+            data.github ? { id: "link-gh", platform: "GitHub", url: data.github } : null,
+            data.portfolio ? { id: "link-pf", platform: "Portfolio", url: data.portfolio } : null,
+          ].filter(Boolean);
+
+      const newCvData: CVData = {
+        contact: {
+          fullName: data.fullName || "User",
+          jobTitle: data.currentTitle || data.targetRole || "Data Analyst",
+          phone: data.phone || "",
+          email: data.email || "",
+          location: data.location || "Cairo, Egypt",
+          linkedin: data.linkedin || "",
+          github: data.github || "",
+          portfolio: data.portfolio || "",
+          socialLinks: parsedSocialLinks as any
+        },
+        summary: data.summary || "",
+        skillsSummary: null,
+        experience: Array.isArray(data.experiences) && data.experiences.length > 0 ? data.experiences : [],
+        education: Array.isArray(data.education) && data.education.length > 0 ? data.education : [],
+        projects: Array.isArray(data.projects) && data.projects.length > 0 ? data.projects.map((p: any, idx: number) => ({
+          id: p.id || `prj-${idx + 1}`,
+          title: p.title || `Project ${idx + 1}`,
+          technologies: Array.isArray(p.technologies) ? p.technologies : [],
+          github: p.github || "",
+          link: p.link || "",
+          bullets: Array.isArray(p.bullets) && p.bullets.length > 0
+            ? p.bullets
+            : (p.description ? [p.description] : [])
+        })) : [],
+        skills: Array.isArray(data.categorizedSkillGroups) && data.categorizedSkillGroups.length > 0
+          ? data.categorizedSkillGroups
+          : (data.skills?.length ? [{ id: "tech-1", label: "Technical Skills", skills: data.skills }] : []),
+        sectionOrder: ["summary", "experience", "education", "skills", "projects"],
+        hiddenSections: []
+      };
+
+      const cleanFileName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ").trim() || "سيرة ذاتية مرفوعة";
+      createVersion(cleanFileName, data.targetRole || data.currentTitle || "Data Analyst", newCvData);
+
+      toast.success(
+        isAr ? "تم استخراج كافة البيانات والروابط وتحديث عارض السيرة الذاتية بنجاح! 🚀" : "CV parsed and imported into the builder! 🚀",
+        { id: "upload-direct-cv" }
+      );
+    } catch (err: any) {
+      toast.error(err.message || (isAr ? "حدث خطأ أثناء قراءة السيرة الذاتية" : "Failed to parse CV"), { id: "upload-direct-cv" });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -114,9 +203,32 @@ export default function CVBuilderPage() {
         {/* Top Actions & Toolbar */}
         <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
           
-          {/* Multi-CV Version Selector & Status badge */}
+          {/* Multi-CV Version Selector & Status badge & Direct Upload */}
           <div className="flex flex-wrap items-center gap-3">
             <CVVersionSelector />
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleDirectUpload}
+              accept=".pdf,.docx,.doc"
+              className="hidden"
+            />
+
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-500/30 bg-blue-50/70 hover:bg-blue-100/70 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-[#1B57E0] dark:text-[#60A5FA] text-[12.5px] font-bold transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              title={isAr ? "رفع واستخراج بيانات سيرة ذاتية جديدة" : "Upload & import a resume"}
+            >
+              {isUploading ? (
+                <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <UploadCloudIcon className="h-3.5 w-3.5" />
+              )}
+              <span>{isUploading ? (isAr ? "جاري الرفع..." : "Uploading...") : (isAr ? "رفع CV جديد" : "Upload CV")}</span>
+            </button>
 
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12.5px] font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/30"
@@ -241,12 +353,15 @@ export default function CVBuilderPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Link
-                href="/onboarding/cv-upload"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-50 dark:hover:bg-white/15 text-xs font-bold text-[#1B57E0] dark:text-[#60A5FA] border border-slate-200/80 dark:border-white/10 transition-all shadow-xs"
+              <button
+                type="button"
+                disabled={isUploading}
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-xs font-bold text-white transition-all shadow-md shadow-blue-600/20 cursor-pointer disabled:opacity-50"
               >
-                <span>{isAr ? "📄 رفع سيرة ذاتية سابقة" : "📄 Upload Existing Resume"}</span>
-              </Link>
+                <UploadCloudIcon className="h-3.5 w-3.5" />
+                <span>{isAr ? "رفع ملف سيرة ذاتية (PDF)" : "Upload Resume (PDF)"}</span>
+              </button>
             </div>
           </div>
         )}

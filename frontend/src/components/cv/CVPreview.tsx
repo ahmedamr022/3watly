@@ -110,18 +110,18 @@ function cleanLocationText(loc?: string): string {
     .trim();
 }
 
+/** Helper to format clean link URLs */
+function formatUrl(url?: string): string {
+  if (!url) return '';
+  const u = url.trim();
+  return u.startsWith('http://') || u.startsWith('https://') ? u : `https://${u}`;
+}
+
 export function CVPreview() {
   const { cv, template } = useCV();
   const activeTemplateKey = STYLES[template] ? template : 'ats-classic';
   const style = STYLES[activeTemplateKey];
   const sections = visibleSections(cv);
-
-  // Helper to format clean link URLs
-  const formatUrl = (url?: string) => {
-    if (!url) return '';
-    const u = url.trim();
-    return u.startsWith('http://') || u.startsWith('https://') ? u : `https://${u}`;
-  };
 
   // Helper to collect and normalize all social links (Displays name only: LinkedIn, GitHub, etc.)
   const activeSocialLinks = React.useMemo(() => {
@@ -307,7 +307,18 @@ function ExperienceSectionContent({ cv, style }: { cv: CVData; style: StyleConfi
             </div>
             {/* Second row: Company + Clean Location */}
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-              <p className={style.itemSub}>{item.company}</p>
+              {item.companyUrl ? (
+                <a
+                  href={formatUrl(item.companyUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${style.itemSub} hover:underline font-semibold text-blue-600 dark:text-blue-400`}
+                >
+                  {item.company}
+                </a>
+              ) : (
+                <p className={style.itemSub}>{item.company}</p>
+              )}
               {cleanLoc && <span className={`shrink-0 text-right ${style.itemSub}`}>{cleanLoc}</span>}
             </div>
             <Bullets bullets={item.bullets} style={style} />

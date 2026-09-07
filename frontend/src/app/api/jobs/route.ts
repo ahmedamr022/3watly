@@ -257,12 +257,20 @@ function calculateMatchScore(
 
   if (weightedTotal === 0) {
     // Has data but no skills after filtering → neutral score, low confidence
-    return { score: 55 + targetRoleBoost, confidence: 'low', reason: 'no_skills_after_filter' };
+    return { score: Math.max(15, Math.min(60, 45 + targetRoleBoost)), confidence: 'low', reason: 'no_skills_after_filter' };
+  }
+
+  // Zero skills matched: unrelated job or complete skill mismatch
+  if (weightedMatched === 0) {
+    const zeroScore = targetRoleBoost > 0 ? 30 : Math.max(10, 15 + targetRoleBoost);
+    return { score: zeroScore, confidence: 'high', reason: 'no_matching_skills' };
   }
 
   const ratio = weightedMatched / weightedTotal;
-  const base = Math.round(ratio * 70 + 15 + targetRoleBoost);
-  const score = Math.min(98, Math.max(40, base));
+  // Multi-skill bonus (matching 3+ skills gives up to 20 bonus points)
+  const countBonus = Math.min(weightedMatched * 5, 20);
+  const base = Math.round(ratio * 45 + 20 + countBonus + targetRoleBoost);
+  const score = Math.min(98, Math.max(20, base));
 
   const confidence: 'high' | 'medium' | 'low' =
     dataQuality === 'verified' ? 'high' :
@@ -324,9 +332,10 @@ export async function GET(request: NextRequest) {
           query = query.gte('posted_at', postedAfter);
         }
 
+        const dbLimit = sortBy === 'match' ? 1000 : limit;
         const { data, error } = await query
           .order('posted_at', { ascending: false, nullsFirst: false })
-          .limit(limit);
+          .limit(dbLimit);
 
         if (!error && Array.isArray(data) && data.length > 0) {
           jobsFromDb = data;
@@ -349,24 +358,32 @@ export async function GET(request: NextRequest) {
       // Preferred skills
       const preferredSkills = cleanSkills(parseSkillsArray(row.preferred_skills ?? []));
 
-      // Role title match boost (+15 if target role aligns with this job)
+      // Role title match boost (+18 if target role aligns with this job)
       const titleLower = (row.title || '').toLowerCase();
       let roleBoost = 0;
       if (targetRole) {
         const rolePatterns: [string, string[]][] = [
-          ['data', ['data', 'bi', 'analytics', 'analyst']],
-          ['frontend', ['frontend', 'react', 'web', 'ui']],
-          ['backend', ['backend', 'node', 'api', 'server']],
-          ['fullstack', ['full stack', 'fullstack', 'full-stack']],
-          ['devops', ['devops', 'cloud', 'sre', 'platform']],
-          ['mobile', ['mobile', 'flutter', 'android', 'ios']],
+          ['data', ['data', 'bi', 'analytics', 'analyst', 'business intelligence', 'machine learning']],
+          ['frontend', ['frontend', 'front-end', 'react', 'web', 'ui', 'angular', 'vue']],
+          ['backend', ['backend', 'back-end', 'node', 'api', 'server', 'python', 'java', 'php', '.net', 'c#']],
+          ['fullstack', ['full stack', 'fullstack', 'full-stack', 'software developer', 'software engineer']],
+          ['devops', ['devops', 'cloud', 'sre', 'platform', 'infrastructure', 'sysadmin']],
+          ['mobile', ['mobile', 'flutter', 'android', 'ios', 'react native']],
+          ['qa', ['qa', 'quality assurance', 'software test', 'automation test']],
+          ['product', ['product owner', 'product manager', 'scrum master', 'project manager']],
         ];
         for (const [rkey, patterns] of rolePatterns) {
           if (targetRole.includes(rkey) && patterns.some(p => titleLower.includes(p))) {
-            roleBoost = 15;
+            roleBoost = 18;
             break;
           }
         }
+      }
+
+      // Domain mismatch penalty: strongly demote non-tech manual/unrelated professions
+      const NON_TECH_TITLE = /mechanical|civil|electrical|chemical|production engineer|sales|medical|pharmacist|factory|cashier|call center|telesales|real estate|nurse|doctor|veterin/i;
+      if (NON_TECH_TITLE.test(titleLower)) {
+        roleBoost -= 35;
       }
 
       const { score: matchScore, confidence: matchConfidence } = calculateMatchScore(
@@ -499,8 +516,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Limit results to requested limit after full sort
+    const limited = results.slice(0, limit);
+
     // Strip internal fields before sending to client, but keep postedAt for notification filtering
-    const clientJobs = results.map(({ _postedAt, _matchConfidence, ...job }) => ({
+    const clientJobs = limited.map(({ _postedAt, _matchConfidence, ...job }) => ({
       ...job,
       postedAt: _postedAt || null,
     }));

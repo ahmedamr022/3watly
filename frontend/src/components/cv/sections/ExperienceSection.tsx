@@ -13,6 +13,7 @@ import type { ExperienceItem } from '../../../types/cv';
 const EMPTY: Omit<ExperienceItem, 'id'> = {
   role: '',
   company: '',
+  companyUrl: '',
   startDate: '',
   endDate: '',
   current: true,
@@ -68,6 +69,13 @@ export function ExperienceSection() {
             value={item.company}
             onChange={(value) => patch(item.id, { company: value }, 'company')}
             placeholder="Vodafone Egypt" />
+          
+            <TextField
+            className="sm:col-span-2"
+            label="Company URL / LinkedIn"
+            value={item.companyUrl || ''}
+            onChange={(value) => patch(item.id, { companyUrl: value }, 'companyUrl')}
+            placeholder="https://linkedin.com/company/... or company website" />
           
             <TextField
             label="Start Date"

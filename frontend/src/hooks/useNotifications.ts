@@ -79,8 +79,9 @@ export function useNotifications() {
     try {
       setLoading(true);
 
-      // Extract candidate skills from parsed CV or active CV versions
+      // Extract candidate skills and target role from parsed CV or active CV versions
       let userSkills = '';
+      let targetRole = '';
       if (typeof window !== 'undefined') {
         try {
           const parsed = localStorage.getItem('3watly_parsed_cv');
@@ -89,6 +90,7 @@ export function useNotifications() {
             if (Array.isArray(data.skills) && data.skills.length > 0) {
               userSkills = data.skills.join(',');
             }
+            targetRole = data.targetRole || data.currentTitle || '';
           }
           if (!userSkills) {
             const versionsRaw = localStorage.getItem('3watly_cv_versions');
@@ -101,6 +103,9 @@ export function useNotifications() {
                 });
                 if (sList.length > 0) userSkills = sList.join(',');
               }
+              if (!targetRole && vers?.[0]?.targetRole) {
+                targetRole = vers[0].targetRole;
+              }
             }
           }
         } catch {}
@@ -109,11 +114,12 @@ export function useNotifications() {
       const cutoff = getNotificationCutoff();
 
       const params = new URLSearchParams({
-        limit: '15',
+        limit: '100',
         sortBy: 'recent',
         postedAfter: cutoff,
       });
       if (userSkills) params.set('skills', userSkills);
+      if (targetRole) params.set('targetRole', targetRole);
 
       const res = await fetch(`/api/jobs?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to fetch job notifications');
@@ -123,7 +129,17 @@ export function useNotifications() {
 
       const readIds = getReadIds();
 
-      const notifs: JobNotification[] = jobs.slice(0, 10).map((job) => {
+      // Only notify for jobs that actually match the candidate (matchScore >= 50%),
+      // sorted by match score descending so top opportunities are highlighted first
+      const matchedJobs = jobs
+        .filter(j => (j.matchScore || 0) >= 50)
+        .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+
+      const finalJobs = matchedJobs.length > 0
+        ? matchedJobs
+        : jobs.filter(j => (j.matchScore || 0) >= 35).sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+
+      const notifs: JobNotification[] = finalJobs.slice(0, 8).map((job) => {
         const notifId = `notif_${job.id}`;
         const isRead = readIds.has(notifId);
 

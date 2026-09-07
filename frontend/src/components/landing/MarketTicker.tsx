@@ -101,12 +101,15 @@ export function MarketTicker() {
 
   return (
     <div 
-      className="relative w-full overflow-hidden py-3 bg-transparent select-none"
+      className="relative w-full overflow-hidden py-3.5 bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-[#040816] dark:via-[#030716] dark:to-[#040816] border-y border-slate-200/80 dark:border-cyan-500/15 backdrop-blur-md select-none z-20"
       aria-label={isAr ? "مؤشرات السوق المباشرة" : "Live Market Ticker"}
     >
+      {/* Ambient water reflection continuation glow */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_100%_at_50%_50%,rgba(0,110,255,0.06),transparent_70%)]" />
+
       {/* Delicate Edge Fades */}
-      <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 sm:w-32 z-10 bg-gradient-to-r from-[#F8FAFC] dark:from-[#060913] to-transparent" />
-      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 sm:w-32 z-10 bg-gradient-to-l from-[#F8FAFC] dark:from-[#060913] to-transparent" />
+      <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-24 sm:w-36 z-10 bg-gradient-to-r from-slate-50 dark:from-[#040816] to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 sm:w-36 z-10 bg-gradient-to-l from-slate-50 dark:from-[#040816] to-transparent" />
 
       <div className="flex w-max">
         <motion.div
@@ -123,32 +126,38 @@ export function MarketTicker() {
           {duplicatedSignals.map((item, idx) => (
             <div
               key={`${item.id}-${idx}`}
-              className="flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-slate-200/80 dark:border-white/[0.08] bg-white/80 dark:bg-white/[0.03] backdrop-blur-md shadow-2xs hover:border-blue-500/40 dark:hover:border-blue-500/30 hover:bg-slate-50/90 dark:hover:bg-white/[0.06] transition-all duration-200 shrink-0 cursor-default"
+              className="flex items-center gap-2.5 px-4 py-2 rounded-full border border-slate-200 dark:border-white/10 hover:border-blue-400 dark:hover:border-[#00D2FF]/30 bg-white/95 dark:bg-[#040A1C]/90 shadow-sm shadow-slate-200/60 dark:shadow-lg dark:shadow-black/50 hover:bg-slate-50 dark:hover:bg-[#07132F] transition-all duration-200 shrink-0 cursor-default"
             >
-              {/* Subtle Live Dot Indicator */}
+              {/* Live Dot Indicator */}
               {item.isLive ? (
                 <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 </span>
               ) : (
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+                <span className="h-2 w-2 rounded-full bg-blue-500 dark:bg-[#00D2FF] shrink-0 shadow-[0_0_8px_rgba(37,99,235,0.5)] dark:shadow-[0_0_8px_rgba(0,210,255,0.7)]" />
               )}
 
               {/* Entity Title */}
-              <span className="text-[12px] font-bold text-slate-900 dark:text-white whitespace-nowrap">
+              <span className="text-[12.5px] font-bold text-slate-900 dark:text-white whitespace-nowrap">
                 {item.entity}
               </span>
 
-              <span className="text-slate-300 dark:text-white/20 text-[10px]">•</span>
+              <span className="text-slate-400 dark:text-white/25 text-[10px]">•</span>
 
               {/* Action / Statement */}
-              <span className="text-[12px] font-normal text-slate-600 dark:text-slate-300 whitespace-nowrap">
+              <span className="text-[12px] font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
                 {item.action}
               </span>
 
-              {/* Minimalist Metric Tag */}
-              <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md font-mono whitespace-nowrap">
+              {/* Glow Metric Tag */}
+              <span 
+                className={`text-[11px] font-bold px-2.5 py-0.5 rounded-lg whitespace-nowrap ${
+                  item.isLive
+                    ? 'bg-emerald-50 dark:bg-[#003B46] text-emerald-700 dark:text-[#00F5A0] border border-emerald-200 dark:border-[#00F5A0]/30 shadow-xs'
+                    : 'bg-blue-50 dark:bg-[#0B1E45] text-blue-700 dark:text-[#00D2FF] border border-blue-200 dark:border-[#00D2FF]/30 shadow-xs'
+                }`}
+              >
                 {item.metric}
               </span>
             </div>

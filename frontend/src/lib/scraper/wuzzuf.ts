@@ -807,20 +807,31 @@ async function enrichJobWithDetails(job: ScrapedJob): Promise<ScrapedJob> {
 // Category & Browse Pages (Bypasses Cloudflare block, high job yield)
 // ─────────────────────────────────────────────────────────────────────────────
 const WUZZUF_CATEGORIES = [
-  { slug: 'Data-Analyst', label: 'Data Analyst', maxPages: 4 },
-  { slug: 'Business-Intelligence', label: 'Business Intelligence', maxPages: 3 },
-  { slug: 'Data-Engineer', label: 'Data Engineer', maxPages: 3 },
-  { slug: 'Data-Scientist', label: 'Data Scientist', maxPages: 3 },
-  { slug: 'Python', label: 'Python Developer', maxPages: 4 },
-  { slug: 'SQL', label: 'SQL & Database', maxPages: 4 },
-  { slug: 'Analyst-Research', label: 'Analyst & Research', maxPages: 4 },
+  { slug: 'Jobs-in-Egypt', label: 'All Recent Jobs (Latest Egypt Feed)', maxPages: 6 },
+  { slug: 'Software-Development-Jobs-in-Egypt', label: 'Software Development', maxPages: 5 },
+  { slug: 'Engineering-Technology-Jobs-in-Egypt', label: 'Engineering & Technology', maxPages: 5 },
+  { slug: 'Data-Analysis-Jobs-in-Egypt', label: 'Data Analysis & BI', maxPages: 5 },
+  { slug: 'Frontend-Developer-Jobs-in-Egypt', label: 'Frontend Development', maxPages: 4 },
+  { slug: 'Project-Management-Jobs-in-Egypt', label: 'Project Management & Scrum', maxPages: 4 },
+  { slug: 'Software-Engineering-Jobs-in-Egypt', label: 'Software Engineering', maxPages: 4 },
+  { slug: 'Quality-Assurance-Jobs-in-Egypt', label: 'QA & Testing', maxPages: 4 },
+  { slug: 'Technology-Jobs-in-Egypt', label: 'Technology', maxPages: 4 },
+  { slug: 'Data-Analyst', label: 'Data Analyst Specific', maxPages: 3 },
+  { slug: 'Business-Intelligence', label: 'Business Intelligence Specific', maxPages: 3 },
+  { slug: 'Data-Engineer', label: 'Data Engineer Specific', maxPages: 3 },
+  { slug: 'Data-Scientist', label: 'Data Scientist Specific', maxPages: 3 },
+  { slug: 'Python', label: 'Python Specific', maxPages: 3 },
+  { slug: 'SQL', label: 'SQL & Database Specific', maxPages: 3 },
 ];
 
 async function scrapeWuzzufCategory(categorySlug: string, maxPages = 3): Promise<ScrapedJob[]> {
   const jobs: ScrapedJob[] = [];
+  const pathSlug = categorySlug.endsWith('-Jobs-in-Egypt') || categorySlug === 'Jobs-in-Egypt'
+    ? categorySlug
+    : `${categorySlug}-Jobs-in-Egypt`;
 
   for (let page = 0; page < maxPages; page++) {
-    const url = `${WUZZUF_BASE}/a/${categorySlug}-Jobs-in-Egypt?start=${page}`;
+    const url = `${WUZZUF_BASE}/a/${pathSlug}?start=${page}`;
     const html = await fetchWithRetry(url, 2);
     if (!html) continue;
 
