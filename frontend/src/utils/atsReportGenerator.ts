@@ -5,6 +5,16 @@ import { jsPDF } from 'jspdf';
 import type { Analysis } from './atsAnalysis';
 import type { CVData } from '../types/cv';
 
+function escapeHtml(str: unknown): string {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 /**
  * Downloads a comprehensive, beautifully styled, bilingual ATS Diagnostic Report as a high-resolution PDF.
  * Includes:
@@ -27,7 +37,13 @@ export async function downloadAtsDiagnosticPdf(
     month: 'long',
     year: 'numeric',
   });
-  const reportId = `3W-${Math.floor(100000 + Math.random() * 900000)}`;
+  // Deterministic report ID from candidate name and role
+  let hash = 0;
+  const hashSource = `${candidateName}_${roleTitle}`;
+  for (let i = 0; i < hashSource.length; i++) {
+    hash = (hash * 31 + hashSource.charCodeAt(i)) & 0xffffff;
+  }
+  const reportId = `3W-${String(Math.abs(hash) % 900000 + 100000)}`;
 
   // Score metrics
   const score = analysis.score;
@@ -66,7 +82,7 @@ export async function downloadAtsDiagnosticPdf(
               ${isAr ? 'عواطلي • تقرير فحص ومطابقة الـ ATS الشامل' : '3WATLY • ATS DIAGNOSTICS & SCREENING AUDIT'}
             </h1>
             <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748B; font-weight: 500;">
-              ${isAr ? 'تحليل معياري بالذكاء الاصطناعي مبني على متطلبات وظائف سوق العمل المصري' : 'Egyptian Tech Job Market AI-Driven Screening Benchmark'}
+              ${isAr ? 'فحص ومطابقة لهيكل السيرة الذاتية وفق معايير أنظمة ATS' : 'ATS Resume Structural & Keyword Screening Report'}
             </p>
           </div>
         </div>
@@ -82,18 +98,18 @@ export async function downloadAtsDiagnosticPdf(
           <span style="display: inline-block; padding: 2px 8px; background: #EEF2FF; color: #4338CA; border-radius: 6px; font-size: 10px; font-weight: 700; margin-bottom: 6px;">
             ${isAr ? 'ملف السيرة الذاتية المفحوص' : 'AUDITED RESUME PROFILE'}
           </span>
-          <h2 style="margin: 0; font-size: 17px; font-weight: 800; color: #0F172A;">${candidateName}</h2>
+          <h2 style="margin: 0; font-size: 17px; font-weight: 800; color: #0F172A;">${escapeHtml(candidateName)}</h2>
           <p style="margin: 4px 0 0 0; font-size: 12px; color: #475569; font-weight: 600;">
-            ${isAr ? 'المسمى المستهدف:' : 'Target Role:'} <span style="color: #1B57E0;">${roleTitle}</span>
+            ${isAr ? 'المسمى المستهدف:' : 'Target Role:'} <span style="color: #1B57E0;">${escapeHtml(roleTitle)}</span>
           </p>
         </div>
         <div style="display: flex; gap: 20px;">
           <div style="text-align: center; border-${isAr ? 'left' : 'right'}: 1px solid #CBD5E1; padding-${isAr ? 'left' : 'right'}: 18px;">
             <div style="font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase;">
-              ${isAr ? 'الترتيب التنافسي' : 'Percentile Rank'}
+              ${isAr ? 'الدرجة الإجمالية' : 'ATS Score'}
             </div>
-            <div style="font-size: 16px; font-weight: 800; color: #10B981; margin-top: 2px;">
-              ${isAr ? 'أعلى ' + analysis.percentile + '%' : 'Top ' + analysis.percentile + '%'}
+            <div style="font-size: 16px; font-weight: 800; color: ${scoreColor}; margin-top: 2px;">
+              ${score} / 100
             </div>
           </div>
           <div style="text-align: center;">
@@ -214,7 +230,7 @@ export async function downloadAtsDiagnosticPdf(
                 ? analysis.keywords.found
                     .map(
                       (k) =>
-                        `<span style="padding: 3px 9px; background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; border-radius: 6px; font-size: 10.5px; font-weight: 700;">${k}</span>`
+                        `<span style="padding: 3px 9px; background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; border-radius: 6px; font-size: 10.5px; font-weight: 700;">${escapeHtml(k)}</span>`
                     )
                     .join('')
                 : `<span style="font-size: 11px; color: #64748B;">${isAr ? 'لم يتم رصد مهارات تقنية كافية' : 'No primary keywords detected'}</span>`
@@ -234,7 +250,7 @@ export async function downloadAtsDiagnosticPdf(
                     .slice(0, 10)
                     .map(
                       (k) =>
-                        `<span style="padding: 3px 9px; background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; border-radius: 6px; font-size: 10.5px; font-weight: 700;">+ ${k}</span>`
+                        `<span style="padding: 3px 9px; background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; border-radius: 6px; font-size: 10.5px; font-weight: 700;">+ ${escapeHtml(k)}</span>`
                     )
                     .join('')
                 : `<span style="font-size: 11px; color: #166534; font-weight: 700;">${isAr ? 'ممتاز! سيرتك تغطي كافة الكلمات الأساسية.' : 'All key skills covered!'}</span>`
@@ -258,7 +274,7 @@ export async function downloadAtsDiagnosticPdf(
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; background: #F8FAFC; border-radius: 8px; font-size: 11px;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-weight: 800; color: ${item.passed ? '#10B981' : '#EF4444'};">${item.passed ? '✓' : '✗'}</span>
-                <span style="font-weight: 700; color: #0F172A;">${isAr ? (item.labelAr || item.label) : item.label}</span>
+                <span style="font-weight: 700; color: #0F172A;">${escapeHtml(isAr ? (item.labelAr || item.label) : item.label)}</span>
               </div>
               <span style="padding: 2px 7px; border-radius: 4px; font-size: 9.5px; font-weight: 800; background: ${item.passed ? '#DCFCE7' : '#FEE2E2'}; color: ${item.passed ? '#166534' : '#991B1B'};">
                 ${item.passed ? (isAr ? 'مستوفى (PASS)' : 'PASSED') : (isAr ? 'تنبيه (ATTN)' : 'ATTENTION')}
@@ -286,10 +302,10 @@ export async function downloadAtsDiagnosticPdf(
                     (fix, idx) => `
             <div style="background: #ffffff; border-radius: 8px; padding: 10px 14px; border-inline-start: 4px solid #4F46E5;">
               <div style="font-size: 11.5px; font-weight: 800; color: #1E1B4B;">
-                ${idx + 1}. ${isAr ? (fix.titleAr || fix.title) : fix.title}
+                ${idx + 1}. ${escapeHtml(isAr ? (fix.titleAr || fix.title) : fix.title)}
               </div>
               <div style="font-size: 10.5px; color: #475569; margin-top: 2px; line-height: 1.4;">
-                ${isAr ? (fix.whyAr || fix.why) : fix.why}
+                ${escapeHtml(isAr ? (fix.whyAr || fix.why) : fix.why)}
               </div>
             </div>
           `
@@ -306,8 +322,8 @@ export async function downloadAtsDiagnosticPdf(
 
       <!-- FOOTER -->
       <div style="border-top: 1px solid #E2E8F0; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; color: #94A3B8;">
-        <div>${isAr ? 'تم الإنشاء بواسطة محرك الذكاء المهني لمنصة عواطلي • 3watly.com' : 'Verified by 3WATLY Career Intelligence Engine • 3watly.com'}</div>
-        <div>${isAr ? 'تقرير استشاري سري خاص بالمرشح • صفحة 1 من 1' : 'Confidential Diagnostic Report • Page 1 of 1'}</div>
+        <div>${isAr ? 'تم الإنشاء بواسطة منصة عواطلي • 3watly.com' : 'Generated by 3WATLY Platform • 3watly.com'}</div>
+        <div>${isAr ? 'تقرير فحص ATS استشاري • صفحة 1 من 1' : 'ATS Diagnostic Report • Page 1 of 1'}</div>
       </div>
 
     </div>

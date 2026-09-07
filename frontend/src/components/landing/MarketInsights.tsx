@@ -127,8 +127,8 @@ export function MarketInsights() {
 
   const currentData = roleDataMap[roleKey] || roleDataMap['data-analyst'];
 
-  // Real active jobs count from database (fallback to 413)
-  const realActiveJobs = liveStats?.stats?.totalJobs || 413;
+  // Real active jobs count from database
+  const realActiveJobs = liveStats?.stats?.totalJobs || 0;
 
   // Real skills from live database if available, otherwise role skills
   const displaySkills = (liveStats?.topSkills?.length > 0 && roleKey === 'data-analyst')
@@ -148,10 +148,6 @@ export function MarketInsights() {
 
   const handleApplyFilter = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    setIsUpdating(true);
-    setTimeout(() => {
-      setIsUpdating(false);
-    }, 250);
   };
 
   const arabicIndustries = [

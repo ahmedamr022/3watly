@@ -126,8 +126,6 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       }
 
       try {
-        // Stage 1: Progress step
-        await new Promise((r) => setTimeout(r, 400));
         setProgress(35);
         setStageMessage('Reading document structure and layout...');
         setChecksRevealed(1);
@@ -315,30 +313,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         },
         skills: data.skills,
         detectedSkills,
-        atsReport: {
-          score: 88,
-          structureScore: 90,
-          readabilityScore: 88,
-          impactScore: 85,
-          skillsScore: 90,
-          hasEmail: true,
-          hasPhone: true,
-          hasLocation: true,
-          hasSummary: true,
-          hasExperience: true,
-          hasEducation: true,
-          hasSkills: true,
-          hasMetrics: true,
-          actionVerbsCount: 14,
-          metricsCount: 6,
-          strengths: [
-            `Strong foundational alignment for ${roleTitle}`,
-            `Verified in-demand skills: ${data.skills.slice(0, 3).join(', ')}`
-          ],
-          improvements: [
-            'Create a downloadable CV using 3WATLY CV Builder to apply to direct openings.'
-          ]
-        },
+        atsReport: undefined,
         actionPlan: [
           {
             title: `Advanced ${data.skills[0] || 'Technical'} Mastery`,
@@ -372,39 +347,33 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       return role && roleProfiles[role] ? roleProfiles[role] : null;
     }
 
-    const atsScore = parsedCv.atsReport?.score ?? 84;
-    const expYears = parsedCv.experienceYears ?? 2;
+    const atsScore = parsedCv.atsReport?.score ?? null;
+    const expYears = parsedCv.experienceYears ?? 0;
     const skillsList = parsedCv.skills ?? [];
 
     const topSkills = parsedCv.detectedSkills && parsedCv.detectedSkills.length > 0
       ? parsedCv.detectedSkills.slice(0, 6)
-      : [
-          { key: 'sql' as TechKey, name: 'SQL' },
-          { key: 'python' as TechKey, name: 'Python' },
-          { key: 'excel' as TechKey, name: 'Excel' }
-        ];
+      : skillsList.slice(0, 6).map(s => ({ key: s.toLowerCase().replace(/[^a-z0-9]/g, '') as TechKey, name: s }));
 
     const fallbackGaps = role && roleProfiles[role]?.skillGaps ? roleProfiles[role].skillGaps : [];
 
     return {
-      headline: `${parsedCv.fullName} • ${parsedCv.currentTitle}`,
+      headline: `${parsedCv.fullName}${parsedCv.currentTitle ? ` • ${parsedCv.currentTitle}` : ''}`,
       scores: {
-        overall: atsScore,
-        skills: Math.min(100, Math.max(50, skillsList.length * 8)),
-        experience: Math.min(100, Math.max(60, expYears * 25)),
-        education: 90
+        overall: atsScore ?? (skillsList.length > 0 ? Math.min(80, skillsList.length * 10) : 0),
+        skills: Math.min(100, skillsList.length * 10),
+        experience: Math.min(100, expYears * 25),
+        education: parsedCv.educationHistory && parsedCv.educationHistory.length > 0 ? 80 : 0
       },
       experienceYears: expYears,
-      relevance: { relevant: 75, related: 20, other: 5 },
-      strengths: parsedCv.atsReport?.strengths?.length ? parsedCv.atsReport.strengths : ['Strong technical stack match'],
+      relevance: { relevant: skillsList.length > 0 ? 70 : 0, related: 20, other: 10 },
+      strengths: parsedCv.atsReport?.strengths?.length ? parsedCv.atsReport.strengths : (skillsList.length > 0 ? [`Relevant skills: ${skillsList.slice(0, 3).join(', ')}`] : []),
       topSkills,
       extraSkillCount: Math.max(0, skillsList.length - 6),
       skillGaps: fallbackGaps,
-      targetRoles: [
-        { title: parsedCv.currentTitle, match: atsScore, label: 'Strong Match' },
-        { title: 'Data Engineer', match: Math.max(60, atsScore - 12), label: 'Good Match' },
-        { title: 'BI Specialist', match: Math.max(55, atsScore - 18), label: 'Possible Match' }
-      ],
+      targetRoles: parsedCv.currentTitle ? [
+        { title: parsedCv.currentTitle, match: atsScore ?? 70, label: (atsScore && atsScore >= 80) ? 'Strong Match' : 'Good Match' }
+      ] : [],
       actions: parsedCv.actionPlan?.map((ap) => ({
         key: 'course' as const,
         title: ap.title,

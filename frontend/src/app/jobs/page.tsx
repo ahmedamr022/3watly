@@ -131,11 +131,11 @@ function JobsPageContent() {
     }
     // Match score
     if (matchScoreFilter > 0) {
-      result = result.filter(j => j.matchScore >= matchScoreFilter);
+      result = result.filter(j => j.matchScore != null && j.matchScore >= matchScoreFilter);
     }
     // Sort
     if (sortBy === 'match') {
-      result = [...result].sort((a, b) => b.matchScore - a.matchScore);
+      result = [...result].sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
     } else if (sortBy === 'recent') {
       result = [...result]; // already ordered by posted_at from API
     } else if (sortBy === 'salary') {

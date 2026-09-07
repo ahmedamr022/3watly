@@ -235,8 +235,12 @@ export default function JobDetailsPage() {
               </span>
               <span>•</span>
               <span>{isAr ? job.postedAgoAr : job.postedAgo}</span>
-              <span>•</span>
-              <span>{job.applicantsCount} {isAr ? "متقدمين" : "applicants"}</span>
+              {job.applicantsCount != null && (
+                <>
+                  <span>•</span>
+                  <span>{job.applicantsCount} {isAr ? "متقدمين" : "applicants"}</span>
+                </>
+              )}
               <span>•</span>
               {(
                 !job.salaryRange ||
@@ -357,30 +361,34 @@ export default function JobDetailsPage() {
           <div className="relative h-[115px] w-[115px]">
             <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
               <circle cx="50" cy="50" r="41" fill="none" stroke="#E8F8F0" className="dark:stroke-emerald-950/40" strokeWidth="7" />
-              <circle
-                cx="50"
-                cy="50"
-                r="41"
-                fill="none"
-                stroke="#10B981"
-                strokeWidth="7"
-                strokeLinecap="round"
-                strokeDasharray={2 * Math.PI * 41}
-                strokeDashoffset={2 * Math.PI * 41 * (1 - job.matchScore / 100)}
-              />
+              {job.matchScore != null && (
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="41"
+                  fill="none"
+                  stroke="#10B981"
+                  strokeWidth="7"
+                  strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 41}
+                  strokeDashoffset={2 * Math.PI * 41 * (1 - job.matchScore / 100)}
+                />
+              )}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-[25px] font-black text-[#0B132B] dark:text-white leading-none">
-                {job.matchScore}%
+                {job.matchScore != null ? `${job.matchScore}%` : '--%'}
               </span>
               <span className="text-[11px] font-medium text-slate-400 dark:text-slate-400 mt-0.5">
-                {isAr ? "توافق إجمالي" : "Overall Match"}
+                {job.matchScore != null ? (isAr ? "توافق إجمالي" : "Overall Match") : (isAr ? "يتطلب CV" : "Needs CV")}
               </span>
             </div>
           </div>
 
           <p className="mt-2 text-center text-[12px] text-slate-600 dark:text-slate-300 font-medium max-w-[210px]">
-            {isAr ? "توافق ممتاز! خبراتك تغطي أغلب متطلبات الوظيفة." : "Great Match! You meet most of the key requirements."}
+            {job.matchScore != null
+              ? (isAr ? "توافق ممتاز! خبراتك تغطي أغلب متطلبات الوظيفة." : "Great Match! You meet most of the key requirements.")
+              : (isAr ? "ارفع سيرتك الذاتية لاحتساب نسبة التوافق مع الوظيفة بدقة." : "Upload your CV to calculate accurate match score.")}
           </p>
         </div>
 

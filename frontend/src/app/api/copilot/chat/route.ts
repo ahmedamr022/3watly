@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { createClient } from '@/lib/supabase/server';
+import { requireUser } from '@/lib/auth/requireUser';
 import { CopilotRequestSchema } from '@/lib/copilot/schemas';
 import { checkRateLimit } from '@/lib/copilot/rate-limit';
 import { buildCopilotContext } from '@/lib/copilot/context-builder';
@@ -47,27 +48,18 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Resolve Authenticated User
-    const supabase = await createClient();
-    let authUser: { id: string; email?: string } | null = null;
-    if (supabase) {
-      try {
-        const { data } = await supabase.auth.getUser();
-        if (data?.user) authUser = data.user;
-      } catch (e) {
-        console.warn('Supabase auth session check notice:', e);
-      }
+    const { user, errorResponse } = await requireUser();
+    if (errorResponse) {
+      return errorResponse;
     }
 
-    const effectiveUserId: string =
-      authUser?.id ||
-      body.userId ||
-      (body.user?.id ? String(body.user.id) : null) ||
-      (body.user?.email ? `user_${body.user.email.replace(/[^a-zA-Z0-9]/g, '_')}` : 'guest_user');
+    const effectiveUserId = user.id;
+    const supabase = await createClient();
 
     const userName: string =
       body.user?.fullName ||
       body.user?.name ||
-      authUser?.email?.split('@')[0] ||
+      user.email?.split('@')[0] ||
       'المستخدم';
 
     const effectiveUserMessage = userMessage || `Review my CV: ${attachment}`;
@@ -111,8 +103,9 @@ export async function POST(request: NextRequest) {
             rawOutputText = response.text;
             break;
           }
-        } catch (modelErr: any) {
-          console.warn(`Gemini model ${model} call notice:`, modelErr.message || modelErr);
+        } catch (modelErr: unknown) {
+          const errMsg = modelErr instanceof Error ? modelErr.message : String(modelErr);
+          console.warn(`Gemini model ${model} call notice:`, errMsg);
         }
       }
     }
@@ -155,7 +148,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (err: unknown) {
     console.error('Error in /api/copilot/chat:', err);
-    const message = err instanceof Error ? err.message : 'Failed to process Career Copilot request.';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to process Career Copilot request.' }, { status: 500 });
   }
 }

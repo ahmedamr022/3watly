@@ -34,7 +34,7 @@ export default function RecommendationsPage() {
     );
   }
 
-  const atsScore = parsedCv.atsReport?.score ?? 85;
+  const atsScore = parsedCv.atsReport?.score ?? null;
   const userSkills = (parsedCv.skills || []).map((s: string) => s.toLowerCase());
   const topSkill = parsedCv.skills?.[0] || (isAr ? 'التقنيات الحديثة' : 'Python');
   const secondSkill = parsedCv.skills?.[1] || (isAr ? 'قواعد البيانات' : 'SQL');
@@ -101,20 +101,22 @@ export default function RecommendationsPage() {
   });
 
   const [liveJobs, setLiveJobs] = React.useState<any[]>([]);
+  const [loadingJobs, setLoadingJobs] = React.useState(true);
 
   React.useEffect(() => {
     fetch('/api/jobs?limit=6')
       .then((r) => r.json())
       .then((d) => {
-        if (Array.isArray(d?.jobs) && d.jobs.length > 0) {
+        if (Array.isArray(d?.jobs)) {
           setLiveJobs(d.jobs);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoadingJobs(false));
   }, []);
 
   // Calculate genuine match score for every job based on actual user skills overlap
-  const sourceJobs = liveJobs.length > 0 ? liveJobs : mockJobsList;
+  const sourceJobs = liveJobs;
   const rankedJobs = sourceJobs.map(job => {
     const rawSkills = Array.isArray(job.matchedSkills) 
       ? job.matchedSkills.map((s: any) => (typeof s === 'string' ? s : s.name).toLowerCase())
@@ -123,8 +125,9 @@ export default function RecommendationsPage() {
       userSkills.some(us => us.includes(rs) || rs.includes(us))
     ).length;
 
-    const overlapRatio = rawSkills.length > 0 ? matchedCount / rawSkills.length : 0.8;
-    const calculatedMatch = Math.min(98, Math.max(72, Math.round(atsScore * 0.6 + overlapRatio * 40)));
+    const overlapRatio = rawSkills.length > 0 ? matchedCount / rawSkills.length : 0;
+    const baseScore = atsScore ? atsScore * 0.4 : 30;
+    const calculatedMatch = Math.min(98, Math.round(baseScore + overlapRatio * 60));
 
     return {
       ...job,
@@ -202,30 +205,40 @@ export default function RecommendationsPage() {
                 <span>{isAr ? "وظائف جاهزة ومطابقة لملفك حالياً" : "Top Matched Roles Ready For You"}</span>
               </h2>
               <span className="text-[12px] font-bold text-blue-600 dark:text-blue-400">
-                {isAr ? `+${rankedJobs.length} فرصة نشطة` : `+${rankedJobs.length} active roles`}
+                {isAr ? `${rankedJobs.length} فرصة نشطة` : `${rankedJobs.length} active roles`}
               </span>
             </div>
 
-            <div className="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-              {displayJobs.map((job) => (
-                <div 
-                  key={job.id} 
-                  className="flex items-center justify-between rounded-2xl border border-slate-200/70 dark:border-white/5 bg-white dark:bg-[#0D1527] p-4 shadow-sm hover:border-blue-400/50 transition-all"
-                >
-                  <div>
-                    <h4 className="text-[14px] font-bold text-slate-900 dark:text-white leading-tight">
-                      {isAr ? job.titleAr : job.title}
-                    </h4>
-                    <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      {isAr ? job.companyAr : job.company} • {isAr ? job.locationAr : job.location}
-                    </p>
+            {loadingJobs ? (
+              <div className="mt-4 p-8 text-center text-sm text-slate-400">
+                {isAr ? 'جاري جلب الوظائف المطابقة...' : 'Loading matched roles...'}
+              </div>
+            ) : displayJobs.length > 0 ? (
+              <div className="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                {displayJobs.map((job) => (
+                  <div 
+                    key={job.id} 
+                    className="flex items-center justify-between rounded-2xl border border-slate-200/70 dark:border-white/5 bg-white dark:bg-[#0D1527] p-4 shadow-sm hover:border-blue-400/50 transition-all"
+                  >
+                    <div>
+                      <h4 className="text-[14px] font-bold text-slate-900 dark:text-white leading-tight">
+                        {isAr ? (job.titleAr || job.title) : job.title}
+                      </h4>
+                      <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        {isAr ? (job.companyAr || job.company) : job.company} • {isAr ? (job.locationAr || job.location) : job.location}
+                      </p>
+                    </div>
+                    <span className="rounded-xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-400 font-black text-[13px] px-3 py-1.5 border border-emerald-200/70 dark:border-emerald-500/30">
+                      {job.calculatedMatch}%
+                    </span>
                   </div>
-                  <span className="rounded-xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-400 font-black text-[13px] px-3 py-1.5 border border-emerald-200/70 dark:border-emerald-500/30">
-                    {job.calculatedMatch}%
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 p-6 text-center text-sm text-slate-500 dark:text-slate-400 rounded-xl bg-white dark:bg-[#0D1527] border border-slate-100 dark:border-white/5">
+                {isAr ? 'لا توجد شواغر مطابقة في الوقت الحالي. يمكنك استعراض كافة الفرص في قسم الوظائف لاحقاً.' : 'No matched openings currently available. You can browse all jobs from the jobs page.'}
+              </div>
+            )}
           </motion.div>
 
           {/* Step Footer */}

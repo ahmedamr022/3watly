@@ -90,7 +90,7 @@ export function computePlan({
       filter((pre) => pre && !isSkillInCV(text, pre)),
       remainingHours:
       def.hours * (
-      1 - Math.min(1, checkedActions.length / def.actions.length))
+      1 - Math.min(1, checkedActions.length / Math.max(1, def.actions.length)))
     };
   });
 
@@ -160,8 +160,8 @@ export function computePlan({
     future,
     totalSteps: all.length,
     coveredSteps: covered.length,
-    progressPct: Math.round(covered.length / all.length * 100),
-    readinessPct: Math.round(coveredDemand / totalDemand * 100),
+    progressPct: all.length > 0 ? Math.round(covered.length / all.length * 100) : 0,
+    readinessPct: totalDemand > 0 ? Math.round(coveredDemand / totalDemand * 100) : 0,
     eligibleJobs,
     potentialJobs,
     multiplier:

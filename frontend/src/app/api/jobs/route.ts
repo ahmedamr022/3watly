@@ -291,7 +291,15 @@ export async function GET(request: NextRequest) {
     const seniority     = searchParams.get('seniority') || 'all';
     const workType      = searchParams.get('workType') || 'all';
     const sortBy        = searchParams.get('sortBy') || 'match';
-    const limit         = Math.min(parseInt(searchParams.get('limit') || '1000', 10), 1000);
+    const rawLimit = searchParams.get('limit');
+    let limit = 1000;
+    if (rawLimit !== null) {
+      const parsed = parseInt(rawLimit, 10);
+      if (isNaN(parsed) || parsed <= 0) {
+        return NextResponse.json({ error: 'Invalid limit parameter' }, { status: 400 });
+      }
+      limit = Math.min(parsed, 1000);
+    }
     const userSkillsParam = searchParams.get('skills') || '';
     const targetRole    = searchParams.get('targetRole')?.trim().toLowerCase() || '';
     const postedAfter   = searchParams.get('postedAfter')?.trim() || ''; // ISO date string for filtering
@@ -309,9 +317,12 @@ export async function GET(request: NextRequest) {
         let query = supabase.from('jobs').select('*');
 
         if (keyword) {
-          query = query.or(
-            `title.ilike.%${keyword}%,company.ilike.%${keyword}%,description.ilike.%${keyword}%`
-          );
+          const sanitizedKeyword = keyword.replace(/[,.():]/g, '').trim();
+          if (sanitizedKeyword) {
+            query = query.or(
+              `title.ilike.%${sanitizedKeyword}%,company.ilike.%${sanitizedKeyword}%,description.ilike.%${sanitizedKeyword}%`
+            );
+          }
         }
         if (locationQuery) {
           query = query.ilike('location', `%${locationQuery}%`);
@@ -337,11 +348,16 @@ export async function GET(request: NextRequest) {
           .order('posted_at', { ascending: false, nullsFirst: false })
           .limit(dbLimit);
 
-        if (!error && Array.isArray(data) && data.length > 0) {
+        if (error) {
+          console.error('[/api/jobs] Supabase query error:', error);
+          return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
+        }
+        if (Array.isArray(data)) {
           jobsFromDb = data;
         }
       } catch (e) {
         console.warn('[/api/jobs] Supabase query error:', e);
+        return NextResponse.json({ error: 'Failed to query database' }, { status: 500 });
       }
     }
 
@@ -466,7 +482,7 @@ export async function GET(request: NextRequest) {
         matchScore: effectiveMatchScore,
         postedAgo: posted.en,
         postedAgoAr: posted.ar,
-        applicantsCount: row.applicants_count || Math.floor(Math.random() * 35) + 5,
+        applicantsCount: typeof row.applicants_count === 'number' ? row.applicants_count : null,
         department: row.department || row.category || 'Technology',
         departmentAr: row.department_ar || 'التكنولوجيا',
         education: row.education || "Bachelor's",
@@ -542,7 +558,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       jobs: clientJobs,
       total: clientJobs.length,
-      source: jobsFromDb.length > 0 ? 'supabase' : 'fallback',
+      source: jobsFromDb.length > 0 ? 'supabase' : 'empty',
     });
   } catch (err: unknown) {
     console.error('[/api/jobs] GET error:', err);

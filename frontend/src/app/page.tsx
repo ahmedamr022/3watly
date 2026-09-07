@@ -289,7 +289,7 @@ export default function LandingPage() {
               </div>
 
               {/* Main Headline with Vibrant Gradient on مسارك */}
-              <h1 className="text-[26px] xs:text-[30px] sm:text-[38px] lg:text-[44px] xl:text-[48px] font-black leading-[1.2] tracking-tight text-slate-900 dark:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+              <h1 className="text-[28px] sm:text-[38px] lg:text-[44px] xl:text-[48px] font-black leading-[1.2] tracking-tight text-slate-900 dark:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
                 {isAr ? (
                   <>
                     ابني <span className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-500 dark:from-[#00F5A0] dark:via-[#00D2FF] dark:to-[#00A3FF] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(0,102,255,0.2)] dark:drop-shadow-[0_0_25px_rgba(0,210,255,0.45)]">مسارك</span> المهني،

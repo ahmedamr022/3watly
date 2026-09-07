@@ -300,7 +300,7 @@ function mapRowToJobItem(row: any, userSkills: string[], targetRole: string = ''
     matchScore,
     postedAgo: posted.en,
     postedAgoAr: posted.ar,
-    applicantsCount: row.applicants_count || Math.floor(Math.random() * 40) + 5,
+    applicantsCount: typeof row.applicants_count === 'number' ? row.applicants_count : null,
     department: row.department || row.category || 'Technology',
     departmentAr: row.department_ar || row.category_ar || 'التكنولوجيا',
     education: row.education || "Bachelor's",

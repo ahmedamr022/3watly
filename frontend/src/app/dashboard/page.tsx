@@ -203,8 +203,8 @@ export default function DashboardPage() {
           totalJobs: statsRes.stats.totalJobs,
           totalCompanies: statsRes.stats.totalCompanies,
           remoteJobsPercentage: statsRes.stats.remoteJobsPercentage,
-          topSkillName: statsRes.stats.topSkillName || 'SQL',
-          topSkillPercentage: statsRes.stats.topSkillPercentage || 82,
+          topSkillName: statsRes.stats.topSkillName || '',
+          topSkillPercentage: statsRes.stats.topSkillPercentage || 0,
         };
         setMarketStats(stats);
         try {
@@ -231,12 +231,10 @@ export default function DashboardPage() {
     );
   };
 
-  const careerAlignment = userParsedCv?.atsReport?.score || (analysis?.score ? Math.min(98, Math.max(60, analysis.score)) : 84);
+  const careerAlignment = userParsedCv?.atsReport?.score ?? (analysis?.score ? Math.min(98, Math.max(20, analysis.score)) : null);
   const missingSkills = analysis?.keywords?.missing?.length
     ? analysis.keywords.missing.slice(0, 2)
-    : userParsedCv?.skills?.length
-    ? [userParsedCv.skills[0], userParsedCv.skills[1] || 'Git']
-    : ['Power BI', 'SQL'];
+    : [];
 
   const topJobs = React.useMemo(() => {
     // When no CV: sort by recency; when CV exists: sort by matchScore descending
@@ -521,32 +519,42 @@ export default function DashboardPage() {
                       className="dark:stroke-slate-800" 
                       strokeWidth="9" 
                     />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#1B57E0"
-                      strokeWidth="9"
-                      strokeLinecap="round"
-                      strokeDasharray={2 * Math.PI * 40}
-                      strokeDashoffset={2 * Math.PI * 40 * (1 - careerAlignment / 100)}
-                    />
+                    {careerAlignment !== null && (
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="none"
+                        stroke="#1B57E0"
+                        strokeWidth="9"
+                        strokeLinecap="round"
+                        strokeDasharray={2 * Math.PI * 40}
+                        strokeDashoffset={2 * Math.PI * 40 * (1 - careerAlignment / 100)}
+                      />
+                    )}
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="text-[26px] font-black text-[#0B132B] dark:text-white leading-none">
-                      {careerAlignment}%
+                      {careerAlignment !== null ? `${careerAlignment}%` : '--%'}
                     </span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <p className="text-[13.5px] font-bold text-[#0B132B] dark:text-slate-200 leading-snug">
-                    {isAr ? "متوافق جيداً مع متطلبات السوق الحالية" : "You're aligned with current market demand"}
+                    {careerAlignment !== null
+                      ? (isAr ? "متوافق مع متطلبات السوق الحالية" : "Aligned with current market demand")
+                      : (isAr ? "يتطلب رفع أو إنشاء سيرة ذاتية لحساب التوافق" : "Requires a CV to calculate alignment")}
                   </p>
-                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#E8F8F0] dark:bg-emerald-950/60 text-[#12B76A] dark:text-emerald-400 text-[11.5px] font-bold">
-                    <span>↑ 6% {isAr ? "عن الأسبوع الماضي" : "from last week"}</span>
-                  </div>
+                  {careerAlignment !== null ? (
+                    <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#E8F8F0] dark:bg-emerald-950/60 text-[#12B76A] dark:text-emerald-400 text-[11.5px] font-bold">
+                      <span>✓ {isAr ? "محسوب من بيانات سيرتك" : "Based on your verified profile"}</span>
+                    </div>
+                  ) : (
+                    <Link href="/cv-builder" className="inline-block text-[11.5px] font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                      {isAr ? "إنشاء سيرة ذاتية الآن ←" : "Create CV now →"}
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
@@ -589,16 +597,33 @@ export default function DashboardPage() {
 
               {/* Content */}
               <div className="mt-6 space-y-2.5">
-                <h3 className="text-[15.5px] font-bold text-[#0B132B] dark:text-white leading-snug">
-                  {isAr ? "طور مهارات " : "Improve "}
-                  <span className="text-[#1B57E0] dark:text-[#60A5FA]">{missingSkills[0] || 'SQL'}</span> {isAr ? "و " : "and "}
-                  <span className="text-[#1B57E0] dark:text-[#60A5FA]">{missingSkills[1] || 'Power BI'}</span>.
-                </h3>
-                <p suppressHydrationWarning className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                  {isAr
-                    ? `هاتان هما أكثر مهارتين ذات تأثير مرتفع تنقصان ملفك مقارنة بـ ${marketStats?.totalJobs || 413} وظيفة نشطة في سوق العمل المصري.`
-                    : `These are the two highest-impact skills missing from your profile based on ${marketStats?.totalJobs || 413} active job postings.`}
-                </p>
+                {missingSkills.length > 0 ? (
+                  <>
+                    <h3 className="text-[15.5px] font-bold text-[#0B132B] dark:text-white leading-snug">
+                      {isAr ? "طور مهارات " : "Improve "}
+                      <span className="text-[#1B57E0] dark:text-[#60A5FA]">{missingSkills[0]}</span>
+                      {missingSkills[1] && (
+                        <> {isAr ? "و " : "and "} <span className="text-[#1B57E0] dark:text-[#60A5FA]">{missingSkills[1]}</span></>
+                      )}.
+                    </h3>
+                    <p suppressHydrationWarning className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      {isAr
+                        ? `هذه من أكثر المهارات المطلوبة في إعلانات الوظائف الحالية لرفع فرص قبولك.`
+                        : `These are high-impact skills required in active job openings to boost your interview callback rate.`}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-[15.5px] font-bold text-[#0B132B] dark:text-white leading-snug">
+                      {isAr ? "سيرتك الذاتية تغطي المهارات الأساسية" : "Skills Profile Status"}
+                    </h3>
+                    <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      {isAr
+                        ? "قم بتحديث خبراتك ومشاريعك باستمرار لمطابقة أفضل الشواغر المتاحة في السوق."
+                        : "Keep your projects and skills updated to match the highest-fit roles in the market."}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 

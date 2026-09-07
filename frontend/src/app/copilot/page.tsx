@@ -99,9 +99,9 @@ export default function CopilotPage() {
       const sCount = activeVersion.cvData.skills.reduce((acc, g) => acc + (Array.isArray(g.skills) ? g.skills.length : 0), 0);
       setActiveCvStats({
         hasCv: true,
-        role: activeVersion.targetRole || activeVersion.cvData.contact.jobTitle || 'Data Analyst',
+        role: activeVersion.targetRole || activeVersion.cvData.contact.jobTitle || '',
         skillsCount: sCount,
-        atsScore: (activeVersion as any).analysis?.atsScore || 85,
+        atsScore: (activeVersion as any).analysis?.score ?? undefined,
         cvName: activeVersion.name,
       });
       return;
@@ -116,9 +116,9 @@ export default function CopilotPage() {
         if (sCount > 0 || p.targetRole || p.fullName) {
           setActiveCvStats({
             hasCv: true,
-            role: p.targetRole || p.currentTitle || 'Data Analyst',
+            role: p.targetRole || p.currentTitle || '',
             skillsCount: sCount,
-            atsScore: p.atsReport?.score || 85,
+            atsScore: p.atsReport?.score ?? undefined,
             cvName: p.filename || (isAr ? 'السيرة الذاتية الأساسية' : 'Primary Resume'),
           });
           return;
@@ -134,9 +134,9 @@ export default function CopilotPage() {
           const sCount = v.cvData?.skills?.reduce((acc: number, g: any) => acc + (Array.isArray(g.skills) ? g.skills.length : 0), 0) || 0;
           setActiveCvStats({
             hasCv: true,
-            role: v.targetRole || v.cvData?.contact?.jobTitle || 'Data Analyst',
+            role: v.targetRole || v.cvData?.contact?.jobTitle || '',
             skillsCount: sCount,
-            atsScore: v.analysis?.atsScore || 85,
+            atsScore: v.analysis?.score ?? undefined,
             cvName: v.name,
           });
           return;
@@ -261,14 +261,14 @@ export default function CopilotPage() {
                 </h2>
                 <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-500/30 px-2 py-0.5 text-[10.5px] font-bold text-blue-700 dark:text-blue-300">
                   <SparklesIcon className="h-3 w-3" />
-                  Gemini 3
+                  {isAr ? "مساعد ذكي" : "AI Assistant"}
                 </span>
                 <ActiveCVBadge pageName={isAr ? "المساعد الذكي" : "Copilot"} />
               </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11.5px] text-slate-500 dark:text-slate-400">
                 <span className="flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                  {isAr ? "مبني على تحليل مئات الوظائف في السوق المصري" : "Grounded in live Egyptian market jobs"}
+                  {isAr ? "المحتوى مُولّد بالذكاء الاصطناعي — يرجى مراجعته" : "AI-generated content — review recommended"}
                 </span>
                 {activeCvStats.role && (
                   <>

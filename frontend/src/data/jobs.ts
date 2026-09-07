@@ -19,10 +19,10 @@ export interface JobItem {
   seniorityAr: string;
   salaryRange: string;
   salaryRangeAr: string;
-  matchScore: number;
+  matchScore: number | null;
   postedAgo: string;
   postedAgoAr: string;
-  applicantsCount: number;
+  applicantsCount: number | null;
   department: string;
   departmentAr: string;
   education: string;

@@ -30,7 +30,7 @@ export function Footer() {
       return;
     }
     setSubscribed(true);
-    toast.success(isAr ? "تم الاشتراك في النشرة البريدية بنجاح!" : "Subscribed to newsletter successfully!");
+    toast.info(isAr ? "شكراً لاهتمامك! خدمة النشرة البريدية ستنطلق قريباً وسيتم إشعارك." : "Thank you! Our newsletter is launching soon and we'll notify you.");
     setEmail('');
   };
 

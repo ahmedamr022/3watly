@@ -421,8 +421,9 @@ export function parseCVText(
   const links = extractedLinksResult?.allLinks || [];
 
   // 4. Extract Location
-  let location = 'Cairo, Egypt';
-  if (/giza|الجيزة/i.test(rawText)) location = 'Giza, Egypt';
+  let location = '';
+  if (/cairo|القاهرة/i.test(rawText)) location = 'Cairo, Egypt';
+  else if (/giza|الجيزة/i.test(rawText)) location = 'Giza, Egypt';
   else if (/alexandria|الإسكندرية/i.test(rawText)) location = 'Alexandria, Egypt';
   else if (/mansoura|المنصورة/i.test(rawText)) location = 'Mansoura, Egypt';
   else if (/riyadh|الرياض/i.test(rawText)) location = 'Riyadh, Saudi Arabia';
@@ -439,8 +440,8 @@ export function parseCVText(
       clean.length <= 40 &&
       !line.includes('@') &&
       !line.includes('http') &&
-      !line.includes('.com') &&
-      !/resume|curriculum|vitae|\bcv\b|summary|profile|engineer|developer|analyst|enthusiast/i.test(clean)
+      !line.includes('+20') &&
+      !/resume|curriculum|vitae|page|profile|summary|skills|experience/i.test(line)
     ) {
       const words = clean.split(/\s+/);
       if (words.length >= 2 && words.length <= 4) {
@@ -456,11 +457,13 @@ export function parseCVText(
     }
   }
 
-  // 6. Extract Professional Headline / Current Title
+  // 6. Extract Current Title (from top 8 lines)
   let currentTitle = '';
-  for (const line of lines.slice(0, 6)) {
+  for (const line of lines.slice(0, 8)) {
     if (
       line !== fullName &&
+      line.length >= 4 &&
+      line.length <= 50 &&
       !line.includes('@') &&
       !line.includes('http') &&
       !line.includes('+20') &&
@@ -470,7 +473,7 @@ export function parseCVText(
       break;
     }
   }
-  if (!currentTitle) currentTitle = targetRoleInput || 'Junior Data Analyst';
+  if (!currentTitle) currentTitle = targetRoleInput || '';
   const targetRole = targetRoleInput || currentTitle;
 
   // --- 7. SECTION SPLITTER ---
@@ -568,15 +571,17 @@ export function parseCVText(
       }
     }
 
-    education.push({
-      id: 'edu-1',
-      institution: institution || 'Modern Academy Maadi',
-      degree: degree || 'Bachelor of Computer Science',
-      major: 'Computer Science',
-      startDate: startYear,
-      endDate: endYear,
-      location: location
-    });
+    if (institution || degree) {
+      education.push({
+        id: 'edu-1',
+        institution: institution || '',
+        degree: degree || '',
+        major: '',
+        startDate: startYear,
+        endDate: endYear,
+        location: location
+      });
+    }
   }
 
   // 10. Experiences & Internships
@@ -684,18 +689,20 @@ export function parseCVText(
       }
     }
 
-    experiences.push({
-      id: `exp-${expIdx++}`,
-      role: role || (s.isIntern ? 'Data Science & Machine Learning Intern' : targetRole),
-      company: company || 'IT-Gate Academy',
-      companyUrl: companyUrl || undefined,
-      startDate: startD,
-      endDate: endD,
-      current: /present|now/i.test(endD),
-      location: expLocation || location,
-      bullets: bullets.length > 0 ? bullets : ['Completed intensive training in Data Science fundamentals and practical machine learning.', 'Gained hands-on experience in exploratory data analysis, feature engineering, and model evaluation.'],
-      type: s.isIntern ? 'internship' : 'job'
-    });
+    if (role || company || bullets.length > 0) {
+      experiences.push({
+        id: `exp-${expIdx++}`,
+        role: role || (s.isIntern ? 'Intern' : targetRole || 'Position'),
+        company: company || '',
+        companyUrl: companyUrl || undefined,
+        startDate: startD,
+        endDate: endD,
+        current: /present|now|حالياً/i.test(endD),
+        location: expLocation || location,
+        bullets: bullets,
+        type: s.isIntern ? 'internship' : 'job'
+      });
+    }
   }
 
   // 11. Skills
@@ -1044,14 +1051,28 @@ export function parseCVText(
   });
 
   const metricsMatches = rawText.match(/\b\d+%\b|\b\$\d+\b|\b\d+\s*(?:k|m|hours|users|stakeholders|projects|teams)\b/gi);
-  const metricsCount = metricsMatches ? metricsMatches.length : 3;
-  const atsScore = Math.min(96, Math.max(78, 84 + (skillsList.length > 6 ? 6 : 0) + (actionVerbsCount > 4 ? 4 : 0)));
+  const metricsCount = metricsMatches ? metricsMatches.length : 0;
+
+  const sectionsDetected = [
+    email ? 1 : 0,
+    phone ? 1 : 0,
+    summary ? 1 : 0,
+    experiences.length > 0 ? 1 : 0,
+    education.length > 0 ? 1 : 0,
+    skillsList.length > 0 ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+
+  const structureScore = Math.round((sectionsDetected / 6) * 100);
+  const readabilityScore = rawText.length > 200 ? Math.min(100, Math.round(40 + Math.min(60, actionVerbsCount * 5))) : 30;
+  const impactScore = Math.min(100, Math.round((metricsCount / Math.max(1, experiences.length * 2)) * 100));
+  const skillsScore = Math.min(100, skillsList.length * 8);
+  const atsScore = Math.round((structureScore * 0.3) + (readabilityScore * 0.25) + (impactScore * 0.2) + (skillsScore * 0.25));
 
   const fallbackName = email ? email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
 
   return {
     fullName: fullName || fallbackName,
-    currentTitle: currentTitle || 'Data Analyst',
+    currentTitle: currentTitle || targetRole || '',
     email,
     phone,
     location,
@@ -1062,25 +1083,25 @@ export function parseCVText(
     links,
     summary,
     targetRole,
-    experienceYears: 0, // Fresh graduate / internship
+    experienceYears: experiences.length > 0 ? Math.max(1, experiences.length) : 0,
     experiences,
     education,
     skills: skillsList,
     categorizedSkills: {
-      programming: categorizedSkillGroups.find(g => /programming/i.test(g.label))?.skills || ['Python', 'SQL'],
-      frameworks: categorizedSkillGroups.find(g => /machine|ai/i.test(g.label))?.skills || ['NumPy', 'Pandas', 'PyTorch', 'Scikit-learn', 'OpenCV'],
-      databasesAndTools: categorizedSkillGroups.find(g => /backend|tool/i.test(g.label))?.skills || ['Excel', 'Power BI', 'Docker', 'Git'],
-      cloud: [],
-      soft: ['Data Cleaning', 'EDA', 'Model Development']
+      programming: categorizedSkillGroups.find(g => /programming/i.test(g.label))?.skills || [],
+      frameworks: categorizedSkillGroups.find(g => /machine|ai|framework/i.test(g.label))?.skills || [],
+      databasesAndTools: categorizedSkillGroups.find(g => /backend|database|tool/i.test(g.label))?.skills || [],
+      cloud: categorizedSkillGroups.find(g => /cloud|devops/i.test(g.label))?.skills || [],
+      soft: categorizedSkillGroups.find(g => /soft/i.test(g.label))?.skills || []
     },
     categorizedSkillGroups,
     projects,
     atsReport: {
       score: atsScore,
-      structureScore: 94,
-      readabilityScore: 92,
-      impactScore: 88,
-      skillsScore: Math.min(100, skillsList.length * 7),
+      structureScore,
+      readabilityScore,
+      impactScore,
+      skillsScore,
       hasEmail: Boolean(email),
       hasPhone: Boolean(phone),
       hasLocation: Boolean(location),
@@ -1089,8 +1110,8 @@ export function parseCVText(
       hasEducation: education.length > 0,
       hasSkills: skillsList.length > 0,
       hasMetrics: metricsCount > 0,
-      actionVerbsCount: Math.max(8, actionVerbsCount),
-      metricsCount: Math.max(3, metricsCount),
+      actionVerbsCount,
+      metricsCount,
       strengths: [
         {
           en: `Strong alignment with ${targetRole || 'data-analyst'} market criteria`,
@@ -1300,8 +1321,17 @@ export async function POST(request: NextRequest) {
       extractedText = buffer.toString('utf-8');
     }
 
-    if (!extractedText || extractedText.trim().length === 0) {
-      extractedText = `Resume of ${fileName.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ')}\n${targetRole || 'Data Analyst'}\nSkills: Python, SQL, Excel, Power BI`;
+    const trimmedText = extractedText ? extractedText.trim() : '';
+    if (trimmedText.length < 50) {
+      return NextResponse.json(
+        {
+          success: false,
+          status: 'failed',
+          reason: 'no_text_layer',
+          error: 'تعذر استخراج النص من الملف. يرجى التأكد من أن الملف يحتوي على نص وليس صورة ممسوحة ضوئياً.'
+        },
+        { status: 422 }
+      );
     }
 
     // Extract binary annotations + unpdf links + regex links from buffer

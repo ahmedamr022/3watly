@@ -28,7 +28,6 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   signInWithGoogle: () => Promise<{ success: boolean; error?: string; redirected?: boolean }>;
   signInWithLinkedIn: () => Promise<{ success: boolean; error?: string; redirected?: boolean }>;
-  loginWithSocialAccount: (account: { fullName: string; email: string; avatarUrl?: string | null; provider?: 'google' | 'linkedin' }) => Promise<{ success: boolean; onboardingCompleted?: boolean }>;
   logout: () => Promise<void>;
   updateAvatar: (file: File) => Promise<void>;
   removeAvatar: () => Promise<void>;
@@ -443,63 +442,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Interactive Social Login / Custom Account Chooser Login
-  const loginWithSocialAccount = async ({
-    fullName,
-    email,
-    avatarUrl = null,
-    provider = 'google'
-  }: {
-    fullName: string;
-    email: string;
-    avatarUrl?: string | null;
-    provider?: 'google' | 'linkedin';
-  }) => {
-    const cleanEmail = email.toLowerCase().trim();
-    const cleanName = fullName.trim() || resolveDisplayName({ email: cleanEmail });
-
-    // Check if user previously completed onboarding
-    let onboardingCompleted = false;
-    try {
-      const storedOnboarding = localStorage.getItem(`3watly_onboarding_${cleanEmail}`);
-      if (storedOnboarding === 'true') {
-        onboardingCompleted = true;
-      }
-    } catch {}
-
-    let resolvedAvatar = avatarUrl || null;
-    const supabase = createClient();
-
-    if (supabase) {
-      try {
-        const { data: existing } = await supabase
-          .from('profiles')
-          .select('avatar_url, onboarding_completed, full_name')
-          .ilike('id', `%${cleanEmail}%`)
-          .maybeSingle();
-
-        if (existing?.avatar_url) {
-          resolvedAvatar = existing.avatar_url;
-        }
-        if (existing?.onboarding_completed !== undefined) {
-          onboardingCompleted = existing.onboarding_completed;
-        }
-      } catch (e) {}
-    }
-
-    const socialUser: User = {
-      id: `${provider}-${Date.now()}`,
-      email: cleanEmail,
-      fullName: cleanName,
-      avatarUrl: resolvedAvatar,
-      token: `${provider}-token-${Date.now()}`,
-      onboardingCompleted,
-      hasUploadedCv: false
-    };
-
-    saveUserState(socialUser);
-    return { success: true, onboardingCompleted };
-  };
 
   const logout = async () => {
     const supabase = createClient();
@@ -701,7 +643,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         resetPassword,
         signInWithGoogle,
         signInWithLinkedIn,
-        loginWithSocialAccount,
         logout,
         updateAvatar,
         removeAvatar,
