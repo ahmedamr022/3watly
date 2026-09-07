@@ -137,20 +137,36 @@ export function CVPreview() {
       return false;
     };
 
+    let rawItems: Array<{ id: string; platform: string; url: string }> = [];
     if (Array.isArray(cv.contact.socialLinks) && cv.contact.socialLinks.length > 0) {
-      return cv.contact.socialLinks.filter((l) => Boolean(l.url && l.url.trim() && !isExcluded(l.url)));
+      rawItems = cv.contact.socialLinks
+        .filter((l) => Boolean(l.url && l.url.trim() && !isExcluded(l.url)))
+        .map((l, idx) => ({ id: l.id || `sl-${idx}`, platform: l.platform || 'Link', url: l.url }));
+    } else {
+      if (cv.contact.linkedin?.trim() && !isExcluded(cv.contact.linkedin)) {
+        rawItems.push({ id: 'li', platform: 'LinkedIn', url: cv.contact.linkedin });
+      }
+      if (cv.contact.github?.trim() && !isExcluded(cv.contact.github)) {
+        rawItems.push({ id: 'gh', platform: 'GitHub', url: cv.contact.github });
+      }
+      if (cv.contact.portfolio?.trim() && !isExcluded(cv.contact.portfolio)) {
+        rawItems.push({ id: 'pf', platform: 'Portfolio', url: cv.contact.portfolio });
+      }
     }
-    const legacy: Array<{ id: string; platform: string; url: string }> = [];
-    if (cv.contact.linkedin?.trim() && !isExcluded(cv.contact.linkedin)) {
-      legacy.push({ id: 'li', platform: 'LinkedIn', url: cv.contact.linkedin });
+
+    // Deduplicate by clean URL and platform
+    const seen = new Set<string>();
+    const deduplicated: Array<{ id: string; platform: string; url: string }> = [];
+    for (const item of rawItems) {
+      const cleanUrl = item.url.trim().toLowerCase().replace(/\/$/, '');
+      const key = `${item.platform.toLowerCase()}_${cleanUrl}`;
+      if (!seen.has(key) && !seen.has(cleanUrl)) {
+        seen.add(key);
+        seen.add(cleanUrl);
+        deduplicated.push(item);
+      }
     }
-    if (cv.contact.github?.trim() && !isExcluded(cv.contact.github)) {
-      legacy.push({ id: 'gh', platform: 'GitHub', url: cv.contact.github });
-    }
-    if (cv.contact.portfolio?.trim() && !isExcluded(cv.contact.portfolio)) {
-      legacy.push({ id: 'pf', platform: 'Portfolio', url: cv.contact.portfolio });
-    }
-    return legacy;
+    return deduplicated;
   }, [cv.contact.socialLinks, cv.contact.linkedin, cv.contact.github, cv.contact.portfolio, cv.contact.phone]);
 
   const isTwoColumn = template === 'two-column';

@@ -86,7 +86,7 @@ export default function CVBuilderPage() {
           jobTitle: data.currentTitle || data.targetRole || "Data Analyst",
           phone: data.phone || "",
           email: data.email || "",
-          location: data.location || "Cairo, Egypt",
+          location: data.location || "",
           linkedin: data.linkedin || "",
           github: data.github || "",
           portfolio: data.portfolio || "",
@@ -94,7 +94,19 @@ export default function CVBuilderPage() {
         },
         summary: data.summary || "",
         skillsSummary: null,
-        experience: Array.isArray(data.experiences) && data.experiences.length > 0 ? data.experiences : [],
+        experience: Array.isArray(data.experiences) && data.experiences.length > 0
+          ? data.experiences.map((exp: any, idx: number) => ({
+              id: exp.id || `exp-${idx + 1}`,
+              role: exp.role || data.currentTitle || "Professional",
+              company: exp.company || "",
+              companyUrl: exp.companyUrl || "",
+              startDate: exp.startDate || "",
+              endDate: exp.endDate || "Present",
+              current: Boolean(exp.current),
+              location: exp.location || data.location || "",
+              bullets: Array.isArray(exp.bullets) ? exp.bullets : []
+            }))
+          : [],
         education: Array.isArray(data.education) && data.education.length > 0 ? data.education : [],
         projects: Array.isArray(data.projects) && data.projects.length > 0 ? data.projects.map((p: any, idx: number) => ({
           id: p.id || `prj-${idx + 1}`,
@@ -115,6 +127,11 @@ export default function CVBuilderPage() {
 
       const cleanFileName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ").trim() || "سيرة ذاتية مرفوعة";
       createVersion(cleanFileName, data.targetRole || data.currentTitle || "Data Analyst", newCvData);
+
+      try {
+        localStorage.setItem('3watly_parsed_cv', JSON.stringify(data));
+        window.dispatchEvent(new CustomEvent('3watly_parsed_cv_updated', { detail: data }));
+      } catch {}
 
       toast.success(
         isAr ? "تم استخراج كافة البيانات والروابط وتحديث عارض السيرة الذاتية بنجاح! 🚀" : "CV parsed and imported into the builder! 🚀",

@@ -161,8 +161,25 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         console.warn('Failed to read 3watly_cv_versions:', e);
       }
 
-      // 2. If no versions stored yet, create primary version from parsed onboarding CV or draft
-      if (initialVersionsList.length === 0) {
+      // 2. Check if active version has no real content or if a richer parsed CV exists in 3watly_parsed_cv
+      let shouldRebuildFromParsed = initialVersionsList.length === 0;
+      if (!shouldRebuildFromParsed) {
+        const activeVer = initialVersionsList.find(v => v.id === activeId);
+        const parsedOnboardingStr = localStorage.getItem('3watly_parsed_cv');
+        if (parsedOnboardingStr) {
+          try {
+            const p = JSON.parse(parsedOnboardingStr);
+            const pHasContent = Boolean(p && (p.fullName || (Array.isArray(p.skills) && p.skills.length > 0) || (Array.isArray(p.projects) && p.projects.length > 0)));
+            const activeVerIsBare = !activeVer || (!activeVer.cvData?.contact?.fullName && (!activeVer.cvData?.projects || activeVer.cvData?.projects.length === 0));
+            if (pHasContent && activeVerIsBare) {
+              shouldRebuildFromParsed = true;
+            }
+          } catch {}
+        }
+      }
+
+      // If no versions stored yet or active version is an empty placeholder, create primary version from parsed onboarding CV or draft
+      if (shouldRebuildFromParsed) {
         let baseCv = initialCV;
         let baseRole = '';
 
@@ -325,9 +342,10 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
           isActive: true
         };
 
-        initialVersionsList = [defaultVersion];
+        initialVersionsList = [defaultVersion, ...initialVersionsList.filter(v => v.id !== defaultVersion.id).map(v => ({ ...v, isActive: false }))];
         activeId = defaultVersion.id;
         localStorage.setItem('3watly_cv_versions', JSON.stringify(initialVersionsList));
+        localStorage.setItem('3watly_active_cv_id', activeId);
         syncActiveCVToPlatform(defaultVersion);
       }
 
@@ -350,8 +368,35 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
     loadAllCVData();
 
+    // Event listener for cross-context CV updates (from Onboarding, direct uploads, or re-parses)
+    const handleActiveCVChanged = (event: Event) => {
+      const customEvent = event as CustomEvent<CVVersion>;
+      const version = customEvent.detail;
+      if (version && version.id && version.cvData) {
+        setVersions(prev => {
+          const filtered = prev.filter(v => v.id !== version.id).map(v => ({ ...v, isActive: false }));
+          return [version, ...filtered];
+        });
+        setActiveVersionIdState(version.id);
+        setEditingVersionId(version.id);
+        setHistory({
+          present: version.cvData,
+          past: [],
+          future: []
+        });
+        setTemplate(version.templateId || 'ats-classic');
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('3watly_active_cv_changed', handleActiveCVChanged);
+    }
+
     return () => {
       isMounted = false;
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('3watly_active_cv_changed', handleActiveCVChanged);
+      }
     };
   }, [user]);
 

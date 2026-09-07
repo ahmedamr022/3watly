@@ -73,6 +73,7 @@ export interface ParsedCv {
     id: string;
     company: string;
     role: string;
+    companyUrl?: string;
     startDate: string;
     endDate: string;
     current: boolean;

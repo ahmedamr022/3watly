@@ -33,6 +33,151 @@ interface OnboardingState {
   reset: () => void;
 }
 
+function syncParsedCvToCVBuilder(finalParsedCv: ParsedCv, userFullName?: string) {
+  if (typeof window === 'undefined') return;
+
+  const roleTitle = finalParsedCv.targetRole || finalParsedCv.currentTitle || 'Data Analyst';
+
+  const adaptedProjects = (finalParsedCv.projects || []).map((p, idx) => ({
+    id: p.id || `prj-${idx + 1}`,
+    title: p.title || `Project ${idx + 1}`,
+    technologies: Array.isArray(p.technologies) ? p.technologies : [],
+    github: p.github || '',
+    link: p.link || '',
+    bullets: Array.isArray(p.bullets) && p.bullets.length > 0
+      ? p.bullets
+      : (p.description ? [p.description] : [])
+  }));
+
+  const adaptedExperiences = (finalParsedCv.experiences || []).map((exp, idx) => ({
+    id: exp.id || `exp-${idx + 1}`,
+    role: exp.role || finalParsedCv.currentTitle || 'Professional',
+    company: exp.company || '',
+    companyUrl: exp.companyUrl || '',
+    startDate: exp.startDate || '',
+    endDate: exp.endDate || 'Present',
+    current: Boolean(exp.current),
+    location: exp.location || finalParsedCv.location || '',
+    bullets: Array.isArray(exp.bullets) ? exp.bullets : []
+  }));
+
+  const rawEduList = (finalParsedCv.educationHistory && finalParsedCv.educationHistory.length > 0)
+    ? finalParsedCv.educationHistory
+    : (finalParsedCv.education ? [{
+        id: 'edu-1',
+        degree: finalParsedCv.education.degree,
+        institution: finalParsedCv.education.school,
+        startDate: finalParsedCv.education.period?.split('—')?.[0]?.trim() || '',
+        endDate: finalParsedCv.education.period?.split('—')?.[1]?.trim() || '',
+        location: finalParsedCv.location || '',
+        major: ''
+      }] : []);
+
+  const adaptedEducation = rawEduList.map((edu: any, idx: number) => ({
+    id: edu.id || `edu-${idx + 1}`,
+    degree: edu.degree || 'Bachelor Degree',
+    institution: edu.institution || edu.school || '',
+    startDate: edu.startDate || '',
+    endDate: edu.endDate || edu.period || '',
+    location: edu.location || finalParsedCv.location || '',
+    major: edu.major || ''
+  }));
+
+  let adaptedSkills: Array<{ id: string; label: string; skills: string[] }> = [];
+  if (Array.isArray(finalParsedCv.categorizedSkillGroups) && finalParsedCv.categorizedSkillGroups.length > 0) {
+    adaptedSkills = finalParsedCv.categorizedSkillGroups.map((g: any, idx: number) => ({
+      id: g.id || `skill-g-${idx + 1}`,
+      label: g.label || 'Technical Skills',
+      skills: Array.isArray(g.skills) ? g.skills : []
+    }));
+  } else if (finalParsedCv.skills && finalParsedCv.skills.length > 0) {
+    adaptedSkills = [{ id: 'tech-1', label: 'Technical Skills', skills: finalParsedCv.skills }];
+  }
+
+  const parsedSocialLinks: Array<{ id: string; platform: any; url: string }> = [];
+  if (Array.isArray(finalParsedCv.socialLinks) && finalParsedCv.socialLinks.length > 0) {
+    finalParsedCv.socialLinks.forEach((sl: any, idx: number) => {
+      if (sl.url && !parsedSocialLinks.some((l) => l.url.toLowerCase() === sl.url.toLowerCase())) {
+        parsedSocialLinks.push({
+          id: sl.id || `link-${idx + 1}`,
+          platform: sl.platform || 'Other',
+          url: sl.url
+        });
+      }
+    });
+  }
+
+  // Fallbacks if not in socialLinks
+  if (!parsedSocialLinks.some(s => s.platform === 'LinkedIn') && finalParsedCv.linkedin) {
+    parsedSocialLinks.push({ id: 'link-li', platform: 'LinkedIn', url: finalParsedCv.linkedin });
+  }
+  if (!parsedSocialLinks.some(s => s.platform === 'GitHub') && finalParsedCv.github) {
+    parsedSocialLinks.push({ id: 'link-gh', platform: 'GitHub', url: finalParsedCv.github });
+  }
+  if (!parsedSocialLinks.some(s => s.platform === 'Portfolio') && finalParsedCv.portfolio) {
+    parsedSocialLinks.push({ id: 'link-pf', platform: 'Portfolio', url: finalParsedCv.portfolio });
+  }
+
+  const convertedCvData = {
+    contact: {
+      fullName: finalParsedCv.fullName || userFullName || '',
+      jobTitle: finalParsedCv.currentTitle || roleTitle,
+      email: finalParsedCv.email || '',
+      phone: finalParsedCv.phone || '',
+      location: finalParsedCv.location || '',
+      linkedin: finalParsedCv.linkedin || '',
+      github: finalParsedCv.github || '',
+      portfolio: finalParsedCv.portfolio || '',
+      socialLinks: parsedSocialLinks
+    },
+    summary: finalParsedCv.summary || '',
+    experience: adaptedExperiences,
+    education: adaptedEducation,
+    projects: adaptedProjects,
+    skills: adaptedSkills,
+    sectionOrder: ['summary', 'experience', 'education', 'skills', 'projects'] as any,
+    hiddenSections: [] as any,
+    skillsSummary: null
+  };
+
+  const newVersionId = `ver-${Date.now()}`;
+  const newPrimaryVersion = {
+    id: newVersionId,
+    name: finalParsedCv.fullName ? `${finalParsedCv.fullName} (الأساسية)` : 'سيرتي الذاتية (الأساسية)',
+    targetRole: roleTitle,
+    cvData: convertedCvData,
+    templateId: 'ats-classic',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    isActive: true,
+    atsScore: finalParsedCv.atsReport?.score
+  };
+
+  try {
+    const existingVersJson = localStorage.getItem('3watly_cv_versions');
+    let existingVers: any[] = [];
+    if (existingVersJson) {
+      try {
+        const parsed = JSON.parse(existingVersJson);
+        if (Array.isArray(parsed)) existingVers = parsed;
+      } catch {}
+    }
+    const otherVers = existingVers.map((v: any) => ({ ...v, isActive: false }));
+    const updatedVersions = [newPrimaryVersion, ...otherVers];
+    localStorage.setItem('3watly_cv_versions', JSON.stringify(updatedVersions));
+    localStorage.setItem('3watly_active_cv_id', newVersionId);
+    localStorage.setItem('3watly_cv_draft', JSON.stringify(convertedCvData));
+    localStorage.setItem('3watly_target_role', roleTitle);
+  } catch (storageErr) {
+    console.warn('Failed to sync to 3watly_cv_versions:', storageErr);
+  }
+
+  try {
+    window.dispatchEvent(new CustomEvent('3watly_active_cv_changed', { detail: newPrimaryVersion }));
+    window.dispatchEvent(new CustomEvent('3watly_parsed_cv_updated', { detail: finalParsedCv }));
+  } catch {}
+}
+
 const OnboardingContext = createContext<OnboardingState | null>(null);
 
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
@@ -62,7 +207,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         setParsedCv(parsed);
         setStatus('complete');
         setProgress(100);
-        setChecksRevealed(3);
+        setChecksRevealed(4);
       }
       const savedRole = localStorage.getItem('3watly_role');
       if (savedRole) {
@@ -236,6 +381,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         await new Promise((r) => setTimeout(r, 300));
         setProgress(100);
         setStatus('complete');
+        setChecksRevealed(4);
         setStageMessage('Parsing and market alignment complete!');
         setParsedCv(finalParsedCv);
         setSkillsAdded(detectedSkills.length);
@@ -252,6 +398,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         } catch (storageErr) {
           console.warn('Storage error:', storageErr);
         }
+
+        // Synchronize with CV Builder context and versions
+        syncParsedCvToCVBuilder(finalParsedCv, user?.fullName);
 
         const isArabic = typeof window !== 'undefined' && localStorage.getItem('3watly_lang') === 'ar';
         toast.success(
@@ -334,10 +483,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       setParsedCv(constructedCv);
       setStatus('complete');
       setProgress(100);
-      setChecksRevealed(3);
+      setChecksRevealed(4);
       try {
         localStorage.setItem('3watly_parsed_cv', JSON.stringify(constructedCv));
       } catch {}
+      syncParsedCvToCVBuilder(constructedCv, resolvedName);
     },
     [role, user, updateFullName]
   );
