@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, TrendingUp } from 'lucide-react';
+import { Briefcase } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 /* ========================================================================= */
-/* Custom Pixel-Perfect Tech SVG Glyphs                                      */
+/* Custom Pixel-Perfect Tech & Category SVG Glyphs                           */
 /* ========================================================================= */
 
-function ReactIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
+function ReactIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
       <ellipse cx="12" cy="12" rx="4" ry="10" stroke="#00D2FF" strokeWidth="1.6" transform="rotate(30 12 12)" />
@@ -20,7 +20,7 @@ function ReactIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
   );
 }
 
-function NodeIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
+function NodeIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
       <path
@@ -40,7 +40,7 @@ function NodeIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
   );
 }
 
-function PythonIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
+function PythonIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
       <path
@@ -55,7 +55,17 @@ function PythonIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
   );
 }
 
-function DockerIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
+function SqlIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <ellipse cx="12" cy="5" rx="8" ry="2.8" stroke="#3B82F6" strokeWidth="1.8" fill="#3B82F6" fillOpacity="0.2" />
+      <path d="M20 12c0 1.55-3.58 2.8-8 2.8S4 13.55 4 12" stroke="#3B82F6" strokeWidth="1.8" />
+      <path d="M4 5v14c0 1.55 3.58 2.8 8 2.8s8-1.25 8-2.8V5" stroke="#3B82F6" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
+function DockerIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
       <rect x="6" y="8" width="2.2" height="2" rx="0.3" fill="#0284C7" />
@@ -75,17 +85,7 @@ function DockerIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
   );
 }
 
-function JavaIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none">
-      <path d="M4 18.5h14a3 3 0 003-3v0a1 1 0 00-1-1H4a1 1 0 00-1 1v0a3 3 0 002 3z" stroke="#EA580C" strokeWidth="1.8" fill="#C2410C" fillOpacity="0.2" />
-      <path d="M9 12c0-2 2-3 2-5M14 12c0-2 2-3 2-5M11.5 13.5c0-2 1.5-3 1.5-5" stroke="#F97316" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M5 21h12" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function SpringIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
+function SpringIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
       <path d="M12 2C6.48 2 2 6.48 2 12c0 4.14 2.53 7.69 6.13 9.17-.08-.6-.13-1.22-.13-1.85 0-5.52 4.48-10 10-10 .63 0 1.25.05 1.85.13C18.31 4.53 14.76 2 12 2z" fill="#6DB33F" />
@@ -94,441 +94,344 @@ function SpringIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
   );
 }
 
-function AwsIcon({ className = "w-4.5 h-4.5" }: { className?: string }) {
+function QaIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">
-      <path d="M4 14.5c4.5 3.5 11.5 3.5 16 0" stroke="#FF9900" strokeWidth="2.2" strokeLinecap="round" />
-      <path d="M18.5 12.5l2 2-1 2" stroke="#FF9900" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      <text x="3.5" y="11" fill="#FF9900" fontSize="8" fontWeight="bold" fontFamily="sans-serif" letterSpacing="0.5">aws</text>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#14B8A6" strokeWidth="1.8" fill="#14B8A6" fillOpacity="0.2" />
+      <path d="M9 12l2 2 4-4" stroke="#2DD4BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ProjectIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <rect x="3" y="3" width="7" height="9" rx="1.5" stroke="#6366F1" strokeWidth="1.8" fill="#6366F1" fillOpacity="0.2" />
+      <rect x="14" y="3" width="7" height="5" rx="1.5" stroke="#6366F1" strokeWidth="1.8" fill="#6366F1" fillOpacity="0.2" />
+      <rect x="14" y="12" width="7" height="9" rx="1.5" stroke="#6366F1" strokeWidth="1.8" fill="#6366F1" fillOpacity="0.2" />
+      <rect x="3" y="16" width="7" height="5" rx="1.5" stroke="#6366F1" strokeWidth="1.8" fill="#6366F1" fillOpacity="0.2" />
     </svg>
   );
 }
 
 /* ========================================================================= */
-/* Ticker Cards Data Definition                                             */
+/* Item Definition & Color Scheme Presets                                    */
 /* ========================================================================= */
 
-interface TickerCardData {
+type AccentKey = 'violet' | 'blue' | 'cyan' | 'emerald' | 'amber' | 'teal' | 'indigo' | 'sky';
+
+const ACCENT_STYLES: Record<
+  AccentKey,
+  {
+    cardBorder: string;
+    cardGlow: string;
+    cardHover: string;
+    badgeBg: string;
+    badgeText: string;
+    badgeBorder: string;
+    badgeDot: string;
+  }
+> = {
+  violet: {
+    cardBorder: 'border-slate-200/90 dark:border-violet-500/30',
+    cardGlow: 'shadow-xs dark:shadow-[0_4px_20px_-4px_rgba(139,92,246,0.18)]',
+    cardHover: 'hover:border-violet-400 dark:hover:border-violet-400/60 hover:shadow-md dark:hover:shadow-[0_4px_25px_-2px_rgba(139,92,246,0.35)]',
+    badgeBg: 'bg-violet-50 dark:bg-violet-500/15',
+    badgeText: 'text-violet-700 dark:text-violet-300',
+    badgeBorder: 'border-violet-200 dark:border-violet-500/30',
+    badgeDot: 'bg-violet-500 dark:bg-violet-400',
+  },
+  blue: {
+    cardBorder: 'border-slate-200/90 dark:border-blue-500/30',
+    cardGlow: 'shadow-xs dark:shadow-[0_4px_20px_-4px_rgba(59,130,246,0.18)]',
+    cardHover: 'hover:border-blue-400 dark:hover:border-blue-400/60 hover:shadow-md dark:hover:shadow-[0_4px_25px_-2px_rgba(59,130,246,0.35)]',
+    badgeBg: 'bg-blue-50 dark:bg-blue-500/15',
+    badgeText: 'text-blue-700 dark:text-blue-300',
+    badgeBorder: 'border-blue-200 dark:border-blue-500/30',
+    badgeDot: 'bg-blue-500 dark:bg-blue-400',
+  },
+  cyan: {
+    cardBorder: 'border-slate-200/90 dark:border-cyan-500/30',
+    cardGlow: 'shadow-xs dark:shadow-[0_4px_20px_-4px_rgba(6,182,212,0.18)]',
+    cardHover: 'hover:border-cyan-400 dark:hover:border-cyan-400/60 hover:shadow-md dark:hover:shadow-[0_4px_25px_-2px_rgba(6,182,212,0.35)]',
+    badgeBg: 'bg-cyan-50 dark:bg-cyan-500/15',
+    badgeText: 'text-cyan-700 dark:text-cyan-300',
+    badgeBorder: 'border-cyan-200 dark:border-cyan-500/30',
+    badgeDot: 'bg-cyan-500 dark:bg-cyan-400',
+  },
+  emerald: {
+    cardBorder: 'border-slate-200/90 dark:border-emerald-500/30',
+    cardGlow: 'shadow-xs dark:shadow-[0_4px_20px_-4px_rgba(16,185,129,0.18)]',
+    cardHover: 'hover:border-emerald-400 dark:hover:border-emerald-400/60 hover:shadow-md dark:hover:shadow-[0_4px_25px_-2px_rgba(16,185,129,0.35)]',
+    badgeBg: 'bg-emerald-50 dark:bg-emerald-500/15',
+    badgeText: 'text-emerald-700 dark:text-emerald-300',
+    badgeBorder: 'border-emerald-200 dark:border-emerald-500/30',
+    badgeDot: 'bg-emerald-500 dark:bg-emerald-400',
+  },
+  amber: {
+    cardBorder: 'border-slate-200/90 dark:border-amber-500/30',
+    cardGlow: 'shadow-xs dark:shadow-[0_4px_20px_-4px_rgba(245,158,11,0.18)]',
+    cardHover: 'hover:border-amber-400 dark:hover:border-amber-400/60 hover:shadow-md dark:hover:shadow-[0_4px_25px_-2px_rgba(245,158,11,0.35)]',
+    badgeBg: 'bg-amber-50 dark:bg-amber-500/15',
+    badgeText: 'text-amber-700 dark:text-amber-300',
+    badgeBorder: 'border-amber-200 dark:border-amber-500/30',
+    badgeDot: 'bg-amber-500 dark:bg-amber-400',
+  },
+  teal: {
+    cardBorder: 'border-slate-200/90 dark:border-teal-500/30',
+    cardGlow: 'shadow-xs dark:shadow-[0_4px_20px_-4px_rgba(20,184,166,0.18)]',
+    cardHover: 'hover:border-teal-400 dark:hover:border-teal-400/60 hover:shadow-md dark:hover:shadow-[0_4px_25px_-2px_rgba(20,184,166,0.35)]',
+    badgeBg: 'bg-teal-50 dark:bg-teal-500/15',
+    badgeText: 'text-teal-700 dark:text-teal-300',
+    badgeBorder: 'border-teal-200 dark:border-teal-500/30',
+    badgeDot: 'bg-teal-500 dark:bg-teal-400',
+  },
+  indigo: {
+    cardBorder: 'border-slate-200/90 dark:border-indigo-500/30',
+    cardGlow: 'shadow-xs dark:shadow-[0_4px_20px_-4px_rgba(99,102,241,0.18)]',
+    cardHover: 'hover:border-indigo-400 dark:hover:border-indigo-400/60 hover:shadow-md dark:hover:shadow-[0_4px_25px_-2px_rgba(99,102,241,0.35)]',
+    badgeBg: 'bg-indigo-50 dark:bg-indigo-500/15',
+    badgeText: 'text-indigo-700 dark:text-indigo-300',
+    badgeBorder: 'border-indigo-200 dark:border-indigo-500/30',
+    badgeDot: 'bg-indigo-500 dark:bg-indigo-400',
+  },
+  sky: {
+    cardBorder: 'border-slate-200/90 dark:border-sky-500/30',
+    cardGlow: 'shadow-xs dark:shadow-[0_4px_20px_-4px_rgba(14,165,233,0.18)]',
+    cardHover: 'hover:border-sky-400 dark:hover:border-sky-400/60 hover:shadow-md dark:hover:shadow-[0_4px_25px_-2px_rgba(14,165,233,0.35)]',
+    badgeBg: 'bg-sky-50 dark:bg-sky-500/15',
+    badgeText: 'text-sky-700 dark:text-sky-300',
+    badgeBorder: 'border-sky-200 dark:border-sky-500/30',
+    badgeDot: 'bg-sky-500 dark:bg-sky-400',
+  },
+};
+
+interface TickerItemConfig {
   id: string;
-  title: string;
-  subtitle: string;
-  growth: string;
-  cardBorder: string;
-  cardGlow: string;
-  cardHover: string;
-  iconBg: string;
-  iconBorder: string;
-  badge: {
-    label: string;
-    dotColor: string;
-    bgColor: string;
-    textColor: string;
-    borderColor: string;
-  };
-  pillBg: string;
-  pillBorder: string;
-  pillText: string;
+  skillName: string;
+  titleAr: string;
+  titleEn: string;
+  subtitleAr: string;
+  subtitleEn: string;
+  badgeLabelAr: string;
+  badgeLabelEn: string;
+  accent: AccentKey;
+  defaultCount: number;
   renderIcon: () => React.ReactNode;
 }
+
+// Exactly reflects verified skills from our 661 live Egyptian job database
+const TICKER_ITEMS: TickerItemConfig[] = [
+  {
+    id: 'card-python',
+    skillName: 'Python',
+    titleAr: 'Python',
+    titleEn: 'Python',
+    subtitleAr: 'الذكاء الاصطناعي وتحليل البيانات',
+    subtitleEn: 'AI & Data Science',
+    badgeLabelAr: 'الأكثر طلباً',
+    badgeLabelEn: 'Top Trending',
+    accent: 'violet',
+    defaultCount: 26,
+    renderIcon: () => <PythonIcon />,
+  },
+  {
+    id: 'card-sql',
+    skillName: 'SQL',
+    titleAr: 'SQL',
+    titleEn: 'SQL',
+    subtitleAr: 'إدارة وتحليل قواعد البيانات',
+    subtitleEn: 'Database & Analytics',
+    badgeLabelAr: 'طلب قياسي',
+    badgeLabelEn: 'High Demand',
+    accent: 'blue',
+    defaultCount: 30,
+    renderIcon: () => <SqlIcon />,
+  },
+  {
+    id: 'card-react',
+    skillName: 'JavaScript',
+    titleAr: 'React & Next.js',
+    titleEn: 'React & Next.js',
+    subtitleAr: 'تطوير تطبيقات الويب الحديثة',
+    subtitleEn: 'Modern Web Engineering',
+    badgeLabelAr: 'الأكثر طلباً',
+    badgeLabelEn: 'Most In-Demand',
+    accent: 'cyan',
+    defaultCount: 22,
+    renderIcon: () => <ReactIcon />,
+  },
+  {
+    id: 'card-qa',
+    skillName: 'Quality Assurance',
+    titleAr: 'Quality Assurance',
+    titleEn: 'Quality Assurance',
+    subtitleAr: 'اختبار وضمان جودة البرمجيات',
+    subtitleEn: 'Software QA & Testing',
+    badgeLabelAr: 'أعلى الشواغر',
+    badgeLabelEn: 'Top Openings',
+    accent: 'teal',
+    defaultCount: 63,
+    renderIcon: () => <QaIcon />,
+  },
+  {
+    id: 'card-pm',
+    skillName: 'Project Management',
+    titleAr: 'Project Management',
+    titleEn: 'Project Management',
+    subtitleAr: 'إدارة المشاريع والفرق التقنية',
+    subtitleEn: 'Tech Project Leadership',
+    badgeLabelAr: 'فرص قيادية',
+    badgeLabelEn: 'Leadership',
+    accent: 'indigo',
+    defaultCount: 54,
+    renderIcon: () => <ProjectIcon />,
+  },
+  {
+    id: 'card-node',
+    skillName: 'Node.js',
+    titleAr: 'Node.js & APIs',
+    titleEn: 'Node.js & APIs',
+    subtitleAr: 'الخوادم والـ Microservices',
+    subtitleEn: 'Backend & Microservices',
+    badgeLabelAr: 'نمو سريع',
+    badgeLabelEn: 'Fast Growth',
+    accent: 'emerald',
+    defaultCount: 16,
+    renderIcon: () => <NodeIcon />,
+  },
+  {
+    id: 'card-docker',
+    skillName: 'Docker',
+    titleAr: 'Docker & Cloud',
+    titleEn: 'Docker & Cloud',
+    subtitleAr: 'الحاويات والبنية السحابية',
+    subtitleEn: 'DevOps & Containers',
+    badgeLabelAr: 'مطلوب دائماً',
+    badgeLabelEn: 'Steady Demand',
+    accent: 'sky',
+    defaultCount: 17,
+    renderIcon: () => <DockerIcon />,
+  },
+  {
+    id: 'card-java',
+    skillName: 'Java',
+    titleAr: 'Java & Spring',
+    titleEn: 'Java & Spring',
+    subtitleAr: 'أنظمة وتطبيقات الشركات الكبرى',
+    subtitleEn: 'Enterprise Software',
+    badgeLabelAr: 'قطاع المؤسسات',
+    badgeLabelEn: 'Enterprise',
+    accent: 'amber',
+    defaultCount: 17,
+    renderIcon: () => <SpringIcon />,
+  },
+];
 
 export function MarketTicker() {
   const { isAr } = useLanguage();
   const [isPaused, setIsPaused] = useState(false);
+  const [liveCounts, setLiveCounts] = useState<Record<string, number>>({});
 
-  const cards: TickerCardData[] = isAr
-    ? [
-        {
-          id: 'card-react',
-          title: 'React - Next.js',
-          subtitle: 'تطوير تطبيقات الويب الحديثة',
-          growth: '+62%',
-          cardBorder: 'border-sky-300/80 dark:border-[#00D2FF]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(0,210,255,0.45)]',
-          cardHover: 'hover:border-sky-400 dark:hover:border-[#00D2FF] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(0,210,255,0.7)]',
-          iconBg: 'bg-sky-50 dark:bg-cyan-950/60',
-          iconBorder: 'border-sky-200 dark:border-cyan-400/35',
-          badge: {
-            label: 'الأكثر طلباً',
-            dotColor: 'bg-sky-500 dark:bg-[#00D2FF]',
-            bgColor: 'bg-sky-50 dark:bg-cyan-500/20',
-            textColor: 'text-sky-700 dark:text-cyan-300',
-            borderColor: 'border-sky-200 dark:border-cyan-400/40'
-          },
-          pillBg: 'bg-sky-50 dark:bg-cyan-950/70',
-          pillBorder: 'border-sky-200 dark:border-cyan-500/40',
-          pillText: 'text-sky-700 dark:text-cyan-300',
-          renderIcon: () => <ReactIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-aws',
-          title: 'AWS - Terraform',
-          subtitle: 'البنية التحتية السحابية (Cloud)',
-          growth: '+52%',
-          cardBorder: 'border-amber-300/80 dark:border-[#D97706]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(245,158,11,0.45)]',
-          cardHover: 'hover:border-amber-400 dark:hover:border-[#D97706] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(245,158,11,0.7)]',
-          iconBg: 'bg-amber-50 dark:bg-amber-950/60',
-          iconBorder: 'border-amber-200 dark:border-amber-400/35',
-          badge: {
-            label: 'الأعلى نمواً',
-            dotColor: 'bg-amber-500 dark:bg-[#F59E0B]',
-            bgColor: 'bg-amber-50 dark:bg-amber-500/20',
-            textColor: 'text-amber-700 dark:text-amber-300',
-            borderColor: 'border-amber-200 dark:border-amber-400/40'
-          },
-          pillBg: 'bg-amber-50 dark:bg-amber-950/70',
-          pillBorder: 'border-amber-200 dark:border-amber-500/40',
-          pillText: 'text-amber-700 dark:text-amber-300',
-          renderIcon: () => <AwsIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-java',
-          title: 'Java - Spring Boot',
-          subtitle: 'تطبيقات المؤسسات والشركات الكبرى',
-          growth: '+41%',
-          cardBorder: 'border-purple-300/80 dark:border-[#EA580C]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(249,115,22,0.45)]',
-          cardHover: 'hover:border-purple-400 dark:hover:border-[#EA580C] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(249,115,22,0.7)]',
-          iconBg: 'bg-purple-50 dark:bg-orange-950/60',
-          iconBorder: 'border-purple-200 dark:border-orange-400/35',
-          badge: {
-            label: 'شائع ومطلوب',
-            dotColor: 'bg-purple-500 dark:bg-[#F97316]',
-            bgColor: 'bg-purple-50 dark:bg-orange-500/20',
-            textColor: 'text-purple-700 dark:text-orange-300',
-            borderColor: 'border-purple-200 dark:border-orange-400/40'
-          },
-          pillBg: 'bg-purple-50 dark:bg-orange-950/70',
-          pillBorder: 'border-purple-200 dark:border-orange-500/40',
-          pillText: 'text-purple-700 dark:text-orange-300',
-          renderIcon: () => <SpringIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-node2',
-          title: 'Node.js & APIs',
-          subtitle: 'هندسة الأنظمة والـ Microservices',
-          growth: '+60%',
-          cardBorder: 'border-emerald-300/80 dark:border-[#10B981]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(16,185,129,0.45)]',
-          cardHover: 'hover:border-emerald-400 dark:hover:border-[#10B981] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(16,185,129,0.7)]',
-          iconBg: 'bg-emerald-50 dark:bg-emerald-950/60',
-          iconBorder: 'border-emerald-200 dark:border-emerald-400/35',
-          badge: {
-            label: 'نمو سريع',
-            dotColor: 'bg-emerald-500 dark:bg-[#10B981]',
-            bgColor: 'bg-emerald-50 dark:bg-emerald-500/20',
-            textColor: 'text-emerald-700 dark:text-emerald-300',
-            borderColor: 'border-emerald-200 dark:border-emerald-400/40'
-          },
-          pillBg: 'bg-emerald-50 dark:bg-emerald-950/70',
-          pillBorder: 'border-emerald-200 dark:border-emerald-500/40',
-          pillText: 'text-emerald-700 dark:text-emerald-300',
-          renderIcon: () => <NodeIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-docker',
-          title: 'Docker',
-          subtitle: 'إدارة الحاويات وDevOps',
-          growth: '+41%',
-          cardBorder: 'border-sky-300/80 dark:border-[#0284C7]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(14,165,233,0.45)]',
-          cardHover: 'hover:border-sky-400 dark:hover:border-[#0284C7] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(14,165,233,0.7)]',
-          iconBg: 'bg-sky-50 dark:bg-sky-950/60',
-          iconBorder: 'border-sky-200 dark:border-sky-400/35',
-          badge: {
-            label: 'مطلوب دائماً',
-            dotColor: 'bg-sky-500 dark:bg-[#38BDF8]',
-            bgColor: 'bg-sky-50 dark:bg-sky-500/20',
-            textColor: 'text-sky-700 dark:text-sky-300',
-            borderColor: 'border-sky-200 dark:border-sky-400/40'
-          },
-          pillBg: 'bg-sky-50 dark:bg-sky-950/70',
-          pillBorder: 'border-sky-200 dark:border-sky-500/40',
-          pillText: 'text-sky-700 dark:text-sky-300',
-          renderIcon: () => <DockerIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-python',
-          title: 'Python - SQL - React',
-          subtitle: 'تحليل البيانات والـ AI',
-          growth: '+72%',
-          cardBorder: 'border-purple-300/80 dark:border-[#8B5CF6]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(139,92,246,0.45)]',
-          cardHover: 'hover:border-purple-400 dark:hover:border-[#8B5CF6] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(139,92,246,0.7)]',
-          iconBg: 'bg-purple-50 dark:bg-purple-950/60',
-          iconBorder: 'border-purple-200 dark:border-purple-400/35',
-          badge: {
-            label: 'الأكثر طلباً',
-            dotColor: 'bg-purple-500 dark:bg-[#A855F7]',
-            bgColor: 'bg-purple-50 dark:bg-purple-500/20',
-            textColor: 'text-purple-700 dark:text-purple-300',
-            borderColor: 'border-purple-200 dark:border-purple-400/40'
-          },
-          pillBg: 'bg-purple-50 dark:bg-purple-950/70',
-          pillBorder: 'border-purple-200 dark:border-purple-500/40',
-          pillText: 'text-purple-700 dark:text-purple-300',
-          renderIcon: () => <PythonIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-node',
-          title: 'Node.js',
-          subtitle: 'تطوير الخوادم والـ Backend',
-          growth: '+48%',
-          cardBorder: 'border-emerald-300/80 dark:border-[#10B981]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(16,185,129,0.45)]',
-          cardHover: 'hover:border-emerald-400 dark:hover:border-[#10B981] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(16,185,129,0.7)]',
-          iconBg: 'bg-emerald-50 dark:bg-emerald-950/60',
-          iconBorder: 'border-emerald-200 dark:border-emerald-400/35',
-          badge: {
-            label: 'نمو سريع',
-            dotColor: 'bg-emerald-500 dark:bg-[#10B981]',
-            bgColor: 'bg-emerald-50 dark:bg-emerald-500/20',
-            textColor: 'text-emerald-700 dark:text-emerald-300',
-            borderColor: 'border-emerald-200 dark:border-emerald-400/40'
-          },
-          pillBg: 'bg-emerald-50 dark:bg-emerald-950/70',
-          pillBorder: 'border-emerald-200 dark:border-emerald-500/40',
-          pillText: 'text-emerald-700 dark:text-emerald-300',
-          renderIcon: () => <NodeIcon className="w-4.5 h-4.5" />
-        }
-      ]
-    : [
-        {
-          id: 'card-react',
-          title: 'React - Next.js',
-          subtitle: 'Building modern web applications',
-          growth: '+62%',
-          cardBorder: 'border-sky-300/80 dark:border-[#00D2FF]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(0,210,255,0.45)]',
-          cardHover: 'hover:border-sky-400 dark:hover:border-[#00D2FF] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(0,210,255,0.7)]',
-          iconBg: 'bg-sky-50 dark:bg-cyan-950/60',
-          iconBorder: 'border-sky-200 dark:border-cyan-400/35',
-          badge: {
-            label: 'High Demand',
-            dotColor: 'bg-sky-500 dark:bg-[#00D2FF]',
-            bgColor: 'bg-sky-50 dark:bg-cyan-500/20',
-            textColor: 'text-sky-700 dark:text-cyan-300',
-            borderColor: 'border-sky-200 dark:border-cyan-400/40'
-          },
-          pillBg: 'bg-sky-50 dark:bg-cyan-950/70',
-          pillBorder: 'border-sky-200 dark:border-cyan-500/40',
-          pillText: 'text-sky-700 dark:text-cyan-300',
-          renderIcon: () => <ReactIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-aws',
-          title: 'AWS - Terraform',
-          subtitle: 'Cloud infrastructure',
-          growth: '+52%',
-          cardBorder: 'border-amber-300/80 dark:border-[#D97706]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(245,158,11,0.45)]',
-          cardHover: 'hover:border-amber-400 dark:hover:border-[#D97706] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(245,158,11,0.7)]',
-          iconBg: 'bg-amber-50 dark:bg-amber-950/60',
-          iconBorder: 'border-amber-200 dark:border-amber-400/35',
-          badge: {
-            label: 'Top Growth',
-            dotColor: 'bg-amber-500 dark:bg-[#F59E0B]',
-            bgColor: 'bg-amber-50 dark:bg-amber-500/20',
-            textColor: 'text-amber-700 dark:text-amber-300',
-            borderColor: 'border-amber-200 dark:border-amber-400/40'
-          },
-          pillBg: 'bg-amber-50 dark:bg-amber-950/70',
-          pillBorder: 'border-amber-200 dark:border-amber-500/40',
-          pillText: 'text-amber-700 dark:text-amber-300',
-          renderIcon: () => <AwsIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-java',
-          title: 'Java - Spring Boot',
-          subtitle: 'Enterprise applications',
-          growth: '+41%',
-          cardBorder: 'border-purple-300/80 dark:border-[#EA580C]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(249,115,22,0.45)]',
-          cardHover: 'hover:border-purple-400 dark:hover:border-[#EA580C] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(249,115,22,0.7)]',
-          iconBg: 'bg-purple-50 dark:bg-orange-950/60',
-          iconBorder: 'border-purple-200 dark:border-orange-400/35',
-          badge: {
-            label: 'In Demand',
-            dotColor: 'bg-purple-500 dark:bg-[#F97316]',
-            bgColor: 'bg-purple-50 dark:bg-orange-500/20',
-            textColor: 'text-purple-700 dark:text-orange-300',
-            borderColor: 'border-purple-200 dark:border-orange-400/40'
-          },
-          pillBg: 'bg-purple-50 dark:bg-orange-950/70',
-          pillBorder: 'border-purple-200 dark:border-orange-500/40',
-          pillText: 'text-purple-700 dark:text-orange-300',
-          renderIcon: () => <SpringIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-node2',
-          title: 'Node.js & APIs',
-          subtitle: 'Microservices & Architecture',
-          growth: '+60%',
-          cardBorder: 'border-emerald-300/80 dark:border-[#10B981]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(16,185,129,0.45)]',
-          cardHover: 'hover:border-emerald-400 dark:hover:border-[#10B981] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(16,185,129,0.7)]',
-          iconBg: 'bg-emerald-50 dark:bg-emerald-950/60',
-          iconBorder: 'border-emerald-200 dark:border-emerald-400/35',
-          badge: {
-            label: 'Fast Growth',
-            dotColor: 'bg-emerald-500 dark:bg-[#10B981]',
-            bgColor: 'bg-emerald-50 dark:bg-emerald-500/20',
-            textColor: 'text-emerald-700 dark:text-emerald-300',
-            borderColor: 'border-emerald-200 dark:border-emerald-400/40'
-          },
-          pillBg: 'bg-emerald-50 dark:bg-emerald-950/70',
-          pillBorder: 'border-emerald-200 dark:border-emerald-500/40',
-          pillText: 'text-emerald-700 dark:text-emerald-300',
-          renderIcon: () => <NodeIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-docker',
-          title: 'Docker',
-          subtitle: 'Containerization & DevOps',
-          growth: '+41%',
-          cardBorder: 'border-sky-300/80 dark:border-[#0284C7]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(14,165,233,0.45)]',
-          cardHover: 'hover:border-sky-400 dark:hover:border-[#0284C7] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(14,165,233,0.7)]',
-          iconBg: 'bg-sky-50 dark:bg-sky-950/60',
-          iconBorder: 'border-sky-200 dark:border-sky-400/35',
-          badge: {
-            label: 'Always Needed',
-            dotColor: 'bg-sky-500 dark:bg-[#38BDF8]',
-            bgColor: 'bg-sky-50 dark:bg-sky-500/20',
-            textColor: 'text-sky-700 dark:text-sky-300',
-            borderColor: 'border-sky-200 dark:border-sky-400/40'
-          },
-          pillBg: 'bg-sky-50 dark:bg-sky-950/70',
-          pillBorder: 'border-sky-200 dark:border-sky-500/40',
-          pillText: 'text-sky-700 dark:text-sky-300',
-          renderIcon: () => <DockerIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-python',
-          title: 'Python - SQL - React',
-          subtitle: 'Data analysis & visualization',
-          growth: '+72%',
-          cardBorder: 'border-purple-300/80 dark:border-[#8B5CF6]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(139,92,246,0.45)]',
-          cardHover: 'hover:border-purple-400 dark:hover:border-[#8B5CF6] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(139,92,246,0.7)]',
-          iconBg: 'bg-purple-50 dark:bg-purple-950/60',
-          iconBorder: 'border-purple-200 dark:border-purple-400/35',
-          badge: {
-            label: 'Top Trending',
-            dotColor: 'bg-purple-500 dark:bg-[#A855F7]',
-            bgColor: 'bg-purple-50 dark:bg-purple-500/20',
-            textColor: 'text-purple-700 dark:text-purple-300',
-            borderColor: 'border-purple-200 dark:border-purple-400/40'
-          },
-          pillBg: 'bg-purple-50 dark:bg-purple-950/70',
-          pillBorder: 'border-purple-200 dark:border-purple-500/40',
-          pillText: 'text-purple-700 dark:text-purple-300',
-          renderIcon: () => <PythonIcon className="w-4.5 h-4.5" />
-        },
-        {
-          id: 'card-node',
-          title: 'Node.js',
-          subtitle: 'Backend development',
-          growth: '+48%',
-          cardBorder: 'border-emerald-300/80 dark:border-[#10B981]/75',
-          cardGlow: 'shadow-none dark:shadow-[0_0_20px_-2px_rgba(16,185,129,0.45)]',
-          cardHover: 'hover:border-emerald-400 dark:hover:border-[#10B981] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(16,185,129,0.7)]',
-          iconBg: 'bg-emerald-50 dark:bg-emerald-950/60',
-          iconBorder: 'border-emerald-200 dark:border-emerald-400/35',
-          badge: {
-            label: 'High Demand',
-            dotColor: 'bg-emerald-500 dark:bg-[#10B981]',
-            bgColor: 'bg-emerald-50 dark:bg-emerald-500/20',
-            textColor: 'text-emerald-700 dark:text-emerald-300',
-            borderColor: 'border-emerald-200 dark:border-emerald-400/40'
-          },
-          pillBg: 'bg-emerald-50 dark:bg-emerald-950/70',
-          pillBorder: 'border-emerald-200 dark:border-emerald-500/40',
-          pillText: 'text-emerald-700 dark:text-emerald-300',
-          renderIcon: () => <NodeIcon className="w-4.5 h-4.5" />
-        }
-      ];
+  // Fetch real verified job counts from live Supabase endpoint
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/market/stats')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted || !data?.topSkills) return;
+        const countsMap: Record<string, number> = {};
+        data.topSkills.forEach((s: { name: string; count: number }) => {
+          countsMap[s.name] = s.count;
+        });
+        setLiveCounts(countsMap);
+      })
+      .catch(() => {
+        // Fallbacks are already preset to exact database counts
+      });
 
-  const duplicatedCards = [...cards, ...cards, ...cards];
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const duplicatedItems = [...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS];
 
   return (
-    <div 
-      className="relative w-full overflow-hidden py-2.5 select-none z-20"
+    <div
+      className="relative w-full overflow-hidden py-3 select-none z-20"
       aria-label={isAr ? "مؤشرات السوق والمهارات المطلوبة" : "Live Skills & Market Trends"}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       style={{
-        WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)',
-        maskImage: 'linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+        maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
       }}
     >
-      {/* Seamless Edge Fades for natural scrolling transitions */}
-      <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 sm:w-36 z-10 bg-gradient-to-r from-white/95 dark:from-[#040816] to-transparent" />
-      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 sm:w-36 z-10 bg-gradient-to-l from-white/95 dark:from-[#040816] to-transparent" />
+      {/* Edge Fades for natural scrolling transitions */}
+      <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-28 z-10 bg-gradient-to-r from-white/95 dark:from-[#040816] to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-28 z-10 bg-gradient-to-l from-white/95 dark:from-[#040816] to-transparent" />
 
       <div className="flex w-max">
         <motion.div
-          className="flex items-center gap-3 sm:gap-3.5 shrink-0 py-1.5"
+          className="flex items-center gap-3 sm:gap-3.5 shrink-0 py-1"
           animate={{
             x: isAr ? ['0%', '33.333%'] : ['0%', '-33.333%'],
           }}
           transition={{
-            duration: isPaused ? 10000 : 38,
+            duration: isPaused ? 10000 : 42,
             ease: 'linear',
             repeat: Infinity,
           }}
         >
-          {duplicatedCards.map((item, idx) => (
-            <div
-              key={`${item.id}-${idx}`}
-              className={`flex items-center gap-2.5 sm:gap-3 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-[20px] min-w-[220px] sm:min-w-[245px] h-[64px] sm:h-[66px] border ${item.cardBorder} bg-white/95 dark:bg-gradient-to-r dark:from-[#040c1e]/95 dark:via-[#040c1e]/90 dark:to-[#040c1e]/75 backdrop-blur-2xl transition-all duration-300 shrink-0 cursor-default group ${item.cardGlow} ${item.cardHover}`}
-            >
-              {/* Technology Squircle Icon with matching theme border and background */}
+          {duplicatedItems.map((item, idx) => {
+            const styles = ACCENT_STYLES[item.accent];
+            const realCount = liveCounts[item.skillName] || item.defaultCount;
+            const jobLabel = isAr ? `${realCount} شاغر نشط` : `${realCount} Open Jobs`;
+
+            return (
               <div
-                className={`flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-[13px] border ${item.iconBorder} ${item.iconBg} shadow-inner group-hover:scale-105 transition-transform duration-200`}
+                key={`${item.id}-${idx}`}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl min-w-[260px] sm:min-w-[285px] h-[72px] sm:h-[74px] border ${styles.cardBorder} bg-white/95 dark:bg-[#070E22]/90 backdrop-blur-xl transition-all duration-300 shrink-0 cursor-default group ${styles.cardGlow} ${styles.cardHover}`}
               >
-                {item.renderIcon()}
-              </div>
-
-              {/* Card Content (Title, Badge, Subtitle, Metric) — WITHOUT arrows and WITHOUT white flares */}
-              <div className="min-w-0 flex-1 flex flex-col justify-center h-full">
-                
-                {/* Top Row: Title + Badge */}
-                <div className="flex items-center justify-between gap-1.5">
-                  <h4 className="text-[11.5px] sm:text-[12px] font-bold text-slate-800 dark:text-white truncate leading-none">
-                    {item.title}
-                  </h4>
-
-                  {/* Status Badge */}
-                  <span
-                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8.5px] sm:text-[9px] font-semibold border shrink-0 ${item.badge.bgColor} ${item.badge.textColor} ${item.badge.borderColor} leading-none`}
-                  >
-                    <span className={`h-1 w-1 rounded-full ${item.badge.dotColor} animate-pulse`} />
-                    <span>{item.badge.label}</span>
-                  </span>
+                {/* Tech Icon Squircle */}
+                <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/[0.05] group-hover:scale-105 group-hover:dark:border-white/20 transition-all duration-200 shadow-xs">
+                  {item.renderIcon()}
                 </div>
 
-                {/* Middle Row: Subtitle */}
-                <p className="text-[9.5px] sm:text-[10px] font-normal text-slate-500 dark:text-slate-400 truncate leading-none mt-1">
-                  {item.subtitle}
-                </p>
+                {/* Card Content: 2 Balanced, High-Contrast Rows */}
+                <div className="min-w-0 flex-1 flex flex-col justify-between h-full py-0.5">
+                  {/* Top Row: Title + Category Status Badge */}
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-[12.5px] sm:text-[13px] font-bold text-slate-800 dark:text-white truncate leading-tight">
+                      {isAr ? item.titleAr : item.titleEn}
+                    </h4>
 
-                {/* Bottom Row: Growth Metric Pill matching card theme color */}
-                <div className="mt-1">
-                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[8.5px] sm:text-[9px] font-bold ${item.pillBg} ${item.pillBorder} ${item.pillText} leading-none`}>
-                    <Users className="w-2.5 h-2.5" />
-                    <span>{item.growth}</span>
-                    <TrendingUp className="w-2.5 h-2.5" />
-                  </span>
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] sm:text-[9.5px] font-bold border shrink-0 ${styles.badgeBg} ${styles.badgeText} ${styles.badgeBorder} leading-none`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${styles.badgeDot} animate-pulse`} />
+                      <span>{isAr ? item.badgeLabelAr : item.badgeLabelEn}</span>
+                    </span>
+                  </div>
+
+                  {/* Bottom Row: Subtitle + Real Verified Jobs Pill */}
+                  <div className="flex items-center justify-between gap-2 mt-1">
+                    <p className="text-[10px] sm:text-[10.5px] font-medium text-slate-500 dark:text-slate-400 truncate leading-tight">
+                      {isAr ? item.subtitleAr : item.subtitleEn}
+                    </p>
+
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] sm:text-[9.5px] font-bold border leading-none shrink-0 bg-emerald-50/80 text-emerald-700 border-emerald-200/80 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30 shadow-2xs">
+                      <Briefcase className="w-2.5 h-2.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                      <span>{jobLabel}</span>
+                    </span>
+                  </div>
                 </div>
-
               </div>
-
-            </div>
-          ))}
+            );
+          })}
         </motion.div>
       </div>
     </div>
   );
 }
-
