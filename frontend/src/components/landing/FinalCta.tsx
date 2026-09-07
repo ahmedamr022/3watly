@@ -74,6 +74,7 @@ export function FinalCta() {
             src="/images/cta-bg.png"
             alt="Career direction background"
             fill
+            sizes="(max-width: 1024px) 100vw, 1200px"
             className="object-cover object-right opacity-90"
             priority
           />

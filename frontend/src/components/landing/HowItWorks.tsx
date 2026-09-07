@@ -175,6 +175,7 @@ export function HowItWorks() {
               src="/images/rocket-banner-bg.png"
               alt="Rocket banner background"
               fill
+              sizes="(max-width: 1024px) 100vw, 1200px"
               className="object-cover object-left opacity-90"
               priority
             />

@@ -32,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className={`dark ${inter.variable} ${cairo.variable}`}>
+    <html lang="ar" dir="rtl" className={`dark ${inter.variable} ${cairo.variable}`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -54,7 +54,7 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/logo.png" />
         <link rel="apple-touch-icon" href="/logo.png" />
       </head>
-      <body className="antialiased min-h-screen bg-[#F8FAFC] dark:bg-[#060913] text-slate-900 dark:text-slate-100 selection:bg-blue-600 selection:text-white font-sans">
+      <body className="antialiased min-h-screen bg-[#F8FAFC] dark:bg-[#060913] text-slate-900 dark:text-slate-100 selection:bg-blue-600 selection:text-white font-sans" suppressHydrationWarning>
         <AppProviders>
           {children}
         </AppProviders>
