@@ -288,9 +288,15 @@ export default function CareerPathPage() {
         <div className="mt-auto pt-8">
           <StepFooter
             onNext={() => router.push('/onboarding/cv-upload')}
-            nextDisabled={!role}
+            nextDisabled={!role || !experience}
             nextLabel={isAr ? "المتابعة لرفع الـ CV" : "Continue to CV Upload"}
-            hint={!role ? (isAr ? "اختر مساراً وظيفياً للمتابعة" : "Please select a target role to continue") : undefined}
+            hint={
+              !role
+                ? (isAr ? "اختر مساراً وظيفياً للمتابعة" : "Please select a target role to continue")
+                : !experience
+                ? (isAr ? "اختر مستوى خبرتك الحالي للمتابعة" : "Please select your experience level to continue")
+                : undefined
+            }
           />
         </div>
       </div>

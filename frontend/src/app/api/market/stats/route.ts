@@ -71,7 +71,11 @@ export async function GET(request: NextRequest) {
       'creative/design/art', 'engineering - other', 'business administration', 'quality control',
       'engineering - telecom/technology', 'customer service/support', 'sales/retail',
       'accounting/finance', 'project/program management', 'human resources', 'marketing/pr/advertising',
-      'education/teaching', 'training/instructor', 'development', 'engineering'
+      'education/teaching', 'training/instructor', 'development', 'engineering',
+      // Management-category terms that are NOT real tech skills
+      'management', 'project management', 'general management', 'operations management',
+      'product management', 'program management', 'account management', 'brand management',
+      'change management', 'risk management', 'supply chain management', 'fleet management',
     ]);
 
     // Aggregate skill frequencies

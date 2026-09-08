@@ -16,7 +16,7 @@ import { mockJobsList } from '@/data/jobs';
 export default function RecommendationsPage() {
   const router = useRouter();
   const { isAr } = useLanguage();
-  const { profile, parsedCv } = useOnboarding();
+  const { profile, parsedCv, role } = useOnboarding();
   const { setOnboardingCompleted } = useAuth();
 
   const handleFinish = async () => {
@@ -104,7 +104,7 @@ export default function RecommendationsPage() {
   const [loadingJobs, setLoadingJobs] = React.useState(true);
 
   React.useEffect(() => {
-    fetch('/api/jobs?limit=6')
+    fetch('/api/jobs?limit=20')
       .then((r) => r.json())
       .then((d) => {
         if (Array.isArray(d?.jobs)) {
@@ -115,8 +115,25 @@ export default function RecommendationsPage() {
       .finally(() => setLoadingJobs(false));
   }, []);
 
-  // Calculate genuine match score for every job based on actual user skills overlap
-  const sourceJobs = liveJobs;
+  // Role-to-domain keyword map: only jobs whose title/category matches these keywords
+  const ROLE_DOMAIN_KEYWORDS: Record<string, string[]> = {
+    'data-analyst':       ['data analyst', 'data analysis', 'business intelligence', 'bi analyst', 'analytics', 'power bi', 'tableau', 'sql', 'reporting'],
+    'data-engineer':      ['data engineer', 'data pipeline', 'etl', 'airflow', 'spark', 'big data', 'dbt', 'database'],
+    'software-engineer':  ['software engineer', 'software developer', 'fullstack', 'full stack', 'backend', 'frontend', 'web developer', 'react', 'node'],
+    'ml-engineer':        ['machine learning', 'ml engineer', 'ai engineer', 'data scientist', 'deep learning', 'nlp', 'computer vision'],
+    'devops':             ['devops', 'cloud engineer', 'site reliability', 'sre', 'infrastructure', 'kubernetes', 'ci/cd', 'platform engineer'],
+  };
+
+  const userRoleKeywords = (role ? ROLE_DOMAIN_KEYWORDS[role] : null)
+    ?? Object.values(ROLE_DOMAIN_KEYWORDS).flat();
+
+  const sourceJobs = liveJobs.filter(job => {
+    const titleLower = (job.title || '').toLowerCase();
+    const categoryLower = (job.category || '').toLowerCase();
+    const combined = `${titleLower} ${categoryLower}`;
+    return userRoleKeywords.some(kw => combined.includes(kw));
+  });
+
   const rankedJobs = sourceJobs.map(job => {
     const rawSkills = Array.isArray(job.matchedSkills) 
       ? job.matchedSkills.map((s: any) => (typeof s === 'string' ? s : s.name).toLowerCase())
@@ -134,7 +151,9 @@ export default function RecommendationsPage() {
       calculatedMatch,
       matchedCount
     };
-  }).sort((a, b) => b.calculatedMatch - a.calculatedMatch || b.matchedCount - a.matchedCount);
+  })
+  .filter(job => job.calculatedMatch >= 45) // Only show jobs with meaningful match
+  .sort((a, b) => b.calculatedMatch - a.calculatedMatch || b.matchedCount - a.matchedCount);
 
   const displayJobs = rankedJobs.slice(0, 2);
 

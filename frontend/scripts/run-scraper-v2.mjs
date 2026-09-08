@@ -52,12 +52,20 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 
 const WUZZUF_BASE = 'https://wuzzuf.net';
 const BROWSER_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
   'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
+  'Accept-Encoding': 'gzip, deflate, br',
   'Referer': 'https://www.google.com/',
+  'Sec-Ch-Ua': '"Chromium";v="128", "Google Chrome";v="128", "Not-A.Brand";v="99"',
+  'Sec-Ch-Ua-Mobile': '?0',
+  'Sec-Ch-Ua-Platform': '"Windows"',
   'Sec-Fetch-Dest': 'document',
   'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-Site': 'none',
+  'Sec-Fetch-User': '?1',
+  'Upgrade-Insecure-Requests': '1',
+  'Cache-Control': 'max-age=0',
 };
 
 const SEARCH_QUERIES = [
@@ -131,6 +139,10 @@ const SKILL_BLACKLIST = new Set([
   'accounting/finance', 'administration', 'marketing/pr/advertising',
   'sales/retail', 'customer service/support', 'senior management',
   'senior full stack developer', 'executive/director', 'development', 'product', 'planning',
+  // Management & generic job categories (NOT real tech skills)
+  'management','project management','general management','operations management',
+  'product management','program management','account management','brand management',
+  'change management','risk management','supply chain management','fleet management',
 ]);
 
 const ROLE_SKILL_PROFILES = {
@@ -554,15 +566,13 @@ async function enrichJob(job) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Category & Browse Pages (Bypasses Cloudflare block, high job yield)
+// Category & Browse Pages (Strict tech-only categories — no broad Jobs-in-Egypt)
 // ─────────────────────────────────────────────────────────────────────────────
 const WUZZUF_CATEGORIES = [
-  { slug: 'Jobs-in-Egypt', label: 'All Recent Jobs (Latest Egypt Feed)', maxPages: 6 },
   { slug: 'Software-Development-Jobs-in-Egypt', label: 'Software Development', maxPages: 5 },
   { slug: 'Engineering-Technology-Jobs-in-Egypt', label: 'Engineering & Technology', maxPages: 5 },
   { slug: 'Data-Analysis-Jobs-in-Egypt', label: 'Data Analysis & BI', maxPages: 5 },
   { slug: 'Frontend-Developer-Jobs-in-Egypt', label: 'Frontend Development', maxPages: 4 },
-  { slug: 'Project-Management-Jobs-in-Egypt', label: 'Project Management & Scrum', maxPages: 4 },
   { slug: 'Software-Engineering-Jobs-in-Egypt', label: 'Software Engineering', maxPages: 4 },
   { slug: 'Quality-Assurance-Jobs-in-Egypt', label: 'QA & Testing', maxPages: 4 },
   { slug: 'Technology-Jobs-in-Egypt', label: 'Technology', maxPages: 4 },
@@ -572,6 +582,24 @@ const WUZZUF_CATEGORIES = [
   { slug: 'Data-Scientist', label: 'Data Scientist Specific', maxPages: 3 },
   { slug: 'Python', label: 'Python Specific', maxPages: 3 },
   { slug: 'SQL', label: 'SQL & Database Specific', maxPages: 3 },
+  { slug: 'DevOps', label: 'DevOps & Cloud Specific', maxPages: 3 },
+  { slug: 'Machine-Learning', label: 'Machine Learning & AI', maxPages: 3 },
+];
+
+// Non-tech job title patterns to ALWAYS reject regardless of category
+const UNRELATED_TITLE_PATTERNS = [
+  /factory/i, /ambassador/i, /operator(?!.*(devops|cloud|network|it|system))/i,
+  /production(?!.*(manager|engineer|data))/i, /worker/i, /driver/i, /cashier/i,
+  /telemarketing/i, /tele.?sales/i, /call center/i, /customer service agent/i,
+  /real estate/i, /property consultant/i, /broker(?!.*(data|analytics))/i,
+  /pharmacist/i, /medical rep/i, /doctor/i, /nurse/i,
+  /civil engineer/i, /site engineer/i, /interior design/i,
+  /accountant(?!.*data)/i, /receptionist/i, /chef/i, /waiter/i,
+  /maintenance(?!.*(it|software|system))/i, /procurement/i, /purchasing/i,
+  /storekeeper/i, /warehouse/i, /security guard/i, /fabric/i, /yarn/i, /textile/i,
+  /field sales/i, /sales executive/i, /sales manager(?!.*product)/i,
+  /pharmacist/i, /pharma/i, /architect(?!ure|.*software|.*data)/i,
+  /technician(?!.*(lab|network|it|cloud|data))/i,
 ];
 
 async function scrapeCategory(categorySlug, maxPages = 3) {
@@ -603,15 +631,6 @@ async function scrapeCategory(categorySlug, maxPages = 3) {
           if (!title || !applyUrl) return;
 
           // Reject explicitly non-tech / unrelated roles
-          const UNRELATED_TITLE_PATTERNS = [
-            /fabric/i, /yarn/i, /textile/i, /sales manager/i, /sales executive/i,
-            /field sales/i, /telesales/i, /call center/i, /customer service agent/i,
-            /real estate/i, /property consultant/i, /broker/i, /pharmacist/i, /pharma/i,
-            /medical rep/i, /doctor/i, /nurse/i, /civil engineer/i, /architect(?!ure)/i,
-            /site engineer/i, /interior design/i, /accountant(?!.*data)/i, /cashier/i,
-            /receptionist/i, /driver/i, /chef/i, /waiter/i, /technician(?!.*(lab|network|it))/i,
-            /maintenance/i, /procurement/i, /purchasing/i, /storekeeper/i, /warehouse/i,
-          ];
           if (UNRELATED_TITLE_PATTERNS.some(p => p.test(title))) return;
 
           const company = extractCompany($card);
@@ -688,16 +707,7 @@ async function scrapeQuery(query, maxPages = 2) {
           const applyUrl = extractJobUrl($card) || fullUrl;
           if (!title || !applyUrl) return;
 
-          // Reject explicitly non-tech / unrelated roles
-          const UNRELATED_TITLE_PATTERNS = [
-            /fabric/i, /yarn/i, /textile/i, /sales manager/i, /sales executive/i,
-            /field sales/i, /telesales/i, /call center/i, /customer service agent/i,
-            /real estate/i, /property consultant/i, /broker/i, /pharmacist/i, /pharma/i,
-            /medical rep/i, /doctor/i, /nurse/i, /civil engineer/i, /architect(?!ure)/i,
-            /site engineer/i, /interior design/i, /accountant(?!.*data)/i, /cashier/i,
-            /receptionist/i, /driver/i, /chef/i, /waiter/i, /technician(?!.*(lab|network|it))/i,
-            /maintenance/i, /procurement/i, /purchasing/i, /storekeeper/i, /warehouse/i,
-          ];
+          // Reject non-tech / unrelated roles using shared filter
           if (UNRELATED_TITLE_PATTERNS.some(p => p.test(title))) return;
 
           const company = extractCompany($card);

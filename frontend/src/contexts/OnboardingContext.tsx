@@ -183,7 +183,7 @@ const OnboardingContext = createContext<OnboardingState | null>(null);
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
   const { user, updateFullName, updateTargetRole, setOnboardingCompleted } = useAuth();
   const [role, setRole] = useState<RoleId | null>('data-analyst');
-  const [experience, setExperience] = useState('1-3 Years');
+  const [experience, setExperienceState] = useState('Fresh Graduate');
   const [locations, setLocations] = useState<string[]>(['Cairo', 'Giza', 'Remote']);
   const [file, setFile] = useState<UploadedFile | null>(null);
   const [status, setStatus] = useState<ParseStatus>('idle');
@@ -197,6 +197,13 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const [careerStage, setCareerStage] = useState('student');
   const [quickSkills, setQuickSkills] = useState<string[]>([]);
   const [careerGoal, setCareerGoal] = useState('first-job');
+
+  const setExperience = useCallback((val: string) => {
+    setExperienceState(val);
+    try {
+      localStorage.setItem('3watly_experience', val);
+    } catch {}
+  }, []);
 
   // Restore onboarding and parsed CV from localStorage on mount
   useEffect(() => {
@@ -212,6 +219,10 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       const savedRole = localStorage.getItem('3watly_role');
       if (savedRole) {
         setRole(savedRole as RoleId);
+      }
+      const savedExp = localStorage.getItem('3watly_experience');
+      if (savedExp) {
+        setExperienceState(savedExp);
       }
     } catch (e) {
       console.warn('Error loading onboarding state:', e);
@@ -248,9 +259,10 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const reset = useCallback(() => {
     removeFile();
     setRole('data-analyst');
-    setExperience('1-3 Years');
+    setExperienceState('Fresh Graduate');
     setLocations(['Cairo', 'Giza', 'Remote']);
     localStorage.removeItem('3watly_role');
+    localStorage.removeItem('3watly_experience');
   }, [removeFile]);
 
   // Real CV Upload & Parsing Handler
