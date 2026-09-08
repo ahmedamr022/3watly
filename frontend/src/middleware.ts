@@ -12,7 +12,6 @@ const PROTECTED_PREFIXES = [
   '/settings',
   '/profile',
   '/onboarding',
-  '/api/cv',
   '/api/user',
   '/api/copilot',
 ];

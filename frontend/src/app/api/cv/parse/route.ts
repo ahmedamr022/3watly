@@ -1005,7 +1005,14 @@ export function parseCVText(
 
       if (matchedPl) {
         if (!p.github && matchedPl.github) p.github = matchedPl.github;
-        if (!p.link && (matchedPl.demo || matchedPl.generalUrl)) p.link = matchedPl.demo || matchedPl.generalUrl;
+        if (!p.link && matchedPl.demo) {
+          p.link = matchedPl.demo;
+        } else if (!p.link && matchedPl.generalUrl && !matchedPl.generalUrl.includes('github.com')) {
+          p.link = matchedPl.generalUrl;
+        }
+      }
+      if (p.link && p.github && p.link === p.github) {
+        p.link = '';
       }
     }
 
