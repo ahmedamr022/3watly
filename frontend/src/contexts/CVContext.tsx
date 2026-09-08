@@ -90,9 +90,11 @@ function syncActiveCVToPlatform(version: CVVersion) {
       targetRole: version.targetRole || version.cvData.contact.jobTitle,
       skills: flatSkills,
       categorizedSkillGroups: version.cvData.skills,
+      // Use 'experiences' as the canonical key (matches what the parse API returns)
+      // Do NOT also save under 'experience' — that causes duplication on re-load
       experiences: version.cvData.experience,
+      // Use 'education' as the canonical key — do NOT also save 'educationHistory'
       education: version.cvData.education,
-      educationHistory: version.cvData.education,
       projects: version.cvData.projects,
       atsScore: version.atsScore ?? (version.analysis?.score ?? analyzeCV(version.cvData, version.templateId).score),
       atsReport: {
@@ -137,6 +139,25 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     const supabase = createClient();
+
+    // ── One-time migration: remove stale duplicate keys from 3watly_parsed_cv ──
+    // Older versions of syncActiveCVToPlatform saved both 'experiences' + 'experience'
+    // and both 'education' + 'educationHistory', causing double entries in the CV Builder.
+    try {
+      const rawParsed = localStorage.getItem('3watly_parsed_cv');
+      if (rawParsed) {
+        const p = JSON.parse(rawParsed);
+        let changed = false;
+        // Remove the stale alias key 'educationHistory' — 'education' is canonical
+        if (p.educationHistory !== undefined) { delete p.educationHistory; changed = true; }
+        // Remove stale alias key 'experience' — 'experiences' is canonical (from parse API)
+        // But ONLY if 'experiences' already exists and is equal in length
+        if (p.experience !== undefined && Array.isArray(p.experiences) && p.experiences.length > 0) {
+          delete p.experience; changed = true;
+        }
+        if (changed) localStorage.setItem('3watly_parsed_cv', JSON.stringify(p));
+      }
+    } catch {}
 
     const loadAllCVData = async () => {
       let initialVersionsList: CVVersion[] = [];
@@ -188,20 +209,35 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
           if (parsedOnboarding) {
             const p = JSON.parse(parsedOnboarding);
 
-            const adaptedExperience = Array.isArray(p.experiences) && p.experiences.length > 0
-              ? p.experiences.map((exp: any, idx: number) => ({
-                  id: exp.id || `exp-${idx + 1}`,
-                  role: exp.role || p.currentTitle || 'Professional',
-                  company: exp.company || '',
-                  companyUrl: exp.companyUrl || '',
-                  startDate: exp.startDate || '',
-                  endDate: exp.endDate || 'Present',
-                  current: Boolean(exp.current),
-                  location: exp.location || p.location || '',
-                  bullets: Array.isArray(exp.bullets) ? exp.bullets : []
-                }))
-              : [];
+            // ── Experience: prefer p.experiences (API output), fall back to p.experience (synced CV)
+            // IMPORTANT: never merge both — they contain the same data, just different keys
+            const rawExpList = (() => {
+              const fromExperiences = Array.isArray(p.experiences) && p.experiences.length > 0 ? p.experiences : null;
+              const fromExperience = Array.isArray(p.experience) && p.experience.length > 0 ? p.experience : null;
+              // Use whichever is richer (more bullets = parsed API version)
+              if (fromExperiences && fromExperience) {
+                const expBullets = fromExperiences.reduce((s: number, e: any) => s + (e.bullets?.length || 0), 0);
+                const expBullets2 = fromExperience.reduce((s: number, e: any) => s + (e.bullets?.length || 0), 0);
+                return expBullets >= expBullets2 ? fromExperiences : fromExperience;
+              }
+              return fromExperiences || fromExperience || [];
+            })();
 
+            const adaptedExperience = rawExpList.map((exp: any, idx: number) => ({
+              id: exp.id || `exp-${idx + 1}`,
+              role: exp.role || p.currentTitle || 'Professional',
+              company: exp.company || '',
+              companyUrl: exp.companyUrl || '',
+              startDate: exp.startDate || '',
+              endDate: exp.endDate || 'Present',
+              current: Boolean(exp.current),
+              location: exp.location || p.location || '',
+              bullets: Array.isArray(exp.bullets) ? exp.bullets : []
+            }));
+
+            // ── Education: use ONLY ONE source to prevent duplication
+            // 'education' is canonical (from API). 'educationHistory' is the old alias saved by syncActiveCVToPlatform.
+            // Never merge both — they contain the same entries.
             const rawEduList = Array.isArray(p.education) && p.education.length > 0
               ? p.education
               : (Array.isArray(p.educationHistory) && p.educationHistory.length > 0 ? p.educationHistory : []);
