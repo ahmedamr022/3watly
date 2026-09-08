@@ -630,7 +630,6 @@ export function parseCVText(
     let startD = s.isIntern ? 'Jul 2024' : '2022';
     let endD = s.isIntern ? 'Aug 2024' : 'Present';
     let expLocation = location;
-    const bullets: string[] = [];
 
     let companyUrl = '';
     const firstLine = expLines[0];
@@ -692,17 +691,46 @@ export function parseCVText(
       }
     }
 
+    // Collect lines that are actual bullet content (not company/date header lines)
+    const companyLower = company.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
+    const companyTokens = companyLower.split(/\s+/).filter(w => w.length >= 3);
+
+    const rawBulletLines: string[] = [];
     for (const line of expLines.slice(1)) {
-      if (
-        line !== startD &&
-        !line.match(/^(\d{4}|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i) &&
-        line.length > 20 &&
-        !line.includes('@')
-      ) {
-        const cleanBullet = line.replace(/^[•\-*]\s*/, '').trim();
-        bullets.push(cleanBullet);
+      const lo = line.toLowerCase();
+      // Skip obvious date lines (start with a month or year)
+      if (/^(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec|\d{4})/i.test(line)) continue;
+      // Skip if line contains a date range (month year – month year)
+      if (/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{4}\s*[-–—]\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4}|present)/i.test(line)) continue;
+      // Skip if it's essentially a repetition of "Company City Month Year" header
+      // (matches when ≥2 company tokens appear in the line AND line contains a 4-digit year)
+      const hasYear = /\d{4}/.test(line);
+      const companyTokenMatches = companyTokens.filter(tok => lo.includes(tok)).length;
+      if (hasYear && companyTokenMatches >= 2) continue;
+      // Skip email/links
+      if (line.includes('@') || /^https?:\/\//i.test(line)) continue;
+      // Skip very short lines (likely stray header fragments)
+      if (line.length < 15) continue;
+      // Skip lines that are just the company or location
+      if (lo === companyLower || lo === expLocation.toLowerCase()) continue;
+
+      const cleanBullet = line.replace(/^[•\-*]\s*/, '').trim();
+      rawBulletLines.push(cleanBullet);
+    }
+
+    // Merge fragments: if a bullet doesn't end with punctuation and the next is short, merge them
+    const mergedBullets: string[] = [];
+    for (let i = 0; i < rawBulletLines.length; i++) {
+      const cur = rawBulletLines[i];
+      const next = rawBulletLines[i + 1];
+      if (next && !/[.!?]$/.test(cur) && next.length < 80 && /^[a-z]/.test(next)) {
+        mergedBullets.push(cur + ' ' + next);
+        i++; // skip next since we merged it
+      } else {
+        mergedBullets.push(cur);
       }
     }
+    const bullets = mergedBullets;
 
     if (role || company || bullets.length > 0) {
       experiences.push({

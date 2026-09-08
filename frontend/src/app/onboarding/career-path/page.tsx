@@ -36,6 +36,26 @@ export default function CareerPathPage() {
   const [locationMenuOpen, setLocationMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // If user already completed onboarding (has a parsed CV), send them to dashboard
+  React.useEffect(() => {
+    try {
+      const parsed = localStorage.getItem('3watly_parsed_cv');
+      if (parsed) {
+        const p = JSON.parse(parsed);
+        const hasRealData = Boolean(
+          p && (
+            (p.fullName && p.fullName.trim().length > 0) ||
+            (Array.isArray(p.experiences) && p.experiences.length > 0) ||
+            (Array.isArray(p.skills) && p.skills.length > 0)
+          )
+        );
+        if (hasRealData) {
+          router.replace('/dashboard');
+        }
+      }
+    } catch {}
+  }, [router]);
+
   const roleOptionsList = isAr
     ? [
         {
