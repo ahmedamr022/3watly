@@ -57,22 +57,35 @@ export async function GET(request: NextRequest) {
     const remoteCount = jobs.filter((j) => j.is_remote || (j.work_type && j.work_type.toLowerCase().includes('remote')) || (j.work_type && j.work_type.toLowerCase().includes('hybrid'))).length;
     const remotePercentage = totalJobs > 0 ? Math.round((remoteCount / (jobs.length || 1)) * 100) : 38;
 
-    // Blacklist: seniority levels, generic adjectives, job categories, and experience descriptors that are NOT real skills
+    // Blacklist: seniority, generics, non-tech job categories — NOT real tech skills
     const MARKET_SKILL_BLACKLIST = new Set([
+      // Seniority / experience levels
       'experienced', 'experience', 'senior', 'junior', 'mid level', 'mid-level',
       'entry level', 'entry-level', 'expert', 'manager', 'specialist', 'internship',
       'intern', 'fresher', 'graduate', 'lead', 'principal', 'director', 'associate',
       'professional', 'proficient', 'strong', 'knowledge', 'ability', 'skills',
+      // Soft skills
       'communication', 'teamwork', 'problem solving', 'problem-solving', 'analytical',
       'leadership', 'motivated', 'detail oriented', 'detail-oriented', 'fast learner',
+      'critical thinking', 'time management', 'attention to detail', 'multitasking',
+      // Time/quantity
       'years', 'year', 'months', 'month', 'plus', 'minimum', 'required', 'preferred',
+      // Generic IT categories (wuzzuf taxonomy labels, not real skills)
       'information technology (it)', 'information technology', 'it/software development', 'it',
+      'it/software', 'software', 'engineering', 'development', 'technology', 'tech',
       'engineering - mechanical/electrical', 'manufacturing/production', 'operations/management',
-      'creative/design/art', 'engineering - other', 'business administration', 'quality control',
+      'creative/design/art', 'engineering - other', 'business administration',
       'engineering - telecom/technology', 'customer service/support', 'sales/retail',
       'accounting/finance', 'project/program management', 'human resources', 'marketing/pr/advertising',
-      'education/teaching', 'training/instructor', 'development', 'engineering',
-      // Management-category terms that are NOT real tech skills
+      'education/teaching', 'training/instructor', 'analyst/research',
+      // Non-tech standalone terms that pollute stats
+      'quality', 'quality control', 'quality assurance', 'qa', 'qc', 'qhse', 'hse',
+      'autocad', 'autoCAD', 'analysis', 'research', 'microsoft office', 'ms office',
+      'marketing', 'sales', 'finance', 'financial analysis', 'accounting',
+      'pharmaceutical', 'medical', 'supply chain', 'logistics', 'procurement',
+      'customer service', 'customer support', 'business development', 'operations',
+      'human resources (hr)', 'hr', 'administration', 'planning',
+      // Management terms
       'management', 'project management', 'general management', 'operations management',
       'product management', 'program management', 'account management', 'brand management',
       'change management', 'risk management', 'supply chain management', 'fleet management',
