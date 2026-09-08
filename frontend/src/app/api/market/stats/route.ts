@@ -57,59 +57,102 @@ export async function GET(request: NextRequest) {
     const remoteCount = jobs.filter((j) => j.is_remote || (j.work_type && j.work_type.toLowerCase().includes('remote')) || (j.work_type && j.work_type.toLowerCase().includes('hybrid'))).length;
     const remotePercentage = totalJobs > 0 ? Math.round((remoteCount / (jobs.length || 1)) * 100) : 38;
 
-    // Blacklist: seniority, generics, non-tech job categories — NOT real tech skills
-    const MARKET_SKILL_BLACKLIST = new Set([
-      // Seniority / experience levels
-      'experienced', 'experience', 'senior', 'junior', 'mid level', 'mid-level',
-      'entry level', 'entry-level', 'expert', 'manager', 'specialist', 'internship',
-      'intern', 'fresher', 'graduate', 'lead', 'principal', 'director', 'associate',
-      'professional', 'proficient', 'strong', 'knowledge', 'ability', 'skills',
-      // Soft skills
-      'communication', 'teamwork', 'problem solving', 'problem-solving', 'analytical',
-      'leadership', 'motivated', 'detail oriented', 'detail-oriented', 'fast learner',
-      'critical thinking', 'time management', 'attention to detail', 'multitasking',
-      // Time/quantity
-      'years', 'year', 'months', 'month', 'plus', 'minimum', 'required', 'preferred',
-      // Generic IT categories (wuzzuf taxonomy labels, not real skills)
-      'information technology (it)', 'information technology', 'it/software development', 'it',
-      'it/software', 'software', 'engineering', 'development', 'technology', 'tech',
-      'engineering - mechanical/electrical', 'manufacturing/production', 'operations/management',
-      'creative/design/art', 'engineering - other', 'business administration',
-      'engineering - telecom/technology', 'customer service/support', 'sales/retail',
-      'accounting/finance', 'project/program management', 'human resources', 'marketing/pr/advertising',
-      'education/teaching', 'training/instructor', 'analyst/research',
-      // Non-tech standalone terms that pollute stats
-      'quality', 'quality control', 'quality assurance', 'qa', 'qc', 'qhse', 'hse',
-      'autocad', 'autoCAD', 'analysis', 'research', 'microsoft office', 'ms office',
-      'marketing', 'sales', 'finance', 'financial analysis', 'accounting',
-      'pharmaceutical', 'medical', 'supply chain', 'logistics', 'procurement',
-      'customer service', 'customer support', 'business development', 'operations',
-      'human resources (hr)', 'hr', 'administration', 'planning',
-      // Management terms
-      'management', 'project management', 'general management', 'operations management',
-      'product management', 'program management', 'account management', 'brand management',
-      'change management', 'risk management', 'supply chain management', 'fleet management',
+    // ─────────────────────────────────────────────────────────────────────────
+    // WHITELIST approach: ONLY canonical tech skills count in market stats.
+    // Wuzzuf taxonomy labels (IT/Software Development, Quality, Management…)
+    // are silently discarded even if they appear in required_skills arrays.
+    // ─────────────────────────────────────────────────────────────────────────
+    const TECH_SKILL_WHITELIST = new Set([
+      // Data / Analytics
+      'sql','python','r','excel','power bi','tableau','looker','mixpanel','google analytics',
+      'pandas','numpy','scipy','statsmodels','statistics','dax','data modeling',
+      // Data Engineering
+      'etl','elt','dbt','airflow','apache airflow','kafka','apache kafka','spark','apache spark',
+      'hadoop','flink','snowflake','bigquery','redshift','databricks','data lake',
+      'google cloud','gcp','aws','azure','oracle','sql server','postgresql','mysql',
+      'mongodb','redis','elasticsearch','cassandra',
+      // ML / AI
+      'machine learning','deep learning','nlp','computer vision','tensorflow','pytorch',
+      'scikit-learn','keras','hugging face','llms','generative ai','openai','langchain',
+      'mlflow','onnx','xgboost','lightgbm',
+      // Backend
+      'node.js','express','fastapi','django','flask','spring boot','laravel','rails',
+      'java','go','c#','.net','php','c++','rust','kotlin','scala',
+      // Frontend
+      'react','next.js','angular','vue.js','typescript','javascript','html','css',
+      'tailwind css','graphql','redux','react native','flutter','dart',
+      // DevOps / Cloud / Infra
+      'docker','kubernetes','ci/cd','linux','git','github','gitlab','jenkins','ansible',
+      'terraform','helm','prometheus','grafana','nginx','bash','shell scripting',
+      'aws','azure','gcp','cloudflare','vercel','firebase',
+      // Mobile
+      'android','ios','swift','objective-c','xamarin','ionic',
+      // Testing / QA (real QA tools — not "Quality" as a category)
+      'selenium','cypress','jest','postman','playwright','jmeter','appium',
+      'unit testing','automation testing','manual testing',
+      // Tools & Workflow
+      'jira','confluence','agile','scrum','kanban','figma','github actions',
+      'rest apis','microservices','grpc','websocket','oauth','jwt',
     ]);
 
-    // Aggregate skill frequencies
-    const skillCounts: Record<string, number> = {};
+    // Canonical name normalization: merge aliases into one display name
+    const SKILL_CANONICAL: Record<string, string> = {
+      'reactjs': 'React', 'react.js': 'React',
+      'nodejs': 'Node.js', 'node js': 'Node.js', 'node': 'Node.js',
+      'postgres': 'PostgreSQL', 'pg': 'PostgreSQL',
+      'js': 'JavaScript', 'ts': 'TypeScript',
+      'powerbi': 'Power BI', 'power_bi': 'Power BI', 'msbi': 'Power BI',
+      'ms sql': 'SQL Server', 'mssql': 'SQL Server',
+      'vue': 'Vue.js', 'vuejs': 'Vue.js',
+      'nextjs': 'Next.js',
+      'k8s': 'Kubernetes',
+      'scikit': 'Scikit-Learn', 'sklearn': 'Scikit-Learn', 'scikit-learn': 'Scikit-Learn',
+      'tensorflow': 'TensorFlow', 'pytorch': 'PyTorch',
+      'rest api': 'REST APIs', 'restapi': 'REST APIs',
+      'ci/cd': 'CI/CD', 'cicd': 'CI/CD',
+      'nlp': 'NLP', 'etl': 'ETL',
+      'google cloud': 'GCP',
+      'amazon web services': 'AWS',
+      'microsoft azure': 'Azure',
+    };
+
+    function canonicalizeSkill(raw: string): string | null {
+      const trimmed = raw.trim();
+      if (!trimmed || trimmed.length < 2 || trimmed.length > 45) return null;
+      const lo = trimmed.toLowerCase().replace(/\s+/g, ' ');
+      // Check alias map first
+      if (SKILL_CANONICAL[lo]) return SKILL_CANONICAL[lo];
+      // Only keep whitelisted skills
+      if (!TECH_SKILL_WHITELIST.has(lo)) return null;
+      // Return the raw trimmed version (preserves casing like "Power BI", "React")
+      return trimmed;
+    }
+
+    // Aggregate skill frequencies — whitelist-only
+    const rawCounts: Record<string, number> = {};
     jobs.forEach((j) => {
       const skills: string[] = Array.isArray(j.required_skills)
         ? j.required_skills
         : typeof j.required_skills === 'string'
-        ? JSON.parse(j.required_skills || '[]')
+        ? (() => { try { return JSON.parse(j.required_skills || '[]'); } catch { return []; } })()
         : [];
 
       skills.forEach((s) => {
-        const clean = s.trim();
-        // Skip blacklisted seniority/generic terms
-        if (clean && !MARKET_SKILL_BLACKLIST.has(clean.toLowerCase())) {
-          skillCounts[clean] = (skillCounts[clean] || 0) + 1;
+        const canonical = canonicalizeSkill(s);
+        if (canonical) {
+          rawCounts[canonical] = (rawCounts[canonical] || 0) + 1;
         }
       });
     });
 
-    // If database skills were empty, provide fallback distribution
+    // Merge case variants (e.g. "sql" + "SQL" → "SQL")
+    const skillCounts: Record<string, number> = {};
+    for (const [name, count] of Object.entries(rawCounts)) {
+      const key = name; // already canonical from canonicalizeSkill
+      skillCounts[key] = (skillCounts[key] || 0) + count;
+    }
+
+    // Fallback if DB has no recognizable tech skills yet
     if (Object.keys(skillCounts).length === 0) {
       skillCounts['SQL'] = 39;
       skillCounts['Python'] = 34;

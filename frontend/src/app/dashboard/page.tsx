@@ -220,15 +220,25 @@ export default function DashboardPage() {
     return () => { mounted = false; };
   }, [candidateSkillsKey, candidateRole]);
 
-  const [bookmarkedJobs, setBookmarkedJobs] = useState<string[]>([]);
+  const [bookmarkedJobs, setBookmarkedJobs] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('3watly_saved_jobs');
+        if (raw) return JSON.parse(raw) as string[];
+      } catch {}
+    }
+    return [];
+  });
 
   const toggleBookmark = (id: string | number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const strId = String(id);
-    setBookmarkedJobs(prev => 
-      prev.includes(strId) ? prev.filter(item => item !== strId) : [...prev, strId]
-    );
+    setBookmarkedJobs(prev => {
+      const next = prev.includes(strId) ? prev.filter(item => item !== strId) : [...prev, strId];
+      try { localStorage.setItem('3watly_saved_jobs', JSON.stringify(next)); } catch {}
+      return next;
+    });
   };
 
   const careerAlignment = userParsedCv?.atsReport?.score ?? (analysis?.score ? Math.min(98, Math.max(20, analysis.score)) : null);
@@ -237,10 +247,33 @@ export default function DashboardPage() {
     : [];
 
   const topJobs = React.useMemo(() => {
+    // Role-to-domain keyword map for tech domain filtering
+    const ROLE_DOMAIN_KEYWORDS: Record<string, string[]> = {
+      'data analyst':      ['data analyst', 'data analysis', 'business intelligence', 'bi analyst', 'analytics', 'power bi', 'tableau', 'sql analyst', 'reporting analyst'],
+      'data engineer':     ['data engineer', 'data pipeline', 'etl', 'airflow', 'spark', 'big data', 'dbt', 'data infrastructure'],
+      'software engineer': ['software engineer', 'software developer', 'fullstack', 'full stack', 'backend', 'frontend', 'web developer', 'react developer', 'node developer'],
+      'ml engineer':       ['machine learning', 'ml engineer', 'ai engineer', 'data scientist', 'deep learning', 'nlp engineer', 'computer vision'],
+      'devops':            ['devops', 'cloud engineer', 'site reliability', 'sre', 'infrastructure engineer', 'kubernetes', 'platform engineer'],
+    };
+
+    // Derive the user's role domain from candidateRole string
+    const roleLower = (candidateRole || '').toLowerCase();
+    const matchedDomainKey = Object.keys(ROLE_DOMAIN_KEYWORDS).find(k => roleLower.includes(k));
+    const domainKeywords = matchedDomainKey
+      ? ROLE_DOMAIN_KEYWORDS[matchedDomainKey]
+      : Object.values(ROLE_DOMAIN_KEYWORDS).flat(); // if unknown role, show all tech jobs
+
+    // Filter to domain-relevant jobs only (fall back to all if too few)
+    const domainJobs = liveJobs.filter((j: any) => {
+      const t = (j.title || '').toLowerCase();
+      return domainKeywords.some(kw => t.includes(kw));
+    });
+    const sourceJobs = domainJobs.length >= 2 ? domainJobs : liveJobs;
+
     // When no CV: sort by recency; when CV exists: sort by matchScore descending
     const sorted = isCvMissing
-      ? [...liveJobs].sort((a: any, b: any) => new Date(b.postedAt || 0).getTime() - new Date(a.postedAt || 0).getTime())
-      : [...liveJobs].sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0));
+      ? [...sourceJobs].sort((a: any, b: any) => new Date(b.postedAt || 0).getTime() - new Date(a.postedAt || 0).getTime())
+      : [...sourceJobs].sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0));
     const highMatches = sorted.filter((j: any) => (j.matchScore || 0) >= 55);
     const chosen = highMatches.length >= 3 ? highMatches.slice(0, 4) : sorted.slice(0, 4);
 

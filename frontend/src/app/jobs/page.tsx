@@ -44,7 +44,15 @@ function JobsPageContent() {
   const [parsedCv, setParsedCv] = useState<any>(null);
   const [keyword, setKeyword] = useState(queryParam);
   const [locationQuery, setLocationQuery] = useState('');
-  const [savedJobs, setSavedJobs] = useState<string[]>([]);
+  const [savedJobs, setSavedJobs] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('3watly_saved_jobs');
+        if (raw) return JSON.parse(raw) as string[];
+      } catch {}
+    }
+    return [];
+  });
 
   // Read parsed CV from localStorage
   useEffect(() => {
@@ -196,8 +204,15 @@ function JobsPageContent() {
     };
   }, [fetchJobs]);
 
+  // Persist saved jobs to localStorage on every change
+  useEffect(() => {
+    try {
+      localStorage.setItem('3watly_saved_jobs', JSON.stringify(savedJobs));
+    } catch {}
+  }, [savedJobs]);
+
   const toggleSave = (id: string) => {
-    setSavedJobs((prev) => 
+    setSavedJobs((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };

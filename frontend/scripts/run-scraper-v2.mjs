@@ -213,11 +213,20 @@ function dedupeSkills(skills) {
     .map(s => normalizeSkill(s))
     .filter(s => {
       if (!s) return false;
-      const lo = s.toLowerCase();
+      const lo = s.toLowerCase().replace(/\s+/g, ' ');
+      // Hard reject: blacklisted generic/category terms
       if (SKILL_BLACKLIST.has(lo)) return false;
       if (s.length < 2 || s.length > 40) return false;
       if (/^\d+$/.test(s)) return false;
       if (s.split(/\s+/).length > 4) return false;
+      // Reject Wuzzuf taxonomy category patterns like "Engineering - Telecom/Technology"
+      if (/^engineering\s*[-–]/i.test(s)) return false;
+      if (/^it\s*[/\\]/i.test(s)) return false;
+      // Whitelist check: only skills that are either in KNOWN_TECH_SKILLS
+      // or have an alias mapping (already normalized by normalizeSkill)
+      const inKnown = KNOWN_TECH_SKILLS.some(k => k.toLowerCase() === lo);
+      const inAlias = Object.values(SKILL_ALIASES).some(v => v.toLowerCase() === lo);
+      if (!inKnown && !inAlias) return false;
       if (seen.has(lo)) return false;
       seen.add(lo);
       return true;
