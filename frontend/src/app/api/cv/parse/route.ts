@@ -1102,15 +1102,19 @@ export function parseCVText(
     }
 
     // 4. Header Contacts (LinkedIn, GitHub profile, Portfolio, Social Links)
-    const finalLinkedin = cvIntelligence.headerContacts.linkedin || linkedin;
-    const finalGithub = cvIntelligence.headerContacts.github || github;
-    const finalPortfolio = cvIntelligence.headerContacts.portfolio || portfolio;
+    const finalLinkedin = cvIntelligence.headerContacts.linkedin || extractedLinksResult?.linkedin || linkedin;
+    const finalGithub = cvIntelligence.headerContacts.github || extractedLinksResult?.github || github;
+    const finalPortfolio = cvIntelligence.headerContacts.portfolio || extractedLinksResult?.portfolio || portfolio;
     const socialLinks: Array<{ id: string; platform: string; url: string }> = [...cvIntelligence.headerContacts.socialLinks];
 
-    if (socialLinks.length === 0) {
-      if (finalLinkedin) socialLinks.push({ id: 'link-li', platform: 'LinkedIn', url: finalLinkedin });
-      if (finalGithub) socialLinks.push({ id: 'link-gh', platform: 'GitHub', url: finalGithub });
-      if (finalPortfolio) socialLinks.push({ id: 'link-pf', platform: 'Portfolio', url: finalPortfolio });
+    if (finalLinkedin && !socialLinks.some(s => s.platform === 'LinkedIn')) {
+      socialLinks.unshift({ id: 'link-li', platform: 'LinkedIn', url: finalLinkedin });
+    }
+    if (finalGithub && !socialLinks.some(s => s.platform === 'GitHub')) {
+      socialLinks.push({ id: 'link-gh', platform: 'GitHub', url: finalGithub });
+    }
+    if (finalPortfolio && !socialLinks.some(s => s.platform === 'Portfolio' || s.platform === 'Personal')) {
+      socialLinks.push({ id: 'link-pf', platform: 'Portfolio', url: finalPortfolio });
     }
 
   // 13. ATS Analysis & Metrics
@@ -1419,6 +1423,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Extract binary annotations + unpdf links + regex links from buffer
+    const extractedLinksResult = extractDocumentLinks(buffer, extractedText, pdfExtractedLinks);
+
     // Extract text links from the extractedText (markdown links + regex)
     const textLinks = extractLinksFromText(extractedText);
     const combinedRawLinks = [...rawDocumentLinks];
@@ -1429,9 +1436,17 @@ export async function POST(request: NextRequest) {
         combinedRawLinks.push(tl);
       }
     }
-
-    // Extract binary annotations + unpdf links + regex links from buffer
-    const extractedLinksResult = extractDocumentLinks(buffer, extractedText, pdfExtractedLinks);
+    // Also include all URLs discovered by binary buffer scanner (/URI annotations)
+    for (const el of extractedLinksResult.allLinks) {
+      if (!seenRawUrls.has(el.url.toLowerCase())) {
+        seenRawUrls.add(el.url.toLowerCase());
+        combinedRawLinks.push({
+          url: el.url,
+          anchorText: el.title || '',
+          source: 'pdf_annotation'
+        });
+      }
+    }
 
     const structuredData = parseCVText(
       extractedText,

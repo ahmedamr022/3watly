@@ -46,20 +46,21 @@ export function ContactSection() {
 
   // Initialize socialLinks from existing linkedin/github/portfolio if not already present
   const links: SocialLink[] = React.useMemo(() => {
-    if (Array.isArray(cv.contact.socialLinks) && cv.contact.socialLinks.length > 0) {
-      return cv.contact.socialLinks;
+    const isPlaceholder = (u?: string) => !u || u.toLowerCase().includes('your-profile');
+    const existing = (Array.isArray(cv.contact.socialLinks) ? cv.contact.socialLinks : [])
+      .filter((l) => !isPlaceholder(l.url));
+
+    const result: SocialLink[] = [...existing];
+    if (cv.contact.linkedin && !isPlaceholder(cv.contact.linkedin) && !result.some((l) => l.platform === 'LinkedIn')) {
+      result.unshift({ id: 'link-li', platform: 'LinkedIn', url: cv.contact.linkedin });
     }
-    const defaults: SocialLink[] = [];
-    if (cv.contact.linkedin) {
-      defaults.push({ id: 'link-li', platform: 'LinkedIn', url: cv.contact.linkedin });
+    if (cv.contact.github && !isPlaceholder(cv.contact.github) && !result.some((l) => l.platform === 'GitHub')) {
+      result.push({ id: 'link-gh', platform: 'GitHub', url: cv.contact.github });
     }
-    if (cv.contact.github) {
-      defaults.push({ id: 'link-gh', platform: 'GitHub', url: cv.contact.github });
+    if (cv.contact.portfolio && !isPlaceholder(cv.contact.portfolio) && !result.some((l) => l.platform === 'Portfolio' || l.platform === 'Personal')) {
+      result.push({ id: 'link-pf', platform: 'Portfolio', url: cv.contact.portfolio });
     }
-    if (cv.contact.portfolio) {
-      defaults.push({ id: 'link-pf', platform: 'Portfolio', url: cv.contact.portfolio });
-    }
-    return defaults;
+    return result;
   }, [cv.contact.socialLinks, cv.contact.linkedin, cv.contact.github, cv.contact.portfolio]);
 
   const updateLinks = (newLinks: SocialLink[]) => {
