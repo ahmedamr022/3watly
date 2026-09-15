@@ -44,21 +44,28 @@ function JobsPageContent() {
   const [parsedCv, setParsedCv] = useState<any>(null);
   const [keyword, setKeyword] = useState(queryParam);
   const [locationQuery, setLocationQuery] = useState('');
-  const [savedJobs, setSavedJobs] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const raw = localStorage.getItem('3watly_saved_jobs');
-        if (raw) return JSON.parse(raw) as string[];
-      } catch {}
-    }
-    return [];
-  });
+  const [savedJobs, setSavedJobs] = useState<string[]>([]);
 
-  // Read parsed CV from localStorage
+  // Read saved jobs and parsed CV from localStorage on mount (prevents SSR hydration mismatch)
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem('3watly_saved_jobs');
+      if (raw) setSavedJobs(JSON.parse(raw) as string[]);
+    } catch {}
     try {
       const saved = localStorage.getItem('3watly_parsed_cv');
       if (saved) setParsedCv(JSON.parse(saved));
+    } catch {}
+    try {
+      const cached = sessionStorage.getItem('3watly_jobs_feed');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setJobs(parsed);
+          setTotalJobs(parsed.length);
+          setLoadingLive(false);
+        }
+      }
     } catch {}
   }, []);
 
@@ -72,21 +79,10 @@ function JobsPageContent() {
     return parsedCv?.targetRole || profile?.targetRoles?.[0]?.title || 'Data Analyst';
   }, [parsedCv, profile]);
 
-  // — Live jobs from Supabase only with instant cache hydration —
-  const [jobs, setJobs] = useState<JobItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = sessionStorage.getItem('3watly_jobs_feed');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch {}
-    }
-    return [];
-  });
-  const [totalJobs, setTotalJobs] = useState(jobs.length);
-  const [loadingLive, setLoadingLive] = useState(jobs.length === 0);
+  // — Live jobs from Supabase with safe client cache hydration —
+  const [jobs, setJobs] = useState<JobItem[]>([]);
+  const [totalJobs, setTotalJobs] = useState(0);
+  const [loadingLive, setLoadingLive] = useState(true);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Filter states (default 0 = show all jobs sorted by best match to user profile)

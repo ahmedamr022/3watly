@@ -314,7 +314,7 @@ export async function GET(request: NextRequest) {
 
     if (supabase) {
       try {
-        let query = supabase.from('jobs').select('*');
+        let query = supabase.from('jobs').select('*').neq('source', 'seed');
 
         if (keyword) {
           const sanitizedKeyword = keyword.replace(/[,.():]/g, '').trim();
