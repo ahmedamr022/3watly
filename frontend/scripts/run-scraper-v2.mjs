@@ -611,6 +611,192 @@ const UNRELATED_TITLE_PATTERNS = [
   /technician(?!.*(lab|network|it|cloud|data))/i,
 ];
 
+async function scrapeDetailPage(url) {
+  const html = await fetchWithRetry(url, 2);
+  if (!html) return null;
+
+  try {
+    const $ = cheerio.load(html);
+    $('style, script, noscript').remove();
+
+    const ogTitle = $('meta[property="og:title"]').attr('content') || '';
+    let title = cleanText($('h1').first().text());
+    let company = '';
+    let location = 'Cairo, Egypt';
+
+    const ogMatch = ogTitle.match(/^(.+?)\s+job at\s+(.+?)\s+in\s+(.+?)\s+[–-]\s*Apply on Wuzzuf/i);
+    if (ogMatch) {
+      title = title || cleanText(ogMatch[1]);
+      company = cleanText(ogMatch[2]);
+      location = cleanText(ogMatch[3]);
+    }
+
+    if (!company) {
+      company = cleanText($('a[href*="/jobs/careers/"]').first().text());
+    }
+    if (!company || company.length < 2) {
+      company = 'Confidential Employer';
+    }
+
+    if (!title) return null;
+
+    // Reject non-tech / unrelated roles
+    if (UNRELATED_TITLE_PATTERNS.some(p => p.test(title))) {
+      return null;
+    }
+
+    // Location fallback
+    if (!location || location === 'Cairo, Egypt') {
+      const locEl = $('span[class*="css-154erwh"]').first().text().trim();
+      if (locEl && !/posted|ago/i.test(locEl)) {
+        location = cleanText(locEl);
+      }
+    }
+
+    // Date parsing
+    let postedAt = null;
+    const bodyText = $('body').text();
+    const dateMatch = bodyText.match(/posted\s+(\d+\s+(?:minute|hour|day|week|month)s?\s+ago|yesterday|just now)/i);
+    if (dateMatch) {
+      postedAt = parseRelativeDate(dateMatch[1]);
+    }
+    if (!postedAt) {
+      const timeEl = $('time').first();
+      const dt = timeEl.attr('datetime');
+      if (dt) { try { postedAt = new Date(dt).toISOString(); } catch {} }
+    }
+
+    // Work type
+    const isRemote = /remote/i.test(bodyText.slice(0, 1500));
+    const isHybrid = /hybrid/i.test(bodyText.slice(0, 1500));
+    const workType = isRemote ? 'Remote' : (isHybrid ? 'Hybrid' : 'On-site');
+
+    // Seniority
+    const seniority = parseSeniority(title + ' ' + bodyText.slice(0, 1500));
+
+    // Description & Requirements
+    let description = '';
+    let requirements = '';
+
+    $('section, div').each((_, el) => {
+      const h = $(el).find('h2, h3, h4').first().text().trim().toLowerCase();
+      if (h.includes('job description') && !description) {
+        description = cleanText($(el).clone().find('h2, h3, h4').remove().end().text());
+      }
+      if (h.includes('job requirements') && !requirements) {
+        requirements = cleanText($(el).clone().find('h2, h3, h4').remove().end().text());
+      }
+    });
+
+    if (!description) {
+      description = `Exciting opportunity for a ${title} position at ${company} in ${location}.`;
+    }
+    if (!requirements) {
+      requirements = `Requirements for ${title} at ${company}.`;
+    }
+
+    // Skills
+    const combinedText = `${title} ${description} ${requirements}`;
+    const verifiedSkills = dedupeSkills(extractSkillsFromText(combinedText));
+    const inferredSkills = inferSkillsFromTitle(title);
+
+    const skillSources = [];
+    if (verifiedSkills.length > 0) skillSources.push('job_description');
+    if (inferredSkills.length > 0) skillSources.push('title_inference');
+
+    const partial = {
+      required_skills: verifiedSkills,
+      inferred_skills: inferredSkills,
+      posted_at: postedAt,
+      company
+    };
+    const dataQuality = classifyQuality(partial);
+
+    const logo = $('img[src*="company_logo"], a[href*="/jobs/careers/"] img').first().attr('src') || null;
+
+    return {
+      id: genId(url),
+      title,
+      title_ar: translateTitle(title),
+      company,
+      company_ar: company,
+      company_logo: logo && logo.startsWith('http') ? logo : (logo ? `${WUZZUF_BASE}${logo}` : null),
+      location,
+      location_ar: translateLocation(location),
+      work_type: workType,
+      is_remote: isRemote,
+      seniority,
+      salary_range: extractSalaryFromCardText(bodyText.slice(0, 1500)),
+      required_skills: verifiedSkills,
+      inferred_skills: inferredSkills,
+      preferred_skills: [],
+      skill_source: skillSources,
+      data_quality: dataQuality,
+      description: description.slice(0, 1000),
+      description_ar: `فرصة عمل في ${company} — ${translateTitle(title)} (${translateLocation(location)})`,
+      requirements: requirements.slice(0, 1000),
+      requirements_ar: `متطلبات الوظيفة: ${verifiedSkills.slice(0, 5).join('، ')}`,
+      apply_url: url,
+      source: 'wuzzuf',
+      posted_at: postedAt,
+      last_enriched_at: new Date().toISOString()
+    };
+  } catch (e) {
+    console.warn(`  ⚠️ Parse error for ${url}: ${e.message}`);
+    return null;
+  }
+}
+
+async function scrapeSitemap(targetCount = 120) {
+  console.log('\n🗺️  Phase 1A: Discovering Jobs via Sitemap (Cloudflare Safe)...');
+  const sitemapUrls = [
+    'https://wuzzuf.net/sitemap-job-1.xml',
+    'https://wuzzuf.net/sitemap-job-2.xml'
+  ];
+  const allJobUrls = [];
+
+  for (const sitemapUrl of sitemapUrls) {
+    console.log(`  📄 Fetching sitemap: ${sitemapUrl}`);
+    const xml = await fetchWithRetry(sitemapUrl, 2);
+    if (!xml) continue;
+    const matches = [...xml.matchAll(/<loc>(https:\/\/wuzzuf\.net\/jobs\/p\/[^<]+)<\/loc>/g)].map(m => m[1]);
+    allJobUrls.push(...matches);
+    console.log(`    Found ${matches.length} URLs in ${sitemapUrl}`);
+  }
+
+  if (allJobUrls.length === 0) {
+    console.warn('  ⚠️ No URLs found in sitemaps!');
+    return [];
+  }
+
+  const TECH_POSITIVE_REGEX = /(developer|engineer|analyst|data|frontend|backend|full-stack|fullstack|devops|machine-learning|python|react|flutter|qa|software|product-manager|business-intelligence|sql|bi|cloud|security|network|system-admin|database|architect|ui-ux|web|mobile)/i;
+  const NON_TECH_NEGATIVE_REGEX = /(sales-engineer|civil-engineer|mechanical-engineer|electrical-engineer|maintenance-engineer|site-engineer|administrative|hr|sales|receptionist|telemarketing|customer-service|accountant|doctor|nurse|pharmacist|chef|cashier|driver|worker|fabric|yarn|textile|storekeeper|warehouse|real-estate)/i;
+
+  const filteredUrls = allJobUrls.filter(url => {
+    const slug = url.split('/jobs/p/')[1] || '';
+    return TECH_POSITIVE_REGEX.test(slug) && !NON_TECH_NEGATIVE_REGEX.test(slug);
+  });
+
+  console.log(`  🎯 Filtered to ${filteredUrls.length} relevant tech job URLs.`);
+  const uniqueUrls = [...new Set(filteredUrls)].slice(0, targetCount);
+  console.log(`  🚀 Scraping detail pages for ${uniqueUrls.length} jobs (concurrency: 3)...`);
+
+  const jobs = [];
+  await runConcurrent(uniqueUrls, 3, async (url) => {
+    try {
+      const job = await scrapeDetailPage(url);
+      if (job) {
+        jobs.push(job);
+        process.stdout.write(`  ✓ Scraped: [${jobs.length}/${uniqueUrls.length}] ${job.title.slice(0, 35)} (${job.company})\n`);
+      }
+    } catch (e) {
+      console.warn(`  ⚠️ Error scraping ${url}: ${e.message}`);
+    }
+  });
+
+  return jobs;
+}
+
 async function scrapeCategory(categorySlug, maxPages = 3) {
   const jobs = [];
   const pathSlug = categorySlug.endsWith('-Jobs-in-Egypt') || categorySlug === 'Jobs-in-Egypt'
@@ -810,40 +996,41 @@ async function main() {
 
   const allMap = new Map();
 
-  // Phase 1: High-Yield Category & Browse Pages (Bypasses Cloudflare)
-  console.log('\n📋  Phase 1A: Browse & Category Pages (High Yield Tech Roles)\n');
-  for (const cat of WUZZUF_CATEGORIES) {
-    console.log(`  📂 Scraping Category: "${cat.label}" (${cat.slug})`);
-    try {
-      const results = await scrapeCategory(cat.slug, cat.maxPages);
-      let added = 0;
-      for (const job of results) {
-        const existing = allMap.get(job.id);
-        if (!existing || QUALITY_RANK[job.data_quality] >= QUALITY_RANK[existing.data_quality]) {
-          allMap.set(job.id, job); added++;
-        }
+  // Phase 1A: Sitemap URL Discovery (Cloudflare Safe - 200 OK on GitHub Actions)
+  console.log('\n📋  Phase 1A: Sitemap URL Discovery (Cloudflare Safe)\n');
+  try {
+    const sitemapJobs = await scrapeSitemap(150);
+    let added = 0;
+    for (const job of sitemapJobs) {
+      const existing = allMap.get(job.id);
+      if (!existing || QUALITY_RANK[job.data_quality] >= QUALITY_RANK[existing.data_quality]) {
+        allMap.set(job.id, job);
+        added++;
       }
-      console.log(`  ✅ "${cat.label}": ${results.length} found (${added} new/updated). Total unique: ${allMap.size}\n`);
-    } catch(e) { console.log(`  ❌ "${cat.label}" failed: ${e.message}\n`); }
-    await new Promise(r => setTimeout(r, 600 + Math.random() * 300));
+    }
+    console.log(`  ✅ Sitemap Phase: ${sitemapJobs.length} processed (${added} added/updated). Total unique: ${allMap.size}\n`);
+  } catch (e) {
+    console.warn(`  ⚠️ Sitemap scraping error: ${e.message}\n`);
   }
 
-  // Phase 1B: Search Queries
-  console.log('\n📋  Phase 1B: Keyword Search Pages\n');
-  for (const query of SEARCH_QUERIES) {
-    console.log(`  🔍 Scraping: "${query}"`);
-    try {
-      const results = await scrapeQuery(query, 2);
-      let added = 0;
-      for (const job of results) {
-        const existing = allMap.get(job.id);
-        if (!existing || QUALITY_RANK[job.data_quality] >= QUALITY_RANK[existing.data_quality]) {
-          allMap.set(job.id, job); added++;
+  // Phase 1B: High-Yield Category Pages (Supplemental when not blocked by Cloudflare)
+  if (allMap.size < 50) {
+    console.log('\n📋  Phase 1B: Browse & Category Pages (Supplemental)\n');
+    for (const cat of WUZZUF_CATEGORIES.slice(0, 6)) {
+      console.log(`  📂 Scraping Category: "${cat.label}" (${cat.slug})`);
+      try {
+        const results = await scrapeCategory(cat.slug, 2);
+        let added = 0;
+        for (const job of results) {
+          const existing = allMap.get(job.id);
+          if (!existing || QUALITY_RANK[job.data_quality] >= QUALITY_RANK[existing.data_quality]) {
+            allMap.set(job.id, job); added++;
+          }
         }
-      }
-      console.log(`  ✅ "${query}": ${results.length} found (${added} new/updated). Total unique: ${allMap.size}\n`);
-    } catch(e) { console.log(`  ❌ "${query}" failed: ${e.message}\n`); }
-    await new Promise(r => setTimeout(r, 800 + Math.random() * 400));
+        console.log(`  ✅ "${cat.label}": ${results.length} found (${added} new/updated). Total unique: ${allMap.size}\n`);
+      } catch(e) { console.log(`  ❌ "${cat.label}" failed: ${e.message}\n`); }
+      await new Promise(r => setTimeout(r, 600 + Math.random() * 300));
+    }
   }
 
   let jobsList = [...allMap.values()];

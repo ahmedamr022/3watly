@@ -162,7 +162,8 @@ export const SCORE_LEGEND: {
 export function getMarketKeywordsForRole(roleTitle: string): { keywords: string[]; benchmark: number } {
   const t = (roleTitle || '').toLowerCase();
   
-  if (/machine learning|ml\b|ai\b|computer vision|deep learning|data science|data scientist/i.test(t)) {
+  // 1. Machine Learning, AI & Computer Vision
+  if (/machine learning|ml\b|ai\b|computer vision|deep learning|nlp|data science|data scientist/i.test(t)) {
     return {
       keywords: [
         'Python', 'PyTorch', 'TensorFlow', 'OpenCV', 'Scikit-Learn',
@@ -174,7 +175,44 @@ export function getMarketKeywordsForRole(roleTitle: string): { keywords: string[
     };
   }
 
-  if (/frontend|react|web developer|ui developer/i.test(t)) {
+  // 2. Data Engineering
+  if (/data engineer|big data|etl developer|pipeline engineer/i.test(t)) {
+    return {
+      keywords: [
+        'Python', 'SQL', 'ETL', 'Apache Spark', 'Airflow',
+        'dbt', 'Kafka', 'PostgreSQL', 'Data Warehousing', 'Snowflake',
+        'BigQuery', 'Docker', 'Git', 'Data Pipelines', 'Data Modeling', 'Linux'
+      ],
+      benchmark: 9
+    };
+  }
+
+  // 3. DevOps & Cloud Infrastructure
+  if (/devops|cloud|sre|site reliability|infrastructure|platform engineer|sysadmin/i.test(t)) {
+    return {
+      keywords: [
+        'Docker', 'Kubernetes', 'CI/CD', 'Linux', 'AWS',
+        'Azure', 'Terraform', 'Git', 'Bash', 'Ansible',
+        'Prometheus', 'Grafana', 'Cloud Computing', 'Networking', 'Security'
+      ],
+      benchmark: 9
+    };
+  }
+
+  // 4. Full Stack Development
+  if (/full.?stack|fullstack/i.test(t)) {
+    return {
+      keywords: [
+        'React', 'Node.js', 'TypeScript', 'JavaScript', 'Next.js',
+        'SQL', 'PostgreSQL', 'MongoDB', 'REST APIs', 'Git',
+        'Docker', 'Tailwind CSS', 'State Management', 'Database Design', 'CI/CD'
+      ],
+      benchmark: 10
+    };
+  }
+
+  // 5. Frontend Development
+  if (/frontend|front-end|react|web developer|ui developer/i.test(t)) {
     return {
       keywords: [
         'React', 'JavaScript', 'TypeScript', 'Next.js', 'Tailwind CSS',
@@ -185,7 +223,8 @@ export function getMarketKeywordsForRole(roleTitle: string): { keywords: string[
     };
   }
 
-  if (/backend|node|express|api|software engineer/i.test(t)) {
+  // 6. Backend Development
+  if (/backend|back-end|node|express|api|django|flask|spring|laravel/i.test(t)) {
     return {
       keywords: [
         'Node.js', 'Python', 'SQL', 'PostgreSQL', 'MongoDB',
@@ -196,7 +235,55 @@ export function getMarketKeywordsForRole(roleTitle: string): { keywords: string[
     };
   }
 
-  // Default: Data Analyst & BI
+  // 7. Mobile & Flutter Development
+  if (/mobile|flutter|react native|android|ios|dart/i.test(t)) {
+    return {
+      keywords: [
+        'Flutter', 'Dart', 'React Native', 'Mobile Development', 'REST APIs',
+        'Firebase', 'State Management', 'Git', 'Android Studio', 'Xcode',
+        'iOS', 'Android', 'UI/UX', 'Clean Architecture'
+      ],
+      benchmark: 8
+    };
+  }
+
+  // 8. QA & Software Testing
+  if (/qa\b|quality assurance|software test|automation test|tester/i.test(t)) {
+    return {
+      keywords: [
+        'Manual Testing', 'Automation Testing', 'Selenium', 'Postman', 'Test Cases',
+        'JIRA', 'Regression Testing', 'API Testing', 'Bug Tracking', 'Git',
+        'Agile', 'Cypress', 'SQL', 'Performance Testing'
+      ],
+      benchmark: 8
+    };
+  }
+
+  // 9. Product Management & Scrum
+  if (/product manager|product owner|scrum master/i.test(t)) {
+    return {
+      keywords: [
+        'Agile', 'Scrum', 'JIRA', 'Product Roadmap', 'User Stories',
+        'Market Research', 'Stakeholder Management', 'Wireframing', 'KPIs', 'Analytics',
+        'Product Lifecycle', 'Prioritization', 'A/B Testing'
+      ],
+      benchmark: 8
+    };
+  }
+
+  // 10. Business Analyst
+  if (/business analyst|business systems/i.test(t)) {
+    return {
+      keywords: [
+        'SQL', 'Excel', 'Requirements Gathering', 'Business Analysis', 'Process Modeling',
+        'JIRA', 'Power BI', 'Stakeholder Communication', 'User Stories', 'Data Analysis',
+        'Documentation', 'Agile', 'Gap Analysis'
+      ],
+      benchmark: 8
+    };
+  }
+
+  // 11. Default: Data Analyst & Business Intelligence
   return {
     keywords: [
       'SQL', 'Python', 'Power BI', 'Excel', 'Tableau',

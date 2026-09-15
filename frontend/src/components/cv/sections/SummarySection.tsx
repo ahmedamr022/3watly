@@ -24,11 +24,30 @@ export function SummarySection() {
       <AIEnhanceButton
         label="Rewrite Summary with AI"
         hint="AI keeps your facts and tightens the wording for recruiters."
-        onEnhance={() => {
-          update(
-            (prev) => ({ ...prev, summary: polishSummary(prev) }),
-            'summary-ai'
-          );
+        onEnhance={async () => {
+          try {
+            const res = await fetch('/api/cv/enhance', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'summary',
+                content: cv.summary,
+                role: cv.contact.jobTitle,
+                skills: cv.skills.flatMap((g) => g.skills).slice(0, 8),
+              }),
+            });
+            const data = await res.json();
+            if (data?.summary) {
+              update((prev) => ({ ...prev, summary: data.summary }), 'summary-ai');
+              return data.enhancedBy === 'gemini-ai'
+                ? 'Summary rewritten with AI (Gemini) for maximum recruiter impact.'
+                : 'Summary optimized with keywords and professional structure.';
+            }
+          } catch (e) {
+            console.error('Enhance summary failed:', e);
+          }
+          // Fallback to local polish
+          update((prev) => ({ ...prev, summary: polishSummary(prev) }), 'summary-ai');
           return 'Summary rewritten with a sharper, keyword-rich opening.';
         }} />
       

@@ -141,12 +141,33 @@ export function ExperienceSection() {
           <AIEnhanceButton
             label="Enhance Impact Bullets"
             hint="AI will improve clarity, impact, and metrics."
-            onEnhance={() => {
+            onEnhance={async () => {
+              try {
+                const res = await fetch('/api/cv/enhance', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    type: 'bullets',
+                    bullets: item.bullets,
+                    role: item.role,
+                    company: item.company,
+                  }),
+                });
+                const data = await res.json();
+                if (Array.isArray(data?.bullets) && data.bullets.length > 0) {
+                  patch(item.id, { bullets: data.bullets }, 'bullets-ai');
+                  return data.enhancedBy === 'gemini-ai'
+                    ? `Bullets for ${item.role || 'this role'} enhanced with AI (Gemini)!`
+                    : `Bullets for ${item.role || 'this role'} now lead with strong verbs and metrics.`;
+                }
+              } catch (e) {
+                console.error('Enhance bullets failed:', e);
+              }
               patch(
                 item.id,
                 {
                   bullets: item.bullets.map((bullet, i) =>
-                  enhanceBullet(bullet, i)
+                    enhanceBullet(bullet, i)
                   )
                 },
                 'bullets-ai'
