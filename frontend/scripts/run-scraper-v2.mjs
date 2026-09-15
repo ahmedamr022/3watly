@@ -595,6 +595,9 @@ const WUZZUF_CATEGORIES = [
   { slug: 'Machine-Learning', label: 'Machine Learning & AI', maxPages: 3 },
 ];
 
+// Strict positive tech title pattern
+const IS_TECH_TITLE = /developer|programmer|software|data|machine learning|ai\b|artificial intelligence|deep learning|computer vision|nlp|business intelligence|bi\b|frontend|front-end|backend|back-end|full.?stack|devops|cloud|sre|platform engineer|sysadmin|system administrator|network(?!.*marketing)|it\b|information technology|database|dba\b|qa\b|quality assurance|tester|testing|scrum|product manager|product owner|cybersecurity|infosec|security engineer|security analyst|web|mobile|flutter|react|node|python|java\b|\.net\b|c\+\+|php\b|ios\b|android\b|automation engineer|biostatistician/i;
+
 // Non-tech job title patterns to ALWAYS reject regardless of category
 const UNRELATED_TITLE_PATTERNS = [
   /factory/i, /ambassador/i, /operator(?!.*(devops|cloud|network|it|system))/i,
@@ -602,12 +605,22 @@ const UNRELATED_TITLE_PATTERNS = [
   /telemarketing/i, /tele.?sales/i, /call center/i, /customer service agent/i,
   /real estate/i, /property consultant/i, /broker(?!.*(data|analytics))/i,
   /pharmacist/i, /medical rep/i, /doctor/i, /nurse/i,
-  /civil engineer/i, /site engineer/i, /interior design/i,
-  /accountant(?!.*data)/i, /receptionist/i, /chef/i, /waiter/i,
+  /civil|structural|mep|plumbing|façade|facade|finishing|landscape|handover|site engineer/i,
+  /technical office(?!.*(software|data|it|cloud))/i,
+  /estimation engineer/i,
+  /mechanical(?!.*(software|data|robotics))/i,
+  /electrical(?!.*(software|firmware|embedded))/i,
+  /pest control|safety supervisor|safety officer|voice over|audio|video editor/i,
+  /accounting|accountant(?!.*data)|chief account|auditor/i,
+  /office manager|executive secretary|administrative/i,
+  /fleet coordinator|stock controller|spare parts/i,
+  /teacher|tutor|instructor(?!.*(python|data|coding|software|web))/i,
+  /cad designer|draftsman|draft man|bim(?!.*(software|developer))/i,
+  /receptionist/i, /chef/i, /waiter/i,
   /maintenance(?!.*(it|software|system))/i, /procurement/i, /purchasing/i,
   /storekeeper/i, /warehouse/i, /security guard/i, /fabric/i, /yarn/i, /textile/i,
   /field sales/i, /sales executive/i, /sales manager(?!.*product)/i,
-  /pharmacist/i, /pharma/i, /architect(?!ure|.*software|.*data)/i,
+  /pharma/i, /architect(?!ure|.*software|.*data)/i,
   /technician(?!.*(lab|network|it|cloud|data))/i,
 ];
 
@@ -640,7 +653,10 @@ async function scrapeDetailPage(url) {
 
     if (!title) return null;
 
-    // Reject non-tech / unrelated roles
+    // Strict filter: must match positive tech title and not match any unrelated patterns
+    if (!IS_TECH_TITLE.test(title)) {
+      return null;
+    }
     if (UNRELATED_TITLE_PATTERNS.some(p => p.test(title))) {
       return null;
     }
@@ -695,9 +711,20 @@ async function scrapeDetailPage(url) {
       requirements = `Requirements for ${title} at ${company}.`;
     }
 
-    // Skills
+    // Skills: combine explicit page tags + text extraction + title inference
+    const pageTags = [];
+    $('a[href*="/a/"], a[href*="skills="], a[href*="search/jobs?q="]').each((_, el) => {
+      const t = cleanText($(el).text().replace(/^[·\s]+/, ''));
+      if (t && t.length >= 2 && t.length <= 35 && !/full.?time|part.?time|on.?site|remote|hybrid|years|jobs in/i.test(t)) {
+        pageTags.push(t);
+      }
+    });
+
     const combinedText = `${title} ${description} ${requirements}`;
-    const verifiedSkills = dedupeSkills(extractSkillsFromText(combinedText));
+    const verifiedSkills = dedupeSkills([
+      ...pageTags.flatMap(t => extractSkillsFromText(t)),
+      ...extractSkillsFromText(combinedText)
+    ]);
     const inferredSkills = inferSkillsFromTitle(title);
 
     const skillSources = [];
@@ -769,8 +796,8 @@ async function scrapeSitemap(targetCount = 120) {
     return [];
   }
 
-  const TECH_POSITIVE_REGEX = /(developer|engineer|analyst|data|frontend|backend|full-stack|fullstack|devops|machine-learning|python|react|flutter|qa|software|product-manager|business-intelligence|sql|bi|cloud|security|network|system-admin|database|architect|ui-ux|web|mobile)/i;
-  const NON_TECH_NEGATIVE_REGEX = /(sales-engineer|civil-engineer|mechanical-engineer|electrical-engineer|maintenance-engineer|site-engineer|administrative|hr|sales|receptionist|telemarketing|customer-service|accountant|doctor|nurse|pharmacist|chef|cashier|driver|worker|fabric|yarn|textile|storekeeper|warehouse|real-estate)/i;
+  const TECH_POSITIVE_REGEX = /(developer|programmer|software|data|analyst|machine-learning|python|react|frontend|backend|full-stack|fullstack|devops|cloud|sre|platform-engineer|sysadmin|network|database|dba|qa|quality-assurance|tester|testing|scrum|product-manager|product-owner|cybersecurity|infosec|security-engineer|web|mobile|flutter|angular|node|\.net)/i;
+  const NON_TECH_NEGATIVE_REGEX = /(sales|civil|mechanical|electrical|maintenance|site-engineer|plumbing|facade|finishing|landscape|handover|cad|draftsman|draft-man|pest-control|safety|voice-over|accounting|accountant|office-manager|secretary|fleet|spare-parts|teacher|tutor|stock-controller|receptionist|cashier|driver|worker|fabric|yarn|textile|storekeeper|warehouse|real-estate|medical|pharma|doctor|nurse|legal|customer-service|telemarketing|call-center)/i;
 
   const filteredUrls = allJobUrls.filter(url => {
     const slug = url.split('/jobs/p/')[1] || '';
