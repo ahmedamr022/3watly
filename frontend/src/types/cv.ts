@@ -46,6 +46,7 @@ export interface ExperienceItem {
   current: boolean;
   location: string;
   bullets: string[];
+  type?: 'job' | 'internship';
 }
 
 export interface EducationItem {

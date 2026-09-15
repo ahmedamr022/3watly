@@ -338,6 +338,8 @@ interface ExtractedData {
     url?: string;
     date?: string;
   }>;
+  sectionOrder?: string[];
+  isAllInternships?: boolean;
   atsReport: {
     score: number;
     structureScore: number;
@@ -472,17 +474,17 @@ export function parseCVText(
     }
   }
 
-  // 6. Extract Current Title (from top 8 lines)
+  // 6. Extract Current Title / Professional Headline (from top 8 lines)
   let currentTitle = '';
   for (const line of lines.slice(0, 8)) {
     if (
       line !== fullName &&
       line.length >= 4 &&
-      line.length <= 50 &&
+      line.length <= 140 &&
       !line.includes('@') &&
       !line.includes('http') &&
       !line.includes('+20') &&
-      /\b(engineer|analyst|developer|scientist|specialist|designer|manager|architect|enthusiast)\b/i.test(line)
+      (/\b(engineer|analyst|developer|scientist|specialist|designer|manager|architect|enthusiast|intern|lead|consultant|student|graduate)\b/i.test(line) || line.includes('|') || line.includes('•'))
     ) {
       currentTitle = line.trim();
       break;
@@ -645,6 +647,16 @@ export function parseCVText(
       }
     }
 
+    // Check firstLine for date range (e.g. July 2024 - August 2024)
+    const fullDateRegex = /(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember))\s+)?\d{4}\s*[-–—]\s*(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember))\s+)?(?:\d{4}|present|now|current)|(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember))\s+\d{4}\s*[-–—]\s*(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember))\s+\d{4}/i;
+
+    const firstLineDateMatch = firstLine.match(fullDateRegex);
+    if (firstLineDateMatch) {
+      const parts = firstLineDateMatch[0].split(/[-–—]/);
+      startD = parts[0]?.trim() || startD;
+      endD = parts[1]?.trim() || endD;
+    }
+
     // Extract markdown link from company: [Company Name](url)
     const companyMd = company.match(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/i);
     if (companyMd) {
@@ -656,35 +668,48 @@ export function parseCVText(
       if (!companyUrl) companyUrl = rawCompUrl[1];
       company = company.replace(/https?:\/\/[^\s\)\],]+/gi, '').trim();
     }
-    // Clean company of markdown brackets / extra punctuation
-    company = company.replace(/[\[\]]/g, '').replace(/^[•\-,–—\s]+|[•\-,–—\s]+$/g, '').trim();
+    // Clean company of markdown brackets / extra punctuation / stray dates
+    company = company.replace(/[\[\]]/g, '').replace(fullDateRegex, '').replace(/^[•\-,–—\s]+|[•\-,–—\s]+$/g, '').trim();
 
-    // If companyUrl wasn't inline markdown, try matching from extracted document links
-    if (!companyUrl && extractedLinksResult?.allLinks) {
+    // Deep company URL matching against all extracted links & document links
+    if (!companyUrl) {
+      const compLower = company.toLowerCase().replace(/[^a-z0-9]/g, '');
       const compTokens = company.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length >= 3);
-      const matchedCompanyLink = extractedLinksResult.allLinks.find(l => {
-        if (l.type === 'company' || l.url.toLowerCase().includes('linkedin.com/company/')) {
-          const u = l.url.toLowerCase();
-          return compTokens.some(tok => u.includes(tok));
+      
+      const allCandidateLinks = [
+        ...(extractedLinksResult?.allLinks || []),
+        ...(rawExtractedLinks || []).map(r => ({ title: r.anchorText, url: r.url, type: 'link' }))
+      ];
+
+      const matchedCompanyLink = allCandidateLinks.find(l => {
+        const u = l.url.toLowerCase();
+        const t = (l.title || '').toLowerCase();
+        if (u.includes('linkedin.com/company/') || l.type === 'company') {
+          return compTokens.some(tok => u.includes(tok) || t.includes(tok)) || (compLower.length >= 4 && u.includes(compLower));
         }
         return false;
       });
       if (matchedCompanyLink) {
         companyUrl = matchedCompanyLink.url;
+      } else {
+        // Fallback: if there's any linkedin company link in the document, assign it
+        const anyCompLink = allCandidateLinks.find(l => l.url.toLowerCase().includes('linkedin.com/company/'));
+        if (anyCompLink) companyUrl = anyCompLink.url;
       }
     }
 
     // Clean expLocation of dates that were stuck in it
     expLocation = expLocation
-      .replace(/\b(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)?\s*\d{4}\s*[-–—]\s*(?:present|\w+\s*\d{4}|\d{4})?/gi, '')
+      .replace(fullDateRegex, '')
       .replace(/[,\s]+$/, '')
       .replace(/^[,\s]+/, '')
+      .replace(/,([^\s])/g, ', $1')
       .trim();
 
     for (const line of expLines.slice(1, 4)) {
-      const dateMatch = line.match(/\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|\d{4})\s*[-–—]\s*(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|\d{4}|present)/i);
-      if (dateMatch) {
-        const parts = line.split(/[-–—]/);
+      const dateMatch = line.match(fullDateRegex);
+      if (dateMatch && !firstLineDateMatch) {
+        const parts = dateMatch[0].split(/[-–—]/);
         startD = parts[0]?.trim() || startD;
         endD = parts[1]?.trim() || endD;
         break;
@@ -732,10 +757,12 @@ export function parseCVText(
     }
     const bullets = mergedBullets;
 
+    const isThisIntern = s.isIntern || /intern\b|تدريب/i.test(role);
+
     if (role || company || bullets.length > 0) {
       experiences.push({
         id: `exp-${expIdx++}`,
-        role: role || (s.isIntern ? 'Intern' : targetRole || 'Position'),
+        role: role || (isThisIntern ? 'Intern' : targetRole || 'Position'),
         company: company || '',
         companyUrl: companyUrl || undefined,
         startDate: startD,
@@ -743,7 +770,7 @@ export function parseCVText(
         current: /present|now|حالياً/i.test(endD),
         location: expLocation || location,
         bullets: bullets,
-        type: s.isIntern ? 'internship' : 'job'
+        type: isThisIntern ? 'internship' : 'job'
       });
     }
   }
@@ -1165,7 +1192,22 @@ export function parseCVText(
     })),
     summary,
     targetRole,
-    experienceYears: experiences.length > 0 ? Math.max(1, experiences.length) : 0,
+    experienceYears: experiences.filter(e => e.type !== 'internship').length,
+    isAllInternships: experiences.length > 0 && experiences.every(e => e.type === 'internship'),
+    sectionOrder: (() => {
+      const order: string[] = [];
+      matches.forEach(m => {
+        if (m.key === 'profile' && !order.includes('summary')) order.push('summary');
+        if (m.key === 'education' && !order.includes('education')) order.push('education');
+        if ((m.key === 'experience' || m.key === 'internships') && !order.includes('experience')) order.push('experience');
+        if (m.key === 'skills' && !order.includes('skills')) order.push('skills');
+        if (m.key === 'projects' && !order.includes('projects')) order.push('projects');
+      });
+      ['summary', 'education', 'experience', 'skills', 'projects'].forEach(s => {
+        if (!order.includes(s)) order.push(s);
+      });
+      return order;
+    })(),
     experiences,
     education,
     certificates,

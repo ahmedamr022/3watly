@@ -172,6 +172,25 @@ export function CVPreview() {
 
   const isTwoColumn = template === 'two-column';
 
+  // Check if experiences consist of internships
+  const isAllInternships = React.useMemo(() => {
+    return (
+      cv.experience.length > 0 &&
+      cv.experience.every((e) => (e as any).type === 'internship' || /intern\b|تدريب/i.test(e.role))
+    );
+  }, [cv.experience]);
+
+  const getSectionTitle = (id: SectionId) => {
+    if (id === 'experience') {
+      if (isAllInternships) return 'INTERNSHIPS';
+      if (cv.experience.some((e) => (e as any).type === 'internship' || /intern\b/i.test(e.role))) {
+        return 'EXPERIENCE & INTERNSHIPS';
+      }
+      return 'EXPERIENCE';
+    }
+    return SECTION_META[id]?.label || id.toUpperCase();
+  };
+
   return (
     <div className="print-region">
       {/* Scrollable viewport with neutral backdrop */}
@@ -179,75 +198,81 @@ export function CVPreview() {
         <article
           id="cv-paper-root"
           dir="ltr"
-          className={`print-page cv-paper-root relative w-full max-w-[820px] mx-auto bg-white dark:bg-[#0E1626] text-slate-900 dark:text-slate-100 shadow-2xl border border-slate-200 dark:border-white/10 rounded-sm transition-all duration-300 text-left ${style.page}`}
+          className={`print-page cv-paper-root relative w-full max-w-[820px] min-h-[1080px] mx-auto bg-white dark:bg-[#0E1626] text-slate-900 dark:text-slate-100 shadow-2xl border border-slate-200 dark:border-white/10 rounded-sm transition-all duration-300 text-left ${style.page}`}
           style={{ fontFamily: style.fontFamily }}
         >
-          {/* Header: Name + Headline + Location + Contacts Row */}
-          <header className="text-center pb-2">
+          {/* Header: Name + Headline + Contact Line + Profiles Line (Matching PDF 1:1) */}
+          <header className="text-center pb-2.5">
             <h1 className={style.name}>{cv.contact.fullName || 'Candidate Name'}</h1>
             {cv.contact.jobTitle && <p className={style.role}>{cv.contact.jobTitle}</p>}
-            {cv.contact.location && (
-              <p className="text-[11.5px] text-slate-600 dark:text-slate-400 mt-0.5">
-                {cleanLocationText(cv.contact.location)}
-              </p>
-            )}
 
-            {/* Single Combined Contact Line: Phone | Email | LinkedIn | GitHub | Portfolio */}
-            <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[11.5px] text-slate-700 dark:text-slate-300 mt-1.5 font-sans">
-              {cv.contact.phone && (
-                <a
-                  href={`tel:${cv.contact.phone.replace(/[^\d+]/g, '')}`}
-                  className="hover:underline text-slate-800 dark:text-slate-200"
-                >
-                  {cv.contact.phone}
-                </a>
-              )}
-
-              {cv.contact.email && (
-                <>
-                  {cv.contact.phone && <span className="text-slate-400 dark:text-slate-600 select-none">|</span>}
+            {/* Line 1: Primary Contacts (Email • Phone • Location) */}
+            {(cv.contact.email || cv.contact.phone || cv.contact.location) && (
+              <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11.5px] text-slate-700 dark:text-slate-300 mt-1.5 font-sans">
+                {cv.contact.email && (
                   <a
                     href={`mailto:${cv.contact.email}`}
                     className="hover:underline text-slate-800 dark:text-slate-200"
                   >
                     {cv.contact.email}
                   </a>
-                </>
-              )}
-
-              {/* Social URLs rendered by NAME only: LinkedIn, GitHub, Portfolio */}
-              {activeSocialLinks.map((item, idx) => (
-                <React.Fragment key={item.id || idx}>
-                  <span className="text-slate-400 dark:text-slate-600 select-none">|</span>
+                )}
+                {cv.contact.email && cv.contact.phone && <span className="text-slate-400 dark:text-slate-600 select-none">•</span>}
+                {cv.contact.phone && (
                   <a
-                    href={formatUrl(item.url)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-slate-900 dark:text-blue-400 font-semibold hover:underline"
+                    href={`tel:${cv.contact.phone.replace(/[^\d+]/g, '')}`}
+                    className="hover:underline text-slate-800 dark:text-slate-200"
                   >
-                    {item.platform || 'Link'}
+                    {cv.contact.phone}
                   </a>
-                </React.Fragment>
-              ))}
-            </div>
+                )}
+                {(cv.contact.email || cv.contact.phone) && cv.contact.location && (
+                  <span className="text-slate-400 dark:text-slate-600 select-none">•</span>
+                )}
+                {cv.contact.location && (
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {cleanLocationText(cv.contact.location)}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Line 2: Online Social / Portfolio Links (LinkedIn • GitHub • Portfolio) */}
+            {activeSocialLinks.length > 0 && (
+              <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-[11.5px] text-slate-700 dark:text-slate-300 mt-1 font-sans">
+                {activeSocialLinks.map((item, idx) => (
+                  <React.Fragment key={item.id || idx}>
+                    {idx > 0 && <span className="text-slate-400 dark:text-slate-600 select-none">•</span>}
+                    <a
+                      href={formatUrl(item.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-slate-900 dark:text-blue-400 font-semibold hover:underline"
+                    >
+                      {item.platform || 'Link'}
+                    </a>
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
           </header>
 
           {/* Render 2-Column or Single Column */}
           {isTwoColumn ? (
-            /* Perfectly Balanced Two-Column Layout (No squeezed labels or text collisions) */
+            /* Perfectly Balanced Two-Column Layout */
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 sm:gap-8 pt-4 items-start">
-              {/* Left Column (Skills + Education): 5 cols (42% width) with spacious padding */}
+              {/* Left Column (Skills + Education): 5 cols (42% width) */}
               <div className="col-span-1 sm:col-span-5 space-y-5 border-b sm:border-b-0 sm:border-r border-slate-200 dark:border-white/10 pb-4 sm:pb-0 sm:pr-6">
                 {sections.includes('skills') && (
                   <section>
-                    <h2 className={style.heading}>{SECTION_META['skills'].label}</h2>
+                    <h2 className={style.heading}>{getSectionTitle('skills')}</h2>
                     <div className={style.headingRule} />
                     <TwoColumnSkillsContent cv={cv} style={style} />
                   </section>
                 )}
                 {sections.includes('education') && (
                   <section>
-                    <h2 className={style.heading}>{SECTION_META['education'].label}</h2>
+                    <h2 className={style.heading}>{getSectionTitle('education')}</h2>
                     <div className={style.headingRule} />
                     <TwoColumnEducationContent cv={cv} style={style} />
                   </section>
@@ -258,21 +283,21 @@ export function CVPreview() {
               <div className="col-span-1 sm:col-span-7 space-y-5">
                 {sections.includes('summary') && (
                   <section>
-                    <h2 className={style.heading}>{SECTION_META['summary'].label}</h2>
+                    <h2 className={style.heading}>{getSectionTitle('summary')}</h2>
                     <div className={style.headingRule} />
                     <SummarySectionContent cv={cv} style={style} />
                   </section>
                 )}
                 {sections.includes('experience') && (
                   <section>
-                    <h2 className={style.heading}>{SECTION_META['experience'].label}</h2>
+                    <h2 className={style.heading}>{getSectionTitle('experience')}</h2>
                     <div className={style.headingRule} />
                     <ExperienceSectionContent cv={cv} style={style} />
                   </section>
                 )}
                 {sections.includes('projects') && (
                   <section>
-                    <h2 className={style.heading}>{SECTION_META['projects'].label}</h2>
+                    <h2 className={style.heading}>{getSectionTitle('projects')}</h2>
                     <div className={style.headingRule} />
                     <ProjectsSectionContent cv={cv} style={style} />
                   </section>
@@ -284,7 +309,7 @@ export function CVPreview() {
             <div className="space-y-3.5 pt-1">
               {sections.map((id) => (
                 <section key={id} className={style.gap}>
-                  <h2 className={style.heading}>{SECTION_META[id].label}</h2>
+                  <h2 className={style.heading}>{getSectionTitle(id)}</h2>
                   <div className={style.headingRule} />
                   <SectionContent id={id} cv={cv} style={style} />
                 </section>

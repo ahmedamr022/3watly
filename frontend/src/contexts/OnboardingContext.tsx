@@ -404,6 +404,14 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           updateFullName(data.fullName.trim());
         }
 
+        // If candidate experiences are all internships, align experience level to 'Fresh Graduate'
+        if (data.isAllInternships || (Array.isArray(data.experiences) && data.experiences.length > 0 && data.experiences.every((e: any) => e.type === 'internship'))) {
+          setExperienceState('Fresh Graduate');
+          try {
+            localStorage.setItem('3watly_experience', 'Fresh Graduate');
+          } catch {}
+        }
+
         // Save to localStorage
         try {
           localStorage.setItem('3watly_parsed_cv', JSON.stringify(finalParsedCv));

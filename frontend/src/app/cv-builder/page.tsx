@@ -104,7 +104,8 @@ export default function CVBuilderPage() {
               endDate: exp.endDate || "Present",
               current: Boolean(exp.current),
               location: exp.location || data.location || "",
-              bullets: Array.isArray(exp.bullets) ? exp.bullets : []
+              bullets: Array.isArray(exp.bullets) ? exp.bullets : [],
+              type: exp.type || (/intern\b|تدريب/i.test(exp.role) ? 'internship' : 'job')
             }))
           : [],
         education: Array.isArray(data.education) && data.education.length > 0 ? data.education : [],
@@ -121,7 +122,9 @@ export default function CVBuilderPage() {
         skills: Array.isArray(data.categorizedSkillGroups) && data.categorizedSkillGroups.length > 0
           ? data.categorizedSkillGroups
           : (data.skills?.length ? [{ id: "tech-1", label: "Technical Skills", skills: data.skills }] : []),
-        sectionOrder: ["summary", "experience", "education", "skills", "projects"],
+        sectionOrder: (Array.isArray(data.sectionOrder) && data.sectionOrder.length > 0
+          ? data.sectionOrder
+          : ["summary", "education", "experience", "skills", "projects"]) as any,
         hiddenSections: []
       };
 

@@ -232,7 +232,8 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
               endDate: exp.endDate || 'Present',
               current: Boolean(exp.current),
               location: exp.location || p.location || '',
-              bullets: Array.isArray(exp.bullets) ? exp.bullets : []
+              bullets: Array.isArray(exp.bullets) ? exp.bullets : [],
+              type: exp.type || (exp.isIntern || /intern\b|تدريب/i.test(exp.role) ? 'internship' : 'job')
             }));
 
             // ── Education: use ONLY ONE source to prevent duplication
@@ -354,8 +355,9 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
               experience: adaptedExperience,
               education: adaptedEducation,
               projects: adaptedProjects,
-              skills: adaptedSkills,
-              sectionOrder: ['summary', 'experience', 'education', 'skills', 'projects'],
+              sectionOrder: (Array.isArray(p.sectionOrder) && p.sectionOrder.length > 0
+                ? p.sectionOrder
+                : ['summary', 'education', 'experience', 'skills', 'projects']) as any,
               hiddenSections: []
             };
 
