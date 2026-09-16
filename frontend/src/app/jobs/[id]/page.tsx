@@ -57,6 +57,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import type { JobItem } from '@/data/jobs';
+import { toast } from 'sonner';
 import {
   cleanEnglishOverview,
   cleanArabicOverview,
@@ -72,9 +73,43 @@ export default function JobDetailsPage() {
   const { isAr } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
   const [isSaved, setIsSaved] = useState(false);
-  const [applied, setApplied] = useState(false);
 
   const jobId = params?.id as string;
+
+  // Hydrate isSaved from localStorage on client mount
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem('3watly_saved_jobs');
+      if (raw && jobId) {
+        const list = JSON.parse(raw) as string[];
+        if (Array.isArray(list) && list.includes(jobId)) {
+          setIsSaved(true);
+        }
+      }
+    } catch {}
+  }, [jobId]);
+
+  const toggleSave = () => {
+    if (!jobId) return;
+    try {
+      const raw = localStorage.getItem('3watly_saved_jobs');
+      const list: string[] = raw ? JSON.parse(raw) : [];
+      const willBeSaved = !isSaved;
+      let next: string[];
+      if (willBeSaved) {
+        next = Array.from(new Set([...list, jobId]));
+        toast.success(isAr ? 'تم حفظ الوظيفة في قائمة المحفوظات ⭐' : 'Job saved to your bookmarks ⭐');
+      } else {
+        next = list.filter((id) => id !== jobId);
+        toast.info(isAr ? 'تمت إزالة الوظيفة من المحفوظات' : 'Job removed from bookmarks');
+      }
+      localStorage.setItem('3watly_saved_jobs', JSON.stringify(next));
+      setIsSaved(willBeSaved);
+    } catch {
+      setIsSaved(!isSaved);
+    }
+  };
+
   // Start with empty placeholder — real data replaces it on load. Content is only rendered when !loadingJob && !notFound
   const [job, setJob] = useState<JobItem>({} as JobItem);
   const [similarJobs, setSimilarJobs] = useState<JobItem[]>([]);
@@ -122,8 +157,8 @@ export default function JobDetailsPage() {
   const handleApply = () => {
     const url = job.applyUrl || (job as any).apply_url;
     if (url) {
+      toast.success(isAr ? "جاري توجيهك إلى صفحة التقديم الرسمية للوظيفة..." : "Redirecting to official job application portal...");
       window.open(url, '_blank', 'noopener,noreferrer');
-      setApplied(true);
     }
   };
 
@@ -289,20 +324,26 @@ export default function JobDetailsPage() {
             href={job.applyUrl || (job as any).apply_url || '#'}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => setApplied(true)}
+            onClick={() => {
+              toast.success(isAr ? "جاري توجيهك إلى صفحة التقديم الرسمية للوظيفة..." : "Redirecting to official job application portal...");
+            }}
             className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-[13.5px] shadow-md shadow-blue-600/30 hover:shadow-blue-600/45 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
           >
             <ExternalLink className="w-4 h-4 opacity-90" />
-            <span>{applied ? (isAr ? "تم التقديم بنجاح ✓" : "Applied ✓") : (isAr ? "التقديم الفوري الآن ↗" : "Apply Now ↗")}</span>
+            <span>{isAr ? "التقديم عبر موقع الوظيفة ↗" : "Apply on Official Portal ↗"}</span>
           </a>
 
           <button
             type="button"
-            onClick={() => setIsSaved(!isSaved)}
-            className="w-full sm:w-auto px-5 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#070B14] text-[12.5px] font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+            onClick={toggleSave}
+            className={`w-full sm:w-auto px-5 py-2 rounded-xl border text-[12.5px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              isSaved
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+                : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#070B14] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+            }`}
           >
-            <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-current text-blue-600' : ''}`} />
-            <span>{isSaved ? (isAr ? "محفوظة ✓" : "Saved ✓") : (isAr ? "حفظ الوظيفة" : "Save Job")}</span>
+            <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-current text-blue-600 dark:text-blue-400' : ''}`} />
+            <span>{isSaved ? (isAr ? "محفوظة في قائمتك ✓" : "Saved to Bookmarks ✓") : (isAr ? "حفظ الوظيفة" : "Save Job")}</span>
           </button>
         </div>
       </div>

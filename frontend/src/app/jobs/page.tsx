@@ -33,6 +33,7 @@ import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { ActiveCVBadge } from '@/components/cv/CVVersionManager';
 import { mockDashboardData, JobItem } from '@/data/jobs';
 import { ApplyModal } from '@/components/jobs/ApplyModal';
+import { toast } from 'sonner';
 
 function JobsPageContent() {
   const router = useRouter();
@@ -207,25 +208,48 @@ function JobsPageContent() {
     } catch {}
   }, [savedJobs]);
 
-  const toggleSave = (id: string) => {
-    setSavedJobs((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+  const toggleSave = (id: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setSavedJobs((prev) => {
+      const willBeSaved = !prev.includes(id);
+      const next = willBeSaved ? [...prev, id] : prev.filter((item) => item !== id);
+      try {
+        localStorage.setItem('3watly_saved_jobs', JSON.stringify(next));
+      } catch {}
+      if (willBeSaved) {
+        toast.success(isAr ? 'تم حفظ الوظيفة في قائمة المحفوظات ⭐' : 'Job saved to your bookmarks ⭐');
+      } else {
+        toast.info(isAr ? 'تمت إزالة الوظيفة من المحفوظات' : 'Job removed from bookmarks');
+      }
+      return next;
+    });
   };
+
+  // Active view tab: 'all' (all matching jobs) or 'saved' (only bookmarked jobs)
+  const [activeTab, setActiveTab] = useState<'all' | 'saved'>('all');
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
   const listTopRef = useRef<HTMLDivElement>(null);
 
-  // Jobs are already filtered/sorted by the API
-  const filteredJobs = jobs;
+  // Filter jobs by activeTab ('all' vs 'saved')
+  const filteredJobs = useMemo(() => {
+    if (activeTab === 'saved') {
+      return jobs.filter((j) => savedJobs.includes(j.id));
+    }
+    return jobs;
+  }, [jobs, activeTab, savedJobs]);
+
   const totalPages = Math.max(1, Math.ceil(filteredJobs.length / pageSize));
 
-  // Reset page when filters change
+  // Reset page when filters or active tab change
   useEffect(() => {
     setCurrentPage(1);
-  }, [keyword, locationQuery, seniorityFilter, workTypeFilter, matchScoreFilter, sortBy]);
+  }, [keyword, locationQuery, seniorityFilter, workTypeFilter, matchScoreFilter, sortBy, activeTab]);
 
   const paginatedJobs = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -510,63 +534,113 @@ function JobsPageContent() {
           {/* Main Feed Column (Span 8) */}
           <div className="lg:col-span-8 space-y-4">
             
-            {/* Results Count & Sort Header */}
-            <div className="flex items-center justify-between px-1">
-              <p className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                {loadingLive ? (
-                  <span className="flex items-center gap-1.5 text-slate-400">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-[13px]">{isAr ? "جاري تحميل الوظائف..." : "Loading live jobs..."}</span>
-                  </span>
-                ) : (
-                  <>
-                    <span className="text-blue-600 dark:text-blue-400">{filteredJobs.length}</span>{" "}
-                    {isAr ? "وظيفة متوافقة مع ملفك" : "jobs found"}
-                  </>
-                )}
-              </p>
-              
-              {/* Sort By Dropdown */}
-              <div className="relative">
+            {/* Feed Navigation Bar: All Jobs vs Saved Jobs Tabs + Sorting */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1 py-1">
+              {/* Premium Segmented Control */}
+              <div className="inline-flex items-center p-1 rounded-2xl bg-slate-100/90 dark:bg-[#0F172A] border border-slate-200/80 dark:border-white/5 shadow-inner">
                 <button
                   type="button"
-                  onClick={() => setSortMenuOpen(!sortMenuOpen)}
-                  className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white cursor-pointer"
+                  onClick={() => setActiveTab('all')}
+                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-[13px] font-bold transition-all cursor-pointer ${
+                    activeTab === 'all'
+                      ? 'bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
                 >
-                  <span>
-                    {sortBy === 'match' 
-                      ? (isAr ? "الترتيب حسب: الأفضل تطابقاً" : "Sort by: Best Match")
-                      : sortBy === 'salary'
-                      ? (isAr ? "الترتيب حسب: الأكثر طلباً" : "Sort by: Most Popular")
-                      : (isAr ? "الترتيب حسب: الأحدث" : "Sort by: Most Recent")}
+                  <Briefcase className="w-3.5 h-3.5" />
+                  <span>{isAr ? "جميع الوظائف" : "All Jobs"}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                    activeTab === 'all'
+                      ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+                      : 'bg-slate-200/70 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                  }`}>
+                    {jobs.length}
                   </span>
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
                 </button>
 
-                {sortMenuOpen && (
-                  <div className="absolute top-full ltr:right-0 rtl:left-0 mt-1.5 w-48 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1120] p-1.5 shadow-xl z-30 space-y-1">
-                    {[
-                      { id: 'match', label: isAr ? 'الأفضل تطابقاً' : 'Best Match' },
-                      { id: 'salary', label: isAr ? 'الأكثر طلباً' : 'Most Popular' },
-                      { id: 'recent', label: isAr ? 'الأحدث' : 'Most Recent' }
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          setSortBy(item.id as any);
-                          setSortMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors ${
-                          sortBy === item.id ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                        }`}
-                      >
-                        <span>{item.label}</span>
-                        {sortBy === item.id && <Check className="w-3.5 h-3.5 text-blue-600" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('saved')}
+                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-[13px] font-bold transition-all cursor-pointer ${
+                    activeTab === 'saved'
+                      ? 'bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Bookmark className={`w-3.5 h-3.5 ${activeTab === 'saved' || savedJobs.length > 0 ? 'fill-current text-blue-600 dark:text-blue-400' : ''}`} />
+                  <span>{isAr ? "الوظائف المحفوظة" : "Saved Jobs"}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                    activeTab === 'saved'
+                      ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+                      : savedJobs.length > 0
+                      ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                      : 'bg-slate-200/70 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                  }`}>
+                    {savedJobs.length}
+                  </span>
+                </button>
+              </div>
+
+              {/* Feed Count Info & Sort Menu */}
+              <div className="flex items-center justify-between sm:justify-end gap-3">
+                <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400">
+                  {loadingLive ? (
+                    <span className="flex items-center gap-1.5 text-slate-400">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>{isAr ? "جاري التحميل..." : "Loading..."}</span>
+                    </span>
+                  ) : (
+                    <>
+                      <span className="font-bold text-slate-900 dark:text-white">{filteredJobs.length}</span>{" "}
+                      {activeTab === 'saved'
+                        ? (isAr ? "وظيفة محفوظة" : "saved jobs")
+                        : (isAr ? "وظيفة متوافقة" : "matching jobs")}
+                    </>
+                  )}
+                </p>
+
+                {/* Sort By Dropdown */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setSortMenuOpen(!sortMenuOpen)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] text-[12.5px] font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer shadow-2xs"
+                  >
+                    <span>
+                      {sortBy === 'match' 
+                        ? (isAr ? "الأفضل تطابقاً" : "Best Match")
+                        : sortBy === 'salary'
+                        ? (isAr ? "الأكثر طلباً" : "Most Popular")
+                        : (isAr ? "الأحدث" : "Most Recent")}
+                    </span>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  </button>
+
+                  {sortMenuOpen && (
+                    <div className="absolute top-full ltr:right-0 rtl:left-0 mt-1.5 w-48 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1120] p-1.5 shadow-xl z-30 space-y-1">
+                      {[
+                        { id: 'match', label: isAr ? 'الأفضل تطابقاً' : 'Best Match' },
+                        { id: 'salary', label: isAr ? 'الأكثر طلباً' : 'Most Popular' },
+                        { id: 'recent', label: isAr ? 'الأحدث' : 'Most Recent' }
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setSortBy(item.id as any);
+                            setSortMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors ${
+                            sortBy === item.id ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                          }`}
+                        >
+                          <span>{item.label}</span>
+                          {sortBy === item.id && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -594,24 +668,48 @@ function JobsPageContent() {
 
             {/* Empty State */}
             {!loadingLive && filteredJobs.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
-                <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                  <Briefcase className="w-6 h-6 text-slate-400" />
+              activeTab === 'saved' ? (
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center rounded-[24px] border border-dashed border-slate-200 dark:border-white/10 bg-gradient-to-b from-white to-slate-50/50 dark:from-[#0B1120] dark:to-[#070B14] p-8 space-y-3">
+                  <div className="h-16 w-16 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-inner">
+                    <Bookmark className="w-8 h-8 stroke-[1.8]" />
+                  </div>
+                  <p className="text-[17px] font-bold text-slate-900 dark:text-white">
+                    {isAr ? "لا توجد وظائف محفوظة حتى الآن" : "No saved jobs yet"}
+                  </p>
+                  <p className="text-[13.5px] text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
+                    {isAr
+                      ? "يمكنك حفظ أي وظيفة تنال إعجابك بالضغط على أيقونة الإشارة المرجعية (🔖) على بطاقة الوظيفة للرجوع إليها والتقديم لاحقاً."
+                      : "You can save any job that interests you by clicking the bookmark icon (🔖) on the job card to easily revisit and apply later."}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('all')}
+                    className="mt-3 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+                  >
+                    <Briefcase className="w-4 h-4" />
+                    <span>{isAr ? "استعراض جميع الوظائف المتاحة" : "Browse All Jobs"}</span>
+                  </button>
                 </div>
-                <p className="text-[15px] font-bold text-slate-700 dark:text-slate-300">
-                  {isAr ? "لا توجد وظائف مطابقة" : "No matching jobs found"}
-                </p>
-                <p className="text-[13px] text-slate-400 max-w-[280px]">
-                  {isAr ? "جرب تغيير الفلاتر أو البحث بكلمات مختلفة" : "Try adjusting your filters or search with different keywords"}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => { setKeyword(''); setLocationQuery(''); setMatchScoreFilter(0); setSeniorityFilter('all'); setWorkTypeFilter('all'); }}
-                  className="mt-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold transition-colors cursor-pointer"
-                >
-                  {isAr ? "إعادة ضبط الفلاتر" : "Reset Filters"}
-                </button>
-              </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
+                  <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <Briefcase className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <p className="text-[15px] font-bold text-slate-700 dark:text-slate-300">
+                    {isAr ? "لا توجد وظائف مطابقة" : "No matching jobs found"}
+                  </p>
+                  <p className="text-[13px] text-slate-400 max-w-[280px]">
+                    {isAr ? "جرب تغيير الفلاتر أو البحث بكلمات مختلفة" : "Try adjusting your filters or search with different keywords"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setKeyword(''); setLocationQuery(''); setMatchScoreFilter(0); setSeniorityFilter('all'); setWorkTypeFilter('all'); }}
+                    className="mt-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold transition-colors cursor-pointer"
+                  >
+                    {isAr ? "إعادة ضبط الفلاتر" : "Reset Filters"}
+                  </button>
+                </div>
+              )
             )}
 
             {/* Scroll Anchor */}
@@ -765,6 +863,9 @@ function JobsPageContent() {
                           href={job.applyUrl || (job as any).apply_url || `/jobs/${job.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => {
+                            toast.success(isAr ? "جاري نقلك إلى موقع التقديم الرسمي للوظيفة..." : "Opening official application portal...");
+                          }}
                           className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[12.5px] font-bold shadow-xs hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
