@@ -114,7 +114,7 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
       ].filter(Boolean) as Array<{ platform: string; url: string }>;
 
   activeLinks.forEach(link => {
-    const cleanLabel = link.platform || 'Link';
+    const cleanLabel = (link as any).customLabel?.trim() || link.platform || 'Link';
     contactItems.push({ text: cleanLabel, url: formatUrl(link.url) });
   });
 

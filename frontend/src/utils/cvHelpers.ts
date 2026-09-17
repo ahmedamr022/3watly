@@ -60,10 +60,21 @@ export function metricRatio(cv: CVData): number {
 
 export function cvToText(cv: CVData): string {
   const parts: string[] = [
-  cv.contact.fullName,
-  cv.contact.jobTitle,
-  cv.summary,
-  cv.skillsSummary ?? ''];
+    cv.contact.fullName,
+    cv.contact.jobTitle,
+    cv.contact.email,
+    cv.contact.phone,
+    cv.contact.location,
+    cv.summary,
+    cv.skillsSummary ?? ''
+  ];
+
+  if (Array.isArray(cv.contact.socialLinks)) {
+    cv.contact.socialLinks.forEach((l) => {
+      if (l.customLabel) parts.push(l.customLabel);
+      if (l.platform) parts.push(l.platform);
+    });
+  }
 
   cv.experience.forEach((item) => {
     parts.push(item.role, item.company, item.location, ...item.bullets);
@@ -80,7 +91,7 @@ export function cvToText(cv: CVData): string {
   (cv.certifications || []).forEach((cert) => {
     parts.push(cert.name, cert.issuer);
   });
-  return parts.join(' \n ');
+  return parts.filter(Boolean).join(' \n ');
 }
 
 export function containsKeyword(text: string, keyword: string): boolean {

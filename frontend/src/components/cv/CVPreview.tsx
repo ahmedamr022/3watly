@@ -1,6 +1,15 @@
 "use client";
 
 import React from 'react';
+import { Globe, Link as LinkIcon } from 'lucide-react';
+import { 
+  FaLinkedin, 
+  FaGithub, 
+  FaXTwitter, 
+  FaDribbble, 
+  FaMedium, 
+  FaDev 
+} from 'react-icons/fa6';
 import { useCV } from '../../contexts/CVContext';
 import { SECTION_META } from '../../data/cvData';
 import { formatDateRange, visibleSections } from '../../utils/cvHelpers';
@@ -117,6 +126,19 @@ function formatUrl(url?: string): string {
   return u.startsWith('http://') || u.startsWith('https://') ? u : `https://${u}`;
 }
 
+/** Official platform icon resolver — black icon for ATS and print safety */
+function getPlatformIcon(platform?: string) {
+  const p = (platform || '').toLowerCase().trim();
+  if (p.includes('linkedin')) return FaLinkedin;
+  if (p.includes('github')) return FaGithub;
+  if (p.includes('twitter') || p === 'x' || p.includes('x.com')) return FaXTwitter;
+  if (p.includes('dribbble')) return FaDribbble;
+  if (p.includes('medium')) return FaMedium;
+  if (p.includes('dev')) return FaDev;
+  if (p.includes('portfolio') || p.includes('personal') || p.includes('web') || p.includes('site')) return Globe;
+  return LinkIcon;
+}
+
 export function CVPreview() {
   const { cv, template } = useCV();
   const activeTemplateKey = STYLES[template] ? template : 'ats-classic';
@@ -137,12 +159,17 @@ export function CVPreview() {
       return false;
     };
 
-    let rawItems: Array<{ id: string; platform: string; url: string }> = [];
+    let rawItems: Array<{ id: string; platform: string; url: string; customLabel?: string }> = [];
     if (Array.isArray(cv.contact.socialLinks) && cv.contact.socialLinks.length > 0) {
       rawItems.push(
         ...cv.contact.socialLinks
           .filter((l) => Boolean(l.url && l.url.trim() && !isExcluded(l.url)))
-          .map((l, idx) => ({ id: l.id || `sl-${idx}`, platform: l.platform || 'Link', url: l.url }))
+          .map((l, idx) => ({
+            id: l.id || `sl-${idx}`,
+            platform: l.platform || 'Link',
+            url: l.url,
+            customLabel: l.customLabel?.trim() || undefined,
+          }))
       );
     }
     if (cv.contact.linkedin?.trim() && !isExcluded(cv.contact.linkedin)) {
@@ -157,7 +184,7 @@ export function CVPreview() {
 
     // Deduplicate by clean URL and platform
     const seen = new Set<string>();
-    const deduplicated: Array<{ id: string; platform: string; url: string }> = [];
+    const deduplicated: Array<{ id: string; platform: string; url: string; customLabel?: string }> = [];
     for (const item of rawItems) {
       const cleanUrl = item.url.trim().toLowerCase().replace(/\/$/, '');
       const key = `${item.platform.toLowerCase()}_${cleanUrl}`;
@@ -239,20 +266,31 @@ export function CVPreview() {
 
             {/* Line 2: Online Social / Portfolio Links (LinkedIn • GitHub • Portfolio) */}
             {activeSocialLinks.length > 0 && (
-              <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-[11.5px] text-slate-700 dark:text-slate-300 mt-1 font-sans">
-                {activeSocialLinks.map((item, idx) => (
-                  <React.Fragment key={item.id || idx}>
-                    {idx > 0 && <span className="text-slate-400 dark:text-slate-600 select-none">•</span>}
-                    <a
-                      href={formatUrl(item.url)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-slate-900 dark:text-blue-400 font-semibold hover:underline"
-                    >
-                      {item.platform || 'Link'}
-                    </a>
-                  </React.Fragment>
-                ))}
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11.5px] text-slate-700 dark:text-slate-300 mt-1 font-sans">
+                {activeSocialLinks.map((item, idx) => {
+                  const IconComp = getPlatformIcon(item.platform);
+                  const displayLabel = item.customLabel?.trim() || item.platform || 'Link';
+                  return (
+                    <React.Fragment key={item.id || idx}>
+                      {idx > 0 && <span className="text-slate-400 dark:text-slate-600 select-none mx-0.5">•</span>}
+                      <a
+                        href={formatUrl(item.url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-slate-900 dark:text-slate-100 font-semibold hover:underline"
+                      >
+                        {IconComp && (
+                          <IconComp
+                            aria-hidden="true"
+                            focusable="false"
+                            className="w-3.5 h-3.5 text-black dark:text-white shrink-0 inline-block align-middle"
+                          />
+                        )}
+                        <span>{displayLabel}</span>
+                      </a>
+                    </React.Fragment>
+                  );
+                })}
               </div>
             )}
           </header>
