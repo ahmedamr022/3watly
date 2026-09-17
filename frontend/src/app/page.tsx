@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowRight, 
-  Sparkles, 
   Play, 
   Check, 
   ShieldCheck,
@@ -278,15 +277,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center pt-4 sm:pt-6 lg:pt-6 my-auto">
             
             {/* Left/Right Content Column (Headline, Description, CTAs) */}
-            <div className="lg:col-span-6 max-w-[620px] flex flex-col items-center text-center lg:items-start rtl:lg:text-right ltr:lg:text-left space-y-4 sm:space-y-5 z-10 mx-auto lg:mx-0 lg:translate-y-6">
-              
-              {/* Pill Badge */}
-              <div className="inline-flex items-center gap-2 sm:gap-2.5 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full border border-blue-200/80 dark:border-[#0066FF]/35 bg-white/80 dark:bg-[#001D4D]/60 backdrop-blur-md shadow-[0_4px_15px_rgba(0,102,255,0.08)] dark:shadow-[0_0_15px_rgba(0,102,255,0.2)]">
-                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-[#00D2FF] shrink-0" />
-                <span className="text-[11.5px] sm:text-[12.5px] font-bold text-blue-700 dark:text-[#00D2FF] tracking-wide whitespace-nowrap">
-                  {isAr ? "ذكاء اصطناعي لتوجيه المسار المهني" : "AI-Powered Career Intelligence"}
-                </span>
-              </div>
+            <div className="lg:col-span-6 max-w-[620px] flex flex-col items-center text-center lg:items-start rtl:lg:text-right ltr:lg:text-left space-y-4 sm:space-y-5 z-10 mx-auto lg:mx-0">
 
               {/* Main Headline with Vibrant Gradient on مسارك */}
               <h1 className="text-[28px] sm:text-[38px] lg:text-[44px] xl:text-[48px] font-black leading-[1.2] tracking-tight text-slate-900 dark:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
