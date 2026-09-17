@@ -206,7 +206,6 @@ export default function JobDetailsPage() {
   const handleApply = () => {
     const url = job.applyUrl || (job as any).apply_url;
     if (url) {
-      toast.success(isAr ? "جاري توجيهك إلى صفحة التقديم الرسمية للوظيفة..." : "Redirecting to official job application portal...");
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
@@ -419,7 +418,6 @@ export default function JobDetailsPage() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => {
-              toast.success(isAr ? "جاري توجيهك إلى صفحة التقديم الرسمية للوظيفة..." : "Redirecting to official job application portal...");
             }}
             className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-[13.5px] shadow-md shadow-blue-600/30 hover:shadow-blue-600/45 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
           >

@@ -625,9 +625,12 @@ export const mockDashboardData = {
   marketOverview: {
     activeJobs: '1,240',
     activeJobsDelta: '+8% vs last month',
+    activeJobsDeltaAr: '+8% مقارنة بالشهر الماضي',
     avgSalary: 'EGP 15K',
     avgSalaryDelta: '+6% vs last month',
+    avgSalaryDeltaAr: '+6% مقارنة بالشهر الماضي',
     competition: '2.4x',
-    competitionLevel: 'High'
+    competitionLevel: 'High',
+    competitionLevelAr: 'مرتفع'
   }
 };

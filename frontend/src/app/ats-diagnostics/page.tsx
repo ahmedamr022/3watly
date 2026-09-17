@@ -91,7 +91,17 @@ export default function ATSDiagnosticsPage() {
         skills: Array.isArray(data.categorizedSkillGroups) && data.categorizedSkillGroups.length > 0
           ? data.categorizedSkillGroups
           : (data.skills?.length ? [{ id: "tech-1", label: "Technical Skills", skills: data.skills }] : []),
-        sectionOrder: ["summary", "experience", "education", "skills", "projects"],
+        certifications: Array.isArray(data.certificates) ? data.certificates.map((c: any, idx: number) => ({
+          id: c.id || `cert-${idx + 1}`,
+          name: c.name || '',
+          issuer: c.issuer || 'Verified Credential',
+          url: c.url || undefined,
+          date: c.date || undefined,
+        })) : [],
+        sectionOrder: [
+          ...(data.sectionOrder?.filter((s: string) => ['summary','experience','education','skills','projects'].includes(s)) || ['summary', 'experience', 'education', 'skills', 'projects']),
+          'certifications'
+        ],
         hiddenSections: []
       };
 

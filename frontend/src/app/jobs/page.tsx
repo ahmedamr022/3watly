@@ -1109,7 +1109,9 @@ function JobsPageContent() {
                       <span className="text-[11px] text-slate-400">{isAr ? "وظائف محللي البيانات" : "Data Analyst jobs"}</span>
                     </div>
                   </div>
-                  <span className="text-[11.5px] font-bold text-emerald-600">{marketOverview.activeJobsDelta}</span>
+                  <span className="text-[11.5px] font-bold text-emerald-600">
+                    {isAr ? (marketOverview.activeJobsDeltaAr || marketOverview.activeJobsDelta.replace('vs last month', 'عن الشهر السابق')) : marketOverview.activeJobsDelta}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/70 dark:bg-[#070B14]">
@@ -1122,7 +1124,9 @@ function JobsPageContent() {
                       <span className="text-[11px] text-slate-400">{isAr ? "متوسط الراتب الشهري" : "Avg. Salary"}</span>
                     </div>
                   </div>
-                  <span className="text-[11.5px] font-bold text-emerald-600">{marketOverview.avgSalaryDelta}</span>
+                  <span className="text-[11.5px] font-bold text-emerald-600">
+                    {isAr ? (marketOverview.avgSalaryDeltaAr || marketOverview.avgSalaryDelta.replace('vs last month', 'عن الشهر السابق')) : marketOverview.avgSalaryDelta}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/70 dark:bg-[#070B14]">

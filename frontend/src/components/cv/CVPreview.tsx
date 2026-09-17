@@ -336,6 +336,7 @@ function SectionContent({
   if (id === 'education') return <EducationSectionContent cv={cv} style={style} />;
   if (id === 'projects') return <ProjectsSectionContent cv={cv} style={style} />;
   if (id === 'skills') return <SkillsSectionContent cv={cv} style={style} />;
+  if (id === 'certifications') return <CertificationsSectionContent cv={cv} style={style} />;
   return null;
 }
 
@@ -528,6 +529,45 @@ function TwoColumnEducationContent({ cv, style }: { cv: CVData; style: StyleConf
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function CertificationsSectionContent({ cv, style }: { cv: CVData; style: StyleConfig }) {
+  const certs = cv.certifications || [];
+  if (certs.length === 0) return null;
+
+  const fmtUrl = (url?: string) => {
+    if (!url) return '';
+    const u = url.trim();
+    return u.startsWith('http://') || u.startsWith('https://') ? u : `https://${u}`;
+  };
+
+  return (
+    <div className={`${style.itemGap} space-y-1.5`}>
+      {certs.map((cert) => (
+        <div key={cert.id} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <span className={style.body}>{cert.name}</span>
+            {cert.issuer && (
+              <span className={`${style.meta} italic`}>— {cert.issuer}</span>
+            )}
+            {cert.url && (
+              <a
+                href={fmtUrl(cert.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 underline text-[11px] font-medium"
+              >
+                Verify ↗
+              </a>
+            )}
+          </div>
+          {cert.date && (
+            <span className={`shrink-0 text-right ${style.meta}`}>{cert.date}</span>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

@@ -173,8 +173,8 @@ export default function MarketPage() {
               icon={Briefcase}
               options={industries.map((i) => ({
                 id: i.id,
-                label: i.label,
-                description: i.description
+                label: isAr ? i.labelAr : i.label,
+                description: isAr ? i.descriptionAr : i.description
               }))}
               value={filters.industry}
               onChange={setFilter('industry')}
@@ -187,8 +187,8 @@ export default function MarketPage() {
               icon={MapPin}
               options={regions.map((r) => ({
                 id: r.id,
-                label: r.label,
-                description: r.description
+                label: isAr ? r.labelAr : r.label,
+                description: isAr ? r.descriptionAr : r.description
               }))}
               value={filters.region}
               onChange={setFilter('region')}
@@ -201,8 +201,8 @@ export default function MarketPage() {
               icon={Calendar}
               options={timeframes.map((t) => ({
                 id: t.id,
-                label: t.label,
-                description: t.description
+                label: isAr ? t.labelAr : t.label,
+                description: isAr ? t.descriptionAr : t.description
               }))}
               value={filters.timeframe}
               onChange={setFilter('timeframe')}

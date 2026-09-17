@@ -122,9 +122,16 @@ export default function CVBuilderPage() {
         skills: Array.isArray(data.categorizedSkillGroups) && data.categorizedSkillGroups.length > 0
           ? data.categorizedSkillGroups
           : (data.skills?.length ? [{ id: "tech-1", label: "Technical Skills", skills: data.skills }] : []),
+        certifications: Array.isArray(data.certificates) ? data.certificates.map((c: any, idx: number) => ({
+          id: c.id || `cert-${idx + 1}`,
+          name: c.name || '',
+          issuer: c.issuer || 'Verified Credential',
+          url: c.url || undefined,
+          date: c.date || undefined,
+        })) : [],
         sectionOrder: (Array.isArray(data.sectionOrder) && data.sectionOrder.length > 0
-          ? data.sectionOrder
-          : ["summary", "education", "experience", "skills", "projects"]) as any,
+          ? [...data.sectionOrder.filter((s: string) => s !== 'certifications'), 'certifications']
+          : ["summary", "education", "experience", "skills", "projects", "certifications"]) as any,
         hiddenSections: []
       };
 

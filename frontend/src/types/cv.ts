@@ -4,7 +4,8 @@ export type SectionId =
   | 'experience'
   | 'education'
   | 'projects'
-  | 'skills';
+  | 'skills'
+  | 'certifications';
 
 export type SocialPlatform =
   | 'LinkedIn'
@@ -74,6 +75,14 @@ export interface SkillGroup {
   skills: string[];
 }
 
+export interface CertificationItem {
+  id: string;
+  name: string;
+  issuer: string;
+  url?: string;
+  date?: string;
+}
+
 export interface CVData {
   contact: Contact;
   summary: string;
@@ -81,6 +90,7 @@ export interface CVData {
   education: EducationItem[];
   projects: ProjectItem[];
   skills: SkillGroup[];
+  certifications: CertificationItem[];
   /** Order the sections appear in on the rendered CV. */
   sectionOrder: SectionId[];
   /** Sections excluded from the rendered CV (still editable). */

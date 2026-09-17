@@ -77,6 +77,9 @@ export function cvToText(cv: CVData): string {
   cv.skills.forEach((group) => {
     parts.push(group.label, group.skills.join(' '));
   });
+  (cv.certifications || []).forEach((cert) => {
+    parts.push(cert.name, cert.issuer);
+  });
   return parts.join(' \n ');
 }
 
@@ -180,6 +183,13 @@ export function sectionStatus(cv: CVData, id: SectionId): SectionStatus {
       };
     case 'skills':
       return { complete: totalSkills(cv) >= 5, count: totalSkills(cv) };
+    case 'certifications':
+      return {
+        complete:
+          (cv.certifications || []).length > 0 &&
+          (cv.certifications || []).every((c) => c.name.trim() !== ''),
+        count: (cv.certifications || []).length
+      };
     default:
       return { complete: false, count: null };
   }

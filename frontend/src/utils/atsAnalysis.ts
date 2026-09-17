@@ -412,6 +412,19 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
     passed: skillCount >= 5,
     detail: `${skillCount} Skills Detected`,
     detailAr: `تم استخراج ${skillCount} مهارة`
+  },
+  {
+    id: 'certifications' as any,
+    icon: 'education',
+    label: 'Certifications',
+    labelAr: 'الشهادات الاحترافية',
+    passed: (cv.certifications || []).length > 0,
+    detail: (cv.certifications || []).length > 0
+      ? `${cv.certifications.length} ${cv.certifications.length === 1 ? 'Certificate' : 'Certificates'} Detected`
+      : 'None Detected',
+    detailAr: (cv.certifications || []).length > 0
+      ? `تم استخراج ${cv.certifications.length} شهادة`
+      : 'لا توجد شهادات'
   }];
 
 

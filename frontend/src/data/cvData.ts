@@ -16,13 +16,15 @@ export const emptyCV: CVData = {
   education: [],
   projects: [],
   skills: [],
+  certifications: [],
   sectionOrder: [
     'contact',
     'summary',
     'experience',
     'education',
     'projects',
-    'skills'
+    'skills',
+    'certifications'
   ],
   hiddenSections: [],
   skillsSummary: null
@@ -93,12 +95,13 @@ export const TEMPLATES: {
 
 export const SECTION_META: Record<
   SectionId,
-  {label: string;heading: string;}> =
-{
-  contact: { label: 'Header & Contact', heading: '' },
-  summary: { label: 'Professional Summary', heading: 'Professional Summary' },
-  experience: { label: 'Experience', heading: 'Experience' },
-  education: { label: 'Education', heading: 'Education' },
-  projects: { label: 'Projects', heading: 'Projects' },
-  skills: { label: 'Skills', heading: 'Skills' }
+  { label: string; labelAr: string; heading: string; headingAr: string }
+> = {
+  contact: { label: 'Header & Contact', labelAr: 'البيانات الشخصية والتواصل', heading: '', headingAr: '' },
+  summary: { label: 'Professional Summary', labelAr: 'الملخص المهني', heading: 'Professional Summary', headingAr: 'الملخص المهني' },
+  experience: { label: 'Experience', labelAr: 'الخبرات المهنية', heading: 'Experience', headingAr: 'الخبرات المهنية' },
+  education: { label: 'Education', labelAr: 'المؤهل الدراسي', heading: 'Education', headingAr: 'المؤهلات الدراسية' },
+  projects: { label: 'Projects', labelAr: 'المشاريع التطبيقية', heading: 'Projects', headingAr: 'المشاريع العملية' },
+  skills: { label: 'Skills', labelAr: 'المهارات التقنية', heading: 'Skills', headingAr: 'المهارات' },
+  certifications: { label: 'Certifications', labelAr: 'الشهادات الاحترافية', heading: 'Certifications', headingAr: 'الشهادات والدورات' }
 };
