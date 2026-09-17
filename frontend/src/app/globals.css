@@ -49,19 +49,34 @@
 
 @page {
   size: A4 portrait;
-  margin: 14mm 16mm;
+  margin: 10mm 12mm;
 }
 
 @media print {
-  /* ── Hide everything except the CV ── */
-  body > *,
-  #__next > * {
+  /* ── Hide everything except the CV document ── */
+  header,
+  nav,
+  aside,
+  footer,
+  button,
+  .no-print,
+  [role="banner"],
+  [role="navigation"] {
     display: none !important;
   }
 
-  /* Show only the Next.js root wrapper */
-  #__next {
-    display: block !important;
+  /* Force light background & dark ink */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* Show only the CV article itself */
@@ -80,8 +95,6 @@
     border-radius: 0 !important;
   }
 
-  /* The .no-print-wrapper is the scroll container — keep it display:block
-     so its children (.print-page) are still rendered, but invisible itself */
   .no-print-wrapper {
     display: block !important;
     overflow: visible !important;
@@ -90,34 +103,35 @@
     margin: 0 !important;
   }
 
-  /* Hide everything marked no-print */
-  .no-print {
-    display: none !important;
-  }
-
-  /* Force light background & dark ink */
-  html,
-  body {
-    background: #ffffff !important;
-    color: #0f172a !important;
-  }
-
-  /* The CV article: white, no shadow, no rounding */
-  .print-page {
+  /* The CV article: clean A4 sheet, no shadows or borders, preserve active template font */
+  .print-page,
+  #cv-paper-root {
+    display: block !important;
     width: 100% !important;
-    max-width: none !important;
+    max-width: 100% !important;
     min-height: 0 !important;
     background: #ffffff !important;
+    color: #0f172a !important;
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
-    font-family: Georgia, "Times New Roman", serif !important;
+    margin: 0 auto !important;
   }
 
-  /* Force every text node to black */
+  /* Force every text node to high-contrast dark text */
   .print-page,
   .print-page * {
     color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Official black social icons: KEEP VISIBLE AND CRISP BLACK IN PRINT */
+  .print-page svg {
+    display: inline-block !important;
+    color: #000000 !important;
+    fill: currentColor !important;
+    vertical-align: middle !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -137,14 +151,12 @@
     background-color: #2563eb !important;
   }
 
-  /* Hide lucide icons that are decoration-only (they add clutter) */
-  .print-icon {
-    display: none !important;
+  /* Keep links clean without printing URL after them */
+  .print-page a {
+    text-decoration: none !important;
   }
-
-  /* Make contact list tighter without icons */
-  .print-page header ul li {
-    gap: 0.25rem !important;
+  .print-page a[href]:after {
+    content: none !important;
   }
 }
 

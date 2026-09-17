@@ -399,6 +399,54 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
         cursorY += 4;
       });
     }
+
+    if (sectionId === 'certifications' && cv.certifications && cv.certifications.length > 0) {
+      renderSectionHeading('Certifications & Courses');
+      cv.certifications.forEach((cert) => {
+        if (!cert.name?.trim()) return;
+        checkPageBreak(24);
+
+        doc.setFont(fontBold, 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        const certName = cert.name.trim();
+        const certNameWidth = doc.getTextWidth(certName);
+
+        if (cert.url?.trim()) {
+          doc.textWithLink(certName, marginX, cursorY, { url: formatUrl(cert.url) });
+        } else {
+          doc.text(certName, marginX, cursorY);
+        }
+
+        // Date on right
+        if (cert.date?.trim()) {
+          doc.setFont(fontRegular, 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor(0, 0, 0);
+          doc.text(cert.date.trim(), marginX + contentWidth, cursorY, { align: 'right' });
+        }
+        cursorY += 12;
+
+        // Issuer + Credential Link
+        doc.setFont(fontRegular, 'italic');
+        doc.setFontSize(9.2);
+        doc.setTextColor(0, 0, 0);
+        const issuerText = cert.issuer?.trim() || 'Verified Credential';
+        doc.text(issuerText, marginX, cursorY);
+
+        if (cert.url?.trim()) {
+          const verifyLabel = '[Verify Credential]';
+          doc.setFont(fontRegular, 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(0, 0, 0);
+          const issuerWidth = doc.getTextWidth(issuerText);
+          doc.textWithLink(verifyLabel, marginX + issuerWidth + 8, cursorY, { url: formatUrl(cert.url) });
+        }
+
+        cursorY += 13;
+      });
+      cursorY += 3;
+    }
   });
 
   const saveName = options.fileName

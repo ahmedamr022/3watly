@@ -6,11 +6,12 @@ import type { CVData, TemplateId } from '../types/cv';
 import { generateDirectVectorPdf } from './vectorPdfGenerator';
 
 /**
- * Directly downloads the CV as a clean vector PDF with:
- * - 100% Vector selectable text & clickable links (LinkedIn, GitHub, Portfolio)
- * - Direct browser file download (no print dialog, no print window)
- * - 0 browser headers / footers (no localhost:3000, no date, no page numbers)
- * - True mathematical pagination based on content (1 page if standard, 2 pages if extended)
+ * Directly downloads the CV as a clean high-fidelity PDF with:
+ * - Exact active template layout (Single Column, Two Column, Compact, etc.)
+ * - Official platform SVG icons (LinkedIn, GitHub, Portfolio, etc.)
+ * - All certifications and customized platform names
+ * - True-to-preview font family, margins, and hierarchy
+ * - 100% Vector clickable hyperlinks embedded into the PDF coordinates
  */
 export async function exportCvToPdf(
   elementId: string = 'cv-paper-root',
@@ -18,28 +19,34 @@ export async function exportCvToPdf(
   cvData?: CVData,
   template?: TemplateId
 ): Promise<void> {
-  // If structured CVData is provided, use the pure vector PDF generator
-  if (cvData) {
-    generateDirectVectorPdf(cvData, { fileName, template });
-    return;
+  const element = typeof document !== 'undefined' ? document.getElementById(elementId) : null;
+
+  // Fallback to direct vector generator if DOM element is not mounted
+  if (!element) {
+    if (cvData) {
+      generateDirectVectorPdf(cvData, { fileName, template });
+      return;
+    }
+    throw new Error('CV element not found');
   }
 
-  const element = document.getElementById(elementId);
-  if (!element) throw new Error('CV element not found');
-
-  // Clone element into off-screen container forced to clean print typography
+  // Clone element into off-screen container matching A4 dimensions
   const clone = element.cloneNode(true) as HTMLElement;
   clone.id = 'cv-export-direct-clone';
   clone.style.width = '794px';
   clone.style.maxWidth = '794px';
   clone.style.backgroundColor = '#ffffff';
   clone.style.color = '#0f172a';
-  clone.style.padding = '24px 32px';
   clone.style.margin = '0';
   clone.style.boxShadow = 'none';
   clone.style.border = 'none';
   clone.style.borderRadius = '0';
-  clone.style.fontFamily = 'Georgia, "Times New Roman", serif';
+  
+  // Preserve template's font family
+  const computedFont = element.style.fontFamily || window.getComputedStyle(element).fontFamily;
+  if (computedFont) {
+    clone.style.fontFamily = computedFont;
+  }
 
   // Strip dark mode class overrides
   clone.classList.remove('dark', 'shadow-2xl', 'border', 'rounded-xl', 'rounded-2xl');
@@ -54,6 +61,12 @@ export async function exportCvToPdf(
 
     if (el.tagName === 'H1' || el.tagName === 'H2') {
       el.style.color = '#0f172a';
+    }
+
+    // Force SVG icons to be solid black in export
+    if (el.tagName.toLowerCase() === 'svg') {
+      el.style.color = '#000000';
+      el.style.fill = 'currentColor';
     }
   });
 
@@ -120,6 +133,13 @@ export async function exportCvToPdf(
 
     const cleanName = fileName.replace(/[/\\?%*:|"<>]/g, '_').trim() || 'Resume';
     pdf.save(cleanName.endsWith('.pdf') ? cleanName : `${cleanName}.pdf`);
+  } catch (domExportErr) {
+    console.warn('DOM-based PDF export encountered an issue, falling back to pure vector PDF:', domExportErr);
+    if (cvData) {
+      generateDirectVectorPdf(cvData, { fileName, template });
+    } else {
+      throw domExportErr;
+    }
   } finally {
     if (document.body.contains(container)) {
       document.body.removeChild(container);

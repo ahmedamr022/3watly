@@ -11,7 +11,8 @@ import {
   Redo2Icon,
   Undo2Icon,
   UploadCloudIcon,
-  PlusCircleIcon
+  PlusCircleIcon,
+  PrinterIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCV } from "@/contexts/CVContext";
@@ -228,7 +229,7 @@ export default function CVBuilderPage() {
     >
       <div className="space-y-6 max-w-[1500px] mx-auto pb-12">
         {/* Top Actions & Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+        <div className="no-print flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
           
           {/* Multi-CV Version Selector & Status badge & Direct Upload */}
           <div className="flex flex-wrap items-center gap-3">
@@ -281,7 +282,7 @@ export default function CVBuilderPage() {
             </span>
           </div>
 
-          {/* Controls: Undo/Redo, Preview, Template Selector, Download */}
+          {/* Controls: Undo/Redo, Preview, Template Selector, Print, Download */}
           <div className="flex flex-wrap items-center gap-3">
             
             {/* Undo / Redo */}
@@ -344,6 +345,17 @@ export default function CVBuilderPage() {
               menuWidth="w-[240px]"
             />
 
+            {/* Direct Print Button */}
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] hover:bg-slate-50 dark:hover:bg-white/5 px-3.5 py-2 text-[13px] font-bold text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-xs"
+              title={isAr ? "طباعة السيرة الذاتية أو حفظها عبر المتصفح" : "Print resume or Save as PDF"}
+            >
+              <PrinterIcon className="h-4 w-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+              <span>{isAr ? "طباعة" : "Print"}</span>
+            </button>
+
             {/* Download PDF Button */}
             <button
               type="button"
@@ -363,7 +375,7 @@ export default function CVBuilderPage() {
 
         {/* Empty CV / New User Onboarding Banner */}
         {(!cv.contact.fullName && cv.experience.length === 0 && cv.education.length === 0) && (
-          <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+          <div className="no-print rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white font-black shadow-md text-lg">
                 ✨
