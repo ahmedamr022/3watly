@@ -198,7 +198,7 @@ export function MarketInsights() {
 
         {/* Filter Bar Form */}
         <form
-          className="mt-10 grid gap-4 rounded-[24px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E]/90 backdrop-blur-xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end"
+          className="mt-10 grid gap-4 rounded-[24px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E] p-6 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end"
           onSubmit={handleApplyFilter}
         >
           {/* 1. Target Role */}
@@ -281,7 +281,7 @@ export function MarketInsights() {
         <div className="mt-6 grid gap-6 lg:grid-cols-4">
           
           {/* Salary Trend (Span 2) */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E]/90 backdrop-blur-xl p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:col-span-2 flex flex-col justify-between">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:col-span-2 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
                 <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
@@ -310,7 +310,7 @@ export function MarketInsights() {
           </div>
 
           {/* Market Demand Gauge */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E]/90 backdrop-blur-xl p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col justify-between">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col justify-between">
             <div>
               <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400 border border-blue-100 dark:border-cyan-500/30">
@@ -330,7 +330,7 @@ export function MarketInsights() {
           </div>
 
           {/* Most Requested Skills (Full Text, NO truncation) */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E]/90 backdrop-blur-xl p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col">
             <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/30">
                 <Zap className="h-4 w-4" />
@@ -375,7 +375,7 @@ export function MarketInsights() {
         <div className="mt-6 grid gap-6 lg:grid-cols-4">
           
           {/* Active Job Postings */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E]/90 backdrop-blur-xl p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90">
             <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400 border border-blue-100 dark:border-cyan-500/30">
                 <Briefcase className="h-4 w-4" />
@@ -392,7 +392,7 @@ export function MarketInsights() {
           </div>
 
           {/* Top Hiring Companies */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E]/90 backdrop-blur-xl p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 flex flex-col">
             <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400 border border-blue-100 dark:border-cyan-500/30">
                 <Building2 className="h-4 w-4" />
@@ -414,7 +414,7 @@ export function MarketInsights() {
           </div>
 
           {/* Top Industries (Full Text, NO truncation) */}
-          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E]/90 backdrop-blur-xl p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:col-span-2">
+          <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:col-span-2">
             <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/30">
                 <Building2 className="h-4 w-4" />

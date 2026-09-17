@@ -178,7 +178,7 @@ export function Features() {
             return (
               <div
                 key={card.title}
-                className="flex flex-col rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E]/90 backdrop-blur-xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-[0_15px_35px_-10px_rgba(0,0,0,0.8),0_0_20px_rgba(0,210,255,0.04)] hover:shadow-2xl transition-all duration-300"
+                className="flex flex-col rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E] p-6 shadow-xl shadow-slate-200/50 dark:shadow-[0_15px_35px_-10px_rgba(0,0,0,0.8),0_0_20px_rgba(0,210,255,0.04)] hover:shadow-2xl transition-all duration-300"
               >
                 {/* Header */}
                 <div className="flex items-start gap-3.5">

@@ -173,7 +173,7 @@ export function FinalCta() {
                   key={item.title} 
                   className="flex items-center gap-2
                     bg-white/90 dark:bg-[#060D1E]/90
-                    backdrop-blur-md rounded-xl px-2.5 py-1.5
+                    rounded-xl px-2.5 py-1.5
                     border border-slate-200/80 dark:border-white/10
                     shadow-sm dark:shadow-none"
                 >
@@ -221,7 +221,7 @@ export function FinalCta() {
             <div className="relative rounded-[22px]
               border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30
               bg-white dark:bg-[#060D1E]/95
-              backdrop-blur-xl p-4
+              p-4
               shadow-[0_4px_20px_-2px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.02)]
               dark:shadow-2xl dark:shadow-black/90
               lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:top-0 lg:z-20 lg:w-[225px]"
@@ -261,7 +261,7 @@ export function FinalCta() {
             <div className="mt-3 rounded-[22px]
               border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30
               bg-white dark:bg-[#060D1E]/95
-              backdrop-blur-xl p-4
+              p-4
               shadow-[0_4px_20px_-2px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.02)]
               dark:shadow-2xl dark:shadow-black/90
               lg:mt-0 lg:absolute lg:ltr:right-0 lg:rtl:left-0 lg:top-2 lg:z-10 lg:w-[275px] lg:ltr:pl-9 lg:rtl:pr-9"
@@ -306,7 +306,7 @@ export function FinalCta() {
             <div className="mt-3 rounded-[22px]
               border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30
               bg-white dark:bg-[#060D1E]/95
-              backdrop-blur-xl p-4
+              p-4
               shadow-[0_4px_20px_-2px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.02)]
               dark:shadow-2xl dark:shadow-black/90
               lg:mt-0 lg:absolute lg:ltr:left-0 lg:rtl:right-0 lg:bottom-0 lg:z-10 lg:w-[345px]"
@@ -358,7 +358,7 @@ export function FinalCta() {
             <div className="mt-3 rounded-[22px]
               border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30
               bg-white dark:bg-[#060D1E]/95
-              backdrop-blur-xl p-4
+              p-4
               shadow-[0_4px_20px_-2px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.02)]
               dark:shadow-2xl dark:shadow-black/90
               lg:mt-0 lg:absolute lg:ltr:right-0 lg:rtl:left-0 lg:bottom-0 lg:z-20 lg:w-[210px]"

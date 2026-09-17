@@ -392,7 +392,7 @@ export function MarketTicker() {
             return (
               <div
                 key={`${item.id}-${idx}`}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl min-w-[260px] sm:min-w-[285px] h-[72px] sm:h-[74px] border ${styles.cardBorder} bg-white/95 dark:bg-[#070E22]/90 backdrop-blur-xl transition-all duration-300 shrink-0 cursor-default group ${styles.cardGlow} ${styles.cardHover}`}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl min-w-[260px] sm:min-w-[285px] h-[72px] sm:h-[74px] border ${styles.cardBorder} bg-white dark:bg-[#070E22] transition-all duration-300 shrink-0 cursor-default group ${styles.cardGlow} ${styles.cardHover}`}
               >
                 {/* Tech Icon Squircle */}
                 <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/[0.05] group-hover:scale-105 group-hover:dark:border-white/20 transition-all duration-200 shadow-xs">

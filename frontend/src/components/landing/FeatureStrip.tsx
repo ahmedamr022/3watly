@@ -94,7 +94,7 @@ export function FeatureStrip() {
             rounded-2xl sm:rounded-[22px]
             border border-slate-200/80 dark:border-white/10
             bg-white/85 dark:bg-[#030C1E]/80
-            backdrop-blur-2xl
+            
             px-3 sm:px-4 py-3
             shadow-[0_8px_30px_-4px_rgba(0,0,0,0.07),0_0_1px_rgba(0,0,0,0.04)]
             dark:shadow-[0_12px_40px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.04)]
