@@ -47,13 +47,10 @@ const SKILL_BLACKLIST = new Set([
   'analyst/research', 'analyst / research', 'analysis', 'research',
   'computer science', 'it/software development', 'engineering - telecom/technology',
   'customer service/support', 'customer service', 'support',
-  'sales/retail', 'sales', 'retail', 'accounting/finance', 'accounting', 'finance',
-  'project/program management', 'project management', 'program management',
-  'administration', 'human resources', 'marketing/pr/advertising',
+  'retail',
   'communication', 'teamwork', 'leadership', 'problem solving', 'critical thinking',
-  'analytical skills', 'analytical thinking', 'data analysis', 'business analysis',
-  'data analytics', 'market research', 'quantitative analysis',
 ]);
+
 
 /**
  * Semantic inference: if user knows X, they satisfy competency Y.
@@ -123,9 +120,10 @@ function timeAgo(dateStr: string | null): { en: string; ar: string } {
 function extractExperienceYears(row: any): { en: string; ar: string } {
   const fullText = `${row.title || ''} ${row.description || ''} ${row.requirements || ''}`;
 
-  // 1. Check ranges: "3-5 years", "3 to 6 Yrs", "· 3 - 5 Yrs of Exp ·", "من 3 الى 5 سنوات"
-  const rangeMatch = fullText.match(/(\d+)\s*(?:-|to|إلى|الي)\s*(\d+)\s*(?:years?|yrs?|سنوات|سنة)/i) ||
-                     fullText.match(/·?\s*(\d+)\s*-\s*(\d+)\s*Yrs of Exp/i);
+  // 1. Check ranges: "3-5 years", "3 to 6 Yrs", "2–5 years", "· 3 - 5 Yrs of Exp ·", "من 3 الى 5 سنوات"
+  const rangeMatch = fullText.match(/(\d+)\s*(?:[-–—~]|to|إلى|الي|وحتى|حتى)\s*(\d+)\s*(?:years?|yrs?|سنوات|سنة)/i) ||
+                     fullText.match(/·?\s*(\d+)\s*[-–—~]\s*(\d+)\s*Yrs of Exp/i) ||
+                     fullText.match(/(?:experience needed|خبرة مطلوبة|خبرة)\s*:\s*(\d+)\s*(?:[-–—~]|to|إلى|الي)\s*(\d+)/i);
   if (rangeMatch) {
     const min = parseInt(rangeMatch[1], 10);
     const max = parseInt(rangeMatch[2], 10);
@@ -137,8 +135,10 @@ function extractExperienceYears(row: any): { en: string; ar: string } {
     }
   }
 
-  // 2. Check plus expressions: "6+ years", "+6 years", "more than 5 years", "at least 6 years", "خبرة 6 سنوات", "خبرة لا تقل عن 6 سنوات"
-  const plusMatch = fullText.match(/(?:at least|minimum|more than|min\.?|over|\+)?\s*(\d+)\s*\+?\s*(?:years?|yrs?|سنوات|سنة)\s*(?:of experience|experience|\+)?/i) ||
+  // 2. Check plus expressions: "6+ years", "+6 years", "more than 5 years", "at least 6 years"
+  // Negative lookbehind ensures NOT tail-end of a range like "1-5 years" or "2–5 years"
+  const plusMatch = fullText.match(/(?<!\d\s*[-–—~]\s*)(?:at least|minimum|more than|min\.?|over|\+)\s*(\d+)\s*(?:years?|yrs?|سنوات|سنة)/i) ||
+                    fullText.match(/(?<!\d\s*[-–—~]\s*)(\d+)\s*\+\s*(?:years?|yrs?|سنوات|سنة)/i) ||
                     fullText.match(/(?:خبرة\s*(?:لا تقل عن|\+)?\s*)(\d+)\s*(?:سنوات|سنة)/i);
   if (plusMatch) {
     const years = parseInt(plusMatch[1], 10);
@@ -150,10 +150,10 @@ function extractExperienceYears(row: any): { en: string; ar: string } {
     }
   }
 
-  // 3. Seniority & title fallback
+  // 3. Seniority & title fallback (strict non-manager check)
   const senior = row.seniority || '';
   const title = (row.title || '').toLowerCase();
-  if (senior === 'Senior' || /senior|lead|principal|head|manager|director|expert/i.test(title)) {
+  if (senior === 'Senior' || /(?<!non[- ])manager|senior|lead|principal|director|head of/i.test(title)) {
     return { en: '5+ years', ar: '+٥ سنوات' };
   }
   if (senior === 'Fresh' || /fresh|intern|entry|trainee/i.test(title)) {
@@ -163,8 +163,9 @@ function extractExperienceYears(row: any): { en: string; ar: string } {
     return { en: '1 - 3 years', ar: '١ - ٣ سنوات' };
   }
 
-  return { en: '2 - 4 years', ar: '٢ - ٤ سنوات' };
+  return { en: '1 - 5 years', ar: '١ - ٥ سنوات' };
 }
+
 
 function parseSkillsArray(raw: unknown): string[] {
   if (Array.isArray(raw)) return raw;

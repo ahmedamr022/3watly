@@ -1,7 +1,6 @@
 /**
  * 3WATLY Strict Job Localization & Content Sanitizer
- * Guarantees that English job fields contain strictly English text
- * and Arabic job fields contain strictly Arabic text.
+ * Preserves the employer's real job content while ensuring clean, readable presentation.
  */
 
 export function containsArabic(text?: string | null): boolean {
@@ -11,11 +10,16 @@ export function containsArabic(text?: string | null): boolean {
 
 export function cleanText(text?: string | null): string {
   if (!text) return '';
-  return text.replace(/\s+/g, ' ').trim();
+  return text
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**
- * Ensures the English Job Overview contains only English text.
+ * Ensures the English Job Overview contains real job overview text.
  */
 export function cleanEnglishOverview(
   title?: string,
@@ -27,18 +31,16 @@ export function cleanEnglishOverview(
   const cleanLoc = location || 'Cairo, Egypt';
   const cleanTitle = title || 'Professional';
 
-  if (rawDesc && rawDesc.trim().length > 15 && !containsArabic(rawDesc)) {
-    // If rawDesc is already English, sanitize and use it
+  if (rawDesc && rawDesc.trim().length > 15) {
     const trimmed = cleanText(rawDesc);
     if (trimmed.length > 20) return trimmed;
   }
 
-  // Generate a fluent, professional English overview
   return `A great opportunity for a ${cleanTitle} position at ${cleanComp} in ${cleanLoc}. The role provides a professional environment focused on modern technologies, impactful projects, and continuous career growth.`;
 }
 
 /**
- * Ensures the Arabic Job Overview contains only Arabic text.
+ * Ensures the Arabic Job Overview contains real job overview text.
  */
 export function cleanArabicOverview(
   titleAr?: string,
@@ -50,31 +52,87 @@ export function cleanArabicOverview(
   const cleanLoc = locationAr || 'القاهرة، مصر';
   const cleanTitle = titleAr || 'متخصص';
 
-  if (rawDescAr && rawDescAr.trim().length > 15 && containsArabic(rawDescAr)) {
-    // If rawDescAr is already Arabic, sanitize and use it
+  // Always prefer the employer's real description
+  if (rawDescAr && rawDescAr.trim().length > 15) {
     const trimmed = cleanText(rawDescAr);
     if (trimmed.length > 20) return trimmed;
   }
 
-  // Generate a fluent, professional Arabic overview
   return `فرصة عمل متميزة لمنصب ${cleanTitle} في شركة ${cleanComp} في ${cleanLoc}. توفر الوظيفة بيئة عمل متطورة تركز على أحدث التقنيات، والمشاريع المؤثرة، والنمو المهني المستمر.`;
 }
 
+export function extractListItemsFromText(input?: string | string[] | null): string[] {
+  if (!input) return [];
+  const text = Array.isArray(input) ? input.join('\n') : input;
+  if (!text.trim()) return [];
+
+  // 1. If contains <li>
+  if (/<li[^>]*>/i.test(text)) {
+    const matches = [...text.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)];
+    const items = matches
+      .map(m => cleanText(m[1]))
+      .filter(s => s.length > 5 && !/^(?:key responsibilities|requirements|about|role overview|what we're looking for)$/i.test(s));
+    if (items.length > 0) return items;
+  }
+
+  // 2. If contains <p>
+  if (/<p[^>]*>/i.test(text)) {
+    const matches = [...text.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)];
+    const items = matches
+      .map(m => cleanText(m[1]))
+      .filter(s => s.length > 10 && !/^(?:key responsibilities|responsibilities|requirements|qualifications|about|role overview|essential|preferred|what we're looking for|job requirements)$/i.test(s));
+    if (items.length > 0) return items;
+  }
+
+  // 3. Fallback: split on newlines, bullets, or periods followed by uppercase
+  return text
+    .replace(/<[^>]+>/g, '\n')
+    .split(/\n|•|\.(?=\s[A-Z]|$)/)
+    .map(s => cleanText(s))
+    .filter(s => s.length > 5 && !/^(?:key responsibilities|responsibilities|requirements|qualifications)$/i.test(s));
+}
+
+export function partitionResponsibilitiesAndRequirements(rawReq?: string | null, rawDesc?: string | null): {
+  responsibilities: string[];
+  requirements: string[];
+} {
+  const combined = `${rawDesc || ''}\n${rawReq || ''}`;
+  if (!combined.trim()) return { responsibilities: [], requirements: [] };
+
+  // Look for section divider like "Requirements" or "Qualifications"
+  const reqIdx = combined.search(/<strong>\s*(?:Requirements|Qualifications|Job Requirements|المتطلبات|شروط الوظيفة)\s*<\/strong>|(?:\bRequirements\b|\bQualifications\b)/i);
+
+  let respPart = combined;
+  let reqPart = rawReq || '';
+
+  if (reqIdx !== -1) {
+    respPart = combined.slice(0, reqIdx);
+    reqPart = combined.slice(reqIdx);
+  }
+
+  const respItems = extractListItemsFromText(respPart);
+  const reqItems = extractListItemsFromText(reqPart);
+
+  return {
+    responsibilities: respItems.length > 0 ? respItems : extractListItemsFromText(combined).slice(0, 6),
+    requirements: reqItems.length > 0 ? reqItems : extractListItemsFromText(combined).slice(6),
+  };
+}
+
 /**
- * Ensures English Key Responsibilities contain only English bullet points.
+ * Ensures English Key Responsibilities contain real bullet points.
  */
 export function cleanEnglishResponsibilities(
   title?: string,
-  rawLines?: string[] | null,
+  rawLines?: string | string[] | null,
   skills?: string[]
 ): string[] {
   const cleanTitle = title || 'the role';
-  const englishLines = (rawLines || [])
-    .map(line => cleanText(line))
-    .filter(line => line.length > 5 && !containsArabic(line));
+  const extracted = extractListItemsFromText(rawLines);
+  const cleaned = extracted.filter(line => line.length > 5);
 
-  if (englishLines.length >= 3) {
-    return englishLines.slice(0, 6);
+  if (cleaned.length >= 2) {
+    return cleaned.slice(0, 12);
   }
 
   const primarySkill = skills && skills.length > 0 ? skills[0] : null;
@@ -91,20 +149,20 @@ export function cleanEnglishResponsibilities(
 }
 
 /**
- * Ensures Arabic Key Responsibilities contain only Arabic bullet points.
+ * Ensures Arabic Key Responsibilities contain real bullet points.
  */
 export function cleanArabicResponsibilities(
   titleAr?: string,
-  rawLinesAr?: string[] | null,
+  rawLinesAr?: string | string[] | null,
   skills?: string[]
 ): string[] {
   const cleanTitle = titleAr || 'الوظيفة';
-  const arabicLines = (rawLinesAr || [])
-    .map(line => cleanText(line))
-    .filter(line => line.length > 5 && containsArabic(line));
+  const extracted = extractListItemsFromText(rawLinesAr);
+  const cleaned = extracted.filter(line => line.length > 5);
 
-  if (arabicLines.length >= 3) {
-    return arabicLines.slice(0, 6);
+  // Always prefer the employer's real responsibilities
+  if (cleaned.length >= 2) {
+    return cleaned.slice(0, 12);
   }
 
   const primarySkill = skills && skills.length > 0 ? skills[0] : null;
@@ -121,19 +179,18 @@ export function cleanArabicResponsibilities(
 }
 
 /**
- * Ensures English Requirements contain only English bullet points.
+ * Ensures English Requirements contain real bullet points.
  */
 export function cleanEnglishRequirements(
   title?: string,
-  rawLines?: string[] | null,
+  rawLines?: string | string[] | null,
   skills?: string[]
 ): string[] {
-  const englishLines = (rawLines || [])
-    .map(line => cleanText(line))
-    .filter(line => line.length > 5 && !containsArabic(line));
+  const extracted = extractListItemsFromText(rawLines);
+  const cleaned = extracted.filter(line => line.length > 5);
 
-  if (englishLines.length >= 3) {
-    return englishLines.slice(0, 6);
+  if (cleaned.length >= 2) {
+    return cleaned.slice(0, 12);
   }
 
   const reqSkillsList = (skills || []).slice(0, 4);
@@ -150,19 +207,19 @@ export function cleanEnglishRequirements(
 }
 
 /**
- * Ensures Arabic Requirements contain only Arabic bullet points.
+ * Ensures Arabic Requirements contain real bullet points.
  */
 export function cleanArabicRequirements(
   titleAr?: string,
-  rawLinesAr?: string[] | null,
+  rawLinesAr?: string | string[] | null,
   skills?: string[]
 ): string[] {
-  const arabicLines = (rawLinesAr || [])
-    .map(line => cleanText(line))
-    .filter(line => line.length > 5 && containsArabic(line));
+  const extracted = extractListItemsFromText(rawLinesAr);
+  const cleaned = extracted.filter(line => line.length > 5);
 
-  if (arabicLines.length >= 3) {
-    return arabicLines.slice(0, 6);
+  // Always prefer the employer's real requirements
+  if (cleaned.length >= 2) {
+    return cleaned.slice(0, 12);
   }
 
   const reqSkillsList = (skills || []).slice(0, 4);
@@ -177,3 +234,4 @@ export function cleanArabicRequirements(
     `مؤهل جامعي مناسب في التخصص أو ما يعادله من خبرة عملية.`
   ];
 }
+
