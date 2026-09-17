@@ -243,20 +243,7 @@ export default function CVBuilderPage() {
               className="hidden"
             />
 
-            <button
-              type="button"
-              disabled={isUploading}
-              onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-500/30 bg-blue-50/70 hover:bg-blue-100/70 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-[#1B57E0] dark:text-[#60A5FA] text-[12.5px] font-bold transition-all cursor-pointer shadow-xs disabled:opacity-50"
-              title={isAr ? "رفع واستخراج بيانات سيرة ذاتية جديدة" : "Upload & import a resume"}
-            >
-              {isUploading ? (
-                <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <UploadCloudIcon className="h-3.5 w-3.5" />
-              )}
-              <span>{isUploading ? (isAr ? "جاري الرفع..." : "Uploading...") : (isAr ? "رفع CV جديد" : "Upload CV")}</span>
-            </button>
+
 
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12.5px] font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/30"

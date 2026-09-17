@@ -1,14 +1,15 @@
 "use client";
 
 import React from 'react';
-import { Globe, Link as LinkIcon } from 'lucide-react';
+import { Link as LinkIcon } from 'lucide-react';
 import { 
   FaLinkedin, 
   FaGithub, 
   FaXTwitter, 
   FaDribbble, 
   FaMedium, 
-  FaDev 
+  FaDev,
+  FaGlobe
 } from 'react-icons/fa6';
 import { useCV } from '../../contexts/CVContext';
 import { SECTION_META } from '../../data/cvData';
@@ -40,7 +41,7 @@ const STYLES: Record<TemplateId, StyleConfig> = {
     contact: 'mt-1.5 text-[11.5px] text-slate-700 dark:text-slate-300 text-center',
     heading: 'text-[12.5px] sm:text-[13px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
     headingRule: 'mt-1 border-b border-slate-900 dark:border-white/30',
-    body: 'text-[11.5px] sm:text-[12px] leading-[1.55] text-slate-800 dark:text-slate-200',
+    body: 'text-[11.5px] sm:text-[12px] leading-[1.55] text-slate-900 dark:text-slate-100',
     itemTitle: 'text-[12.5px] sm:text-[13px] font-bold text-slate-900 dark:text-white',
     itemSub: 'text-[12px] sm:text-[12.5px] italic text-slate-700 dark:text-slate-300',
     meta: 'text-[11.5px] sm:text-[12px] text-slate-600 dark:text-slate-400 font-medium',
@@ -55,7 +56,7 @@ const STYLES: Record<TemplateId, StyleConfig> = {
     contact: 'mt-1 text-[11px] text-slate-700 dark:text-slate-300 text-center',
     heading: 'text-[12px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
     headingRule: 'mt-0.5 border-b border-slate-900 dark:border-white/30',
-    body: 'text-[11px] sm:text-[11.5px] leading-[1.45] text-slate-800 dark:text-slate-200',
+    body: 'text-[11px] sm:text-[11.5px] leading-[1.45] text-slate-900 dark:text-slate-100',
     itemTitle: 'text-[12px] sm:text-[12.5px] font-bold text-slate-900 dark:text-white',
     itemSub: 'text-[11.5px] sm:text-[12px] italic text-slate-700 dark:text-slate-300',
     meta: 'text-[11px] text-slate-600 dark:text-slate-400 font-medium',
@@ -70,7 +71,7 @@ const STYLES: Record<TemplateId, StyleConfig> = {
     contact: 'mt-1.5 text-[11px] text-slate-700 dark:text-slate-300 text-center',
     heading: 'text-[12px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
     headingRule: 'mt-1 border-b border-slate-900 dark:border-white/30',
-    body: 'text-[11px] sm:text-[11.5px] leading-[1.5] text-slate-800 dark:text-slate-200',
+    body: 'text-[11px] sm:text-[11.5px] leading-[1.5] text-slate-900 dark:text-slate-100',
     itemTitle: 'text-[12px] sm:text-[12.5px] font-bold text-slate-900 dark:text-white',
     itemSub: 'text-[11.5px] italic text-slate-700 dark:text-slate-300',
     meta: 'text-[11px] text-slate-600 dark:text-slate-400 font-medium',
@@ -85,7 +86,7 @@ const STYLES: Record<TemplateId, StyleConfig> = {
     contact: 'mt-1.5 text-[11px] sm:text-[11.5px] text-slate-700 dark:text-slate-300 text-center',
     heading: 'text-[12.5px] sm:text-[13px] font-bold uppercase tracking-widest text-slate-900 dark:text-white',
     headingRule: 'mt-1 border-b border-slate-900 dark:border-white/30',
-    body: 'text-[11.5px] sm:text-[12px] leading-[1.6] text-slate-800 dark:text-slate-200',
+    body: 'text-[11.5px] sm:text-[12px] leading-[1.6] text-slate-900 dark:text-slate-100',
     itemTitle: 'text-[12.5px] sm:text-[13px] font-bold text-slate-900 dark:text-white',
     itemSub: 'text-[12px] italic text-slate-700 dark:text-slate-300',
     meta: 'text-[11.5px] text-slate-600 dark:text-slate-400',
@@ -100,7 +101,7 @@ const STYLES: Record<TemplateId, StyleConfig> = {
     contact: 'mt-1.5 text-[11px] sm:text-[11.5px] text-slate-700 dark:text-slate-300 text-center',
     heading: 'text-[12.5px] sm:text-[13px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
     headingRule: 'mt-1 border-b border-slate-900 dark:border-white/30',
-    body: 'text-[11.5px] sm:text-[12px] leading-[1.55] text-slate-800 dark:text-slate-200',
+    body: 'text-[11.5px] sm:text-[12px] leading-[1.55] text-slate-900 dark:text-slate-100',
     itemTitle: 'text-[12.5px] sm:text-[13px] font-bold text-slate-900 dark:text-white',
     itemSub: 'text-[12px] sm:text-[12.5px] italic text-slate-700 dark:text-slate-300',
     meta: 'text-[11.5px] text-slate-600 dark:text-slate-400 font-medium',
@@ -135,7 +136,7 @@ function getPlatformIcon(platform?: string) {
   if (p.includes('dribbble')) return FaDribbble;
   if (p.includes('medium')) return FaMedium;
   if (p.includes('dev')) return FaDev;
-  if (p.includes('portfolio') || p.includes('personal') || p.includes('web') || p.includes('site')) return Globe;
+  if (p.includes('portfolio') || p.includes('personal') || p.includes('web') || p.includes('site')) return FaGlobe;
   return LinkIcon;
 }
 
