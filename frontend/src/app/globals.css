@@ -445,40 +445,61 @@ html.dark .cv-scroll-viewport::-webkit-scrollbar-thumb:hover {
 
 /* Light mode overrides */
 html:not(.dark) .tech-card-shell {
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 8px 24px -6px rgba(0, 0, 0, 0.08), 0 0 16px rgba(56, 189, 248, 0.15) !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(15, 23, 42, 0.07), 0 2px 6px rgba(15, 23, 42, 0.03) !important;
 }
 
 html:not(.dark) .tech-card-glow {
-  opacity: 0.25 !important;
+  opacity: 0.15 !important;
+}
+
+html:not(.dark) .tech-card-node {
+  display: none !important;
 }
 
 html:not(.dark) .tech-card-inner {
-  background: linear-gradient(155deg, rgba(248, 252, 255, 0.97) 0%, rgba(255, 255, 255, 0.99) 55%, rgba(240, 248, 255, 0.96) 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 12px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(148,198,255,0.3);
+  background: linear-gradient(175deg, #FFFFFF 0%, #F8FAFC 100%) !important;
+  box-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04), inset 0 1px 0 #FFFFFF !important;
+  border: 1px solid rgba(226, 232, 240, 0.95);
 }
 
 html:not(.dark) .tech-card-squircle {
-  background: linear-gradient(150deg, rgba(241, 245, 249, 0.95) 0%, rgba(255, 255, 255, 0.98) 75%) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(203, 213, 225, 0.8) !important;
+  background: linear-gradient(145deg, #FFFFFF 0%, #F1F5F9 100%) !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05), inset 0 1px 0 #FFFFFF !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+}
+
+html:not(.dark) .tech-card-icon-img {
+  filter: drop-shadow(0 1.5px 2px rgba(15, 23, 42, 0.1)) !important;
 }
 
 html:not(.dark) .tech-card-title {
-  color: #0F172A;
+  color: #0F172A !important;
+  text-shadow: none !important;
+  font-weight: 800;
+  letter-spacing: -0.015em;
 }
 
 html:not(.dark) .tech-card-subtitle {
-  color: #475569 !important;
+  color: #334155 !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 html:not(.dark) .tech-card-chevron-bg {
-  background: linear-gradient(150deg, rgba(56,189,248,0.15) 0%, rgba(240,249,255,0.9) 80%);
+  background: #F1F5F9 !important;
+  border: 1px solid rgba(203, 213, 225, 0.8) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+}
+
+html:not(.dark) .tech-card-chevron-icon {
+  color: #1D4ED8 !important;
+  filter: none !important;
 }
 
 /* Light mode: make neon wave visible on light background */
 html:not(.dark) .tech-marquee-wave {
-  opacity: 0.45;
-  filter: saturate(1.2);
+  opacity: 0.42;
+  filter: saturate(1.25);
 }
 
 /* Light mode: spark nodes dimmer */

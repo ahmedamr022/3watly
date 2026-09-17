@@ -219,7 +219,7 @@ export function ContactSection() {
                     <select
                       value={link.platform}
                       onChange={(e) => updateSocialLink(link.id, 'platform', e.target.value as SocialPlatform)}
-                      className="w-full h-9 pl-9 pr-7 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-[#060913] text-[12.5px] font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer appearance-none"
+                      className="w-full h-9 pl-9 pr-7 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-[#040816] text-[12.5px] font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer appearance-none"
                     >
                       {PLATFORMS.map((p) => (
                         <option key={p.id} value={p.id} className="bg-white dark:bg-[#0B1120] text-slate-900 dark:text-white">
@@ -250,12 +250,12 @@ export function ContactSection() {
                           ? 'https://medium.com/@username'
                           : 'https://yourwebsite.com'
                       }
-                      className="w-full h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-[#060913] text-[12.5px] text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 font-sans"
+                      className="w-full h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-[#040816] text-[12.5px] text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 font-sans"
                     />
                   </div>
 
                   {/* Up / Down Reorder Buttons */}
-                  <div className="flex items-center gap-0.5 border border-slate-200/90 dark:border-white/10 rounded-xl bg-slate-50/80 dark:bg-[#060913] p-0.5 shrink-0">
+                  <div className="flex items-center gap-0.5 border border-slate-200/90 dark:border-white/10 rounded-xl bg-slate-50/80 dark:bg-[#040816] p-0.5 shrink-0">
                     <button
                       type="button"
                       disabled={index === 0}

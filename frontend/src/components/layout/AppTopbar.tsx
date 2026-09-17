@@ -104,7 +104,7 @@ export function AppTopbar({
 
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-white/95 dark:bg-[#060913]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 transition-colors duration-300">
+    <header className="sticky top-0 z-30 w-full bg-white/95 dark:bg-[#040816]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 transition-colors duration-300">
       {/* Hidden File Input for Avatar Upload */}
       <input
         type="file"

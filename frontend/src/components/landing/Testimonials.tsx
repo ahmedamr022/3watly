@@ -62,7 +62,7 @@ export function Testimonials() {
       ];
 
   return (
-    <section id="testimonials" className="w-full bg-white dark:bg-[#060913] pt-16 pb-10 px-6 sm:px-10 lg:px-16 border-t border-slate-100 dark:border-white/5 transition-colors duration-300">
+    <section id="testimonials" className="w-full bg-white dark:bg-[#040816] pt-16 pb-10 px-6 sm:px-10 lg:px-16 border-t border-slate-100 dark:border-white/5 transition-colors duration-300">
       <div className="max-w-[1400px] mx-auto">
         
         {/* Section Heading */}

@@ -60,7 +60,7 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/logo.png" />
         <link rel="apple-touch-icon" href="/logo.png" />
       </head>
-      <body className="antialiased min-h-screen bg-[#F8FAFC] dark:bg-[#060913] text-slate-900 dark:text-slate-100 selection:bg-blue-600 selection:text-white font-sans" suppressHydrationWarning>
+      <body className="antialiased min-h-screen bg-[#F8FAFC] dark:bg-[#040816] text-slate-900 dark:text-slate-100 selection:bg-blue-600 selection:text-white font-sans" suppressHydrationWarning>
         <AppProviders>
           {children}
         </AppProviders>

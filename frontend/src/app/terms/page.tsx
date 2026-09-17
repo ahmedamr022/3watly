@@ -69,7 +69,7 @@ export default function TermsPage() {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-[#F8FAFC] dark:bg-[#060913] text-[#0F172A] dark:text-white flex flex-col justify-between">
+    <div className="min-h-screen w-full bg-[#F8FAFC] dark:bg-[#040816] text-[#0F172A] dark:text-white flex flex-col justify-between">
       
       {/* Top Navbar Header */}
       <header className="w-full border-b border-slate-200/80 dark:border-white/5 bg-white/80 dark:bg-[#0B1120]/80 backdrop-blur-md sticky top-0 z-40">

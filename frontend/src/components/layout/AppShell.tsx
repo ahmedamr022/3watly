@@ -31,7 +31,7 @@ export function AppShell({ children, title, subtitle, showSearch = true }: AppSh
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#F8FAFC] dark:bg-[#060913] text-[#1E293B] dark:text-[#F8FAFC] flex transition-colors duration-300">
+    <div className="relative min-h-screen w-full bg-[#F8FAFC] dark:bg-[#040816] text-[#1E293B] dark:text-[#F8FAFC] flex transition-colors duration-300">
       
       {/* Dynamic Background Graphics */}
       <div 

@@ -63,7 +63,7 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
 
         {/* Glowing node sitting directly on the card perimeter */}
         <span
-          className="pointer-events-none absolute -left-[1px] bottom-3.5 h-2 w-2 rounded-full"
+          className="tech-card-node pointer-events-none absolute -left-[1px] bottom-3.5 h-2 w-2 rounded-full"
           style={{
             background: '#ffffff',
             boxShadow: `0 0 8px 2px rgb(${a} / 0.95), 0 0 18px 6px rgb(${a} / 0.5)`
@@ -71,7 +71,7 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
           aria-hidden="true"
         />
         <span
-          className="pointer-events-none absolute right-7 top-0 h-1.5 w-1.5 rounded-full"
+          className="tech-card-node pointer-events-none absolute right-7 top-0 h-1.5 w-1.5 rounded-full"
           style={{
             background: '#ffffff',
             boxShadow: `0 0 8px 2px rgb(${b} / 0.9)`
@@ -89,7 +89,7 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
           }}
         >
           <span
-            className="block h-6 w-6 sm:h-[26px] sm:w-[26px]"
+            className="tech-card-icon-img block h-6 w-6 sm:h-[26px] sm:w-[26px]"
             style={{
               filter: `drop-shadow(0 0 8px rgb(${a} / 0.7)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6))`
             }}
@@ -124,7 +124,7 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
           aria-hidden="true"
         >
           <ChevronRight
-            className="h-3.5 w-3.5"
+            className="tech-card-chevron-icon h-3.5 w-3.5"
             strokeWidth={2.5}
             style={{
               color: `rgb(${a})`,
