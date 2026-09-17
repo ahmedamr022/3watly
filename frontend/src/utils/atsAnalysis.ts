@@ -308,7 +308,7 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
   const standardHeadings = requiredSections.every((id) => {
     if (cv.hiddenSections.includes(id)) return false;
     if (id === 'summary') return cv.summary.trim() !== '';
-    if (id === 'experience') return cv.experience.length > 0;
+    if (id === 'experience') return cv.experience.length > 0 || cv.projects.length > 0;
     if (id === 'education') return cv.education.length > 0;
     return cv.skills.length > 0;
   });
@@ -326,7 +326,7 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
     labelAr: 'عناوين أقسام قياسية ومعتمدة',
     passed: standardHeadings,
     hint: 'ATS parsers look for conventional headings like Experience, Education and Skills.',
-    hintAr: 'أنظمة الفرز الآلي تبحث عن العناوين التقليدية المتعارف عليها مثل الخبرات والمؤهلات والمهارات.'
+    hintAr: 'أنظمة الفرز الآلي تبحث عن العناوين التقليدية المتعارف عليها مثل الخبرات والمشاريع والمؤهلات والمهارات.'
   },
   {
     id: 'columns',
@@ -361,6 +361,21 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
     cv.contact.phone && (
     cv.contact.location || cv.contact.linkedin)
   );
+
+  const hasExp = (cv.experience || []).length > 0;
+  const hasProj = (cv.projects || []).length > 0;
+  const expPassed = hasExp || hasProj;
+
+  let expDetailEn = '0 Roles Detected';
+  let expDetailAr = 'لم يتم العثور على خبرات';
+  if (hasExp) {
+    expDetailEn = `${cv.experience.length} ${cv.experience.length === 1 ? 'Role' : 'Roles'} Detected`;
+    expDetailAr = `تم استخراج ${cv.experience.length} وظائف`;
+  } else if (hasProj) {
+    expDetailEn = `${cv.projects.length} Technical Projects (Applied Experience)`;
+    expDetailAr = `تم استخراج ${cv.projects.length} مشاريع عملية (خبرة تطبيقية)`;
+  }
+
   const parserItems: CheckItem[] = [
   {
     id: 'contact',
@@ -374,12 +389,11 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
   {
     id: 'experience',
     icon: 'experience',
-    label: 'Work Experience',
-    labelAr: 'الخبرات العملية',
-    passed: cv.experience.length > 0,
-    detail: `${cv.experience.length} ${
-    cv.experience.length === 1 ? 'Role' : 'Roles'} Detected`,
-    detailAr: `تم استخراج ${cv.experience.length} وظائف`
+    label: 'Work & Project Experience',
+    labelAr: 'الخبرات والمشاريع العملية',
+    passed: expPassed,
+    detail: expDetailEn,
+    detailAr: expDetailAr
   },
   {
     id: 'education',
@@ -399,6 +413,7 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
     detail: `${skillCount} Skills Detected`,
     detailAr: `تم استخراج ${skillCount} مهارة`
   }];
+
 
 
   /* ---------------------------------- keywords ---------------------------- */
@@ -472,17 +487,21 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
     });
   }
 
-  // Fix: experience entries with too few bullets
-  const thinExperiences = cv.experience.filter(
-    (e) => e.bullets.filter((b) => b.trim().length > 0).length < 2
+  // Fix: experience or project entries with too few bullets
+  const thinExperiences = (cv.experience || []).filter(
+    (e) => (e.bullets || []).filter((b) => b.trim().length > 0).length < 2
   );
-  if (thinExperiences.length > 0) {
+  const thinProjects = (cv.projects || []).filter(
+    (p) => (p.bullets || []).filter((b) => b.trim().length > 0).length < 2
+  );
+  const totalThin = thinExperiences.length + thinProjects.length;
+  if (totalThin > 0) {
     fixes.push({
       id: 'few-bullets',
-      title: 'Add detail bullets to your experience',
-      titleAr: 'إضافة نقاط تفصيلية لخبراتك العملية',
-      why: `${thinExperiences.length} role(s) have fewer than 2 bullets — ATS treats them as incomplete.`,
-      whyAr: `${thinExperiences.length} وظيفة تحتوي على أقل من نقطتين — الـ ATS يعتبرها غير مكتملة.`,
+      title: 'Add detail bullets to your roles & projects',
+      titleAr: 'إضافة نقاط تفصيلية للخبرات والمشاريع',
+      why: `${totalThin} entry(ies) have fewer than 2 bullets — ATS parsers rank sparse sections as incomplete.`,
+      whyAr: `${totalThin} مدخل يحتوي على أقل من نقطتين — أنظمة الـ ATS تصنف الأقسام المختصرة كغير مكتملة.`,
     });
   }
 
@@ -512,15 +531,17 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
   }
 
   // Fix: bullets lack measurable impact
-  if (impact < 0.7) {
+  const totalBulletsCount = (cv.experience || []).flatMap(e => e.bullets || []).length + (cv.projects || []).flatMap(p => p.bullets || []).length;
+  if (impact < 0.7 && totalBulletsCount > 0) {
     fixes.push({
       id: 'metrics',
-      title: 'Strengthen your experience bullets',
-      titleAr: 'تقوية نقاط خبراتك العملية',
-      why: 'Action-led bullets with strong verbs get 2.3× more interview shortlists.',
-      whyAr: 'النقاط التي تبدأ بأفعال قوية وتحتوي على نتائج ملموسة تزيد فرص الترشح بـ 2.3 ضعف.',
+      title: 'Strengthen achievement bullets with action verbs & metrics',
+      titleAr: 'تقوية صياغة الإنجازات والنتائج بالأرقام (معادلة X-Y-Z)',
+      why: 'Action-led bullets with quantified metrics (Google X-Y-Z formula) increase interview shortlists by 2.3×.',
+      whyAr: 'النقاط التي تبدأ بأفعال قوية وتحتوي على أرقام ونتائج ملموسة (معادلة X-Y-Z) ترفع فرص القبول بـ 2.3 ضعف.',
     });
   }
+
 
   // Fix: missing skills summary
   if (!cv.skillsSummary) {

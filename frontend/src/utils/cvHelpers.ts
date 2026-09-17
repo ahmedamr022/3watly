@@ -45,8 +45,11 @@ export function totalSkills(cv: CVData): number {
 }
 
 export function experienceBullets(cv: CVData): string[] {
-  return cv.experience.flatMap((item) => item.bullets);
+  const exp = (cv.experience || []).flatMap((item) => item.bullets || []);
+  const prj = (cv.projects || []).flatMap((item) => item.bullets || []);
+  return [...exp, ...prj];
 }
+
 
 /** Share of experience bullets that carry a measurable number. */
 export function metricRatio(cv: CVData): number {

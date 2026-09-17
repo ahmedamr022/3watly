@@ -12,7 +12,7 @@ import React, {
 import { toast } from 'sonner';
 import { initialCV } from '../data/cvData';
 import type { CVData, CVVersion, FixId, SaveStatus, TemplateId } from '../types/cv';
-import { analyzeCV, type Analysis } from '../utils/atsAnalysis';
+import { analyzeCV, getMarketKeywordsForRole, type Analysis } from '../utils/atsAnalysis';
 import { enhanceBullet } from '../utils/cvHelpers';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from './AuthContext';
@@ -38,7 +38,7 @@ interface CVContextValue {
   canUndo: boolean;
   canRedo: boolean;
   analysis: Analysis;
-  applyFix: (id: FixId) => string;
+  applyFix: (id: FixId) => Promise<string>;
 
   // Multi-CV Version Management
   versions: CVVersion[];
@@ -731,156 +731,311 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const analysis = useMemo(() => analyzeCV(history.present, template), [history.present, template]);
 
   const applyFix = useCallback(
-    (id: FixId): string => {
+    async (id: FixId): Promise<string> => {
       let toastMessage = '';
+      const current = cvRef.current;
+      const targetRole = current.contact.jobTitle || activeVersion?.targetRole || 'Professional';
+      const flatSkills: string[] = current.skills.flatMap((g) => g.skills);
 
-      // Role-specific default content helpers
-      const getRoleKey = (jobTitle: string) => {
-        const t = (jobTitle || '').toLowerCase();
-        if (/machine learning|ml|ai|computer vision|deep learning/.test(t)) return 'ml';
-        if (/frontend|react|web/.test(t)) return 'frontend';
-        if (/backend|node|php|laravel/.test(t)) return 'backend';
-        return 'data';
-      };
+      switch (id) {
+        case 'metrics': {
+          const hasExp = (current.experience || []).length > 0;
+          const hasProj = (current.projects || []).length > 0;
 
-      const ROLE_SUMMARY: Record<string, string> = {
-        ml: 'Aspiring Machine Learning Engineer with hands-on experience in model development, computer vision, and data preprocessing. Proficient in Python, TensorFlow, and Scikit-Learn. Passionate about applying AI to solve real-world problems in the Egyptian tech ecosystem.',
-        frontend: 'Frontend Developer with solid experience building responsive, performant web interfaces using React and Next.js. Skilled in TypeScript, Tailwind CSS, and modern UI/UX principles.',
-        backend: 'Backend Engineer with experience building scalable REST APIs and database-driven systems. Proficient in Node.js/Python and relational databases.',
-        data: 'Junior Data Analyst with hands-on experience in Exploratory Data Analysis (EDA), data visualization, and machine learning. Skilled in Python, SQL, and Power BI. Passionate about uncovering insights that drive data-informed decisions in the Egyptian market.',
-      };
-
-      const ROLE_SKILLS: Record<string, string[]> = {
-        ml: ['Python', 'TensorFlow', 'PyTorch', 'Scikit-Learn', 'OpenCV', 'Pandas', 'NumPy', 'Deep Learning', 'Computer Vision', 'Git'],
-        frontend: ['React', 'TypeScript', 'Next.js', 'Tailwind CSS', 'JavaScript', 'HTML5', 'CSS3', 'Git', 'REST APIs', 'Redux'],
-        backend: ['Node.js', 'Python', 'SQL', 'PostgreSQL', 'REST APIs', 'Docker', 'Git', 'Express', 'Redis', 'Linux'],
-        data: ['SQL', 'Python', 'Power BI', 'Excel', 'Pandas', 'Tableau', 'Data Visualization', 'Statistical Analysis', 'Data Cleaning', 'Git'],
-      };
-
-      const ROLE_BULLETS: Record<string, string[]> = {
-        ml: [
-          'Developed and trained machine learning models to solve real-world classification and regression problems.',
-          'Implemented data preprocessing and feature engineering pipelines to improve model performance.',
-          'Conducted exploratory data analysis (EDA) to uncover trends and patterns in large datasets.',
-        ],
-        frontend: [
-          'Built responsive and accessible web interfaces using React and Tailwind CSS.',
-          'Integrated REST APIs and managed application state using React Query and Context.',
-          'Collaborated with designers to translate Figma mockups into production-ready components.',
-        ],
-        backend: [
-          'Designed and implemented RESTful APIs serving high-traffic client applications.',
-          'Optimized SQL queries and database schemas to improve response times.',
-          'Wrote unit and integration tests to ensure code reliability and maintainability.',
-        ],
-        data: [
-          'Analyzed datasets using Python (Pandas, NumPy) to extract actionable business insights.',
-          'Built interactive dashboards in Power BI / Tableau to support executive decision-making.',
-          'Cleaned and transformed raw data from multiple sources to ensure consistency and accuracy.',
-        ],
-      };
-
-      update((prev) => {
-        const roleKey = getRoleKey(prev.contact.jobTitle || '');
-
-        switch (id) {
-          case 'summary-missing': {
-            const summaryText = ROLE_SUMMARY[roleKey];
-            toastMessage = 'Added an ATS-optimized Professional Summary.';
-            return { ...prev, summary: summaryText };
+          if (!hasExp && !hasProj) {
+            toastMessage = 'لا توجد خبرات أو مشاريع مسجلة بعد لتطبيق تحسين الصياغة عليها.';
+            return toastMessage;
           }
 
-          case 'summary-short': {
-            const existing = prev.summary.trim();
-            const extension = ` ${ROLE_SUMMARY[roleKey].split('. ').slice(-1)[0]}`;
-            const expanded = existing.endsWith('.') ? `${existing}${extension}` : `${existing}. ${extension.trim()}`;
-            toastMessage = 'Expanded your Professional Summary with more ATS-friendly content.';
-            return { ...prev, summary: expanded };
-          }
+          toast.loading(
+            'جاري استدعاء الذكاء الاصطناعي (Gemini) لإعادة صياغة الإنجازات وفق معايير ATS ومعادلة X-Y-Z...',
+            { id: 'ats-fix' }
+          );
 
-          case 'linkedin-missing': {
-            toastMessage = 'Please enter your actual LinkedIn profile URL in the Contact section.';
-            return prev;
-          }
-
-          case 'few-bullets': {
-            const additions = ROLE_BULLETS[roleKey];
-            const exp = prev.experience.map((item) => {
-              const nonEmpty = item.bullets.filter((b) => b.trim().length > 0);
-              if (nonEmpty.length < 2) {
-                const needed = Math.max(0, 3 - nonEmpty.length);
-                return { ...item, bullets: [...nonEmpty, ...additions.slice(0, needed)] };
+          try {
+            let newExp = current.experience;
+            if (hasExp) {
+              const allExpBullets = current.experience.flatMap((e) => e.bullets || []).filter(b => b.trim().length > 0);
+              if (allExpBullets.length > 0) {
+                const res = await fetch('/api/cv/enhance', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    type: 'bullets',
+                    role: targetRole,
+                    skills: flatSkills,
+                    bullets: allExpBullets
+                  })
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  if (Array.isArray(data.bullets) && data.bullets.length > 0) {
+                    let cursor = 0;
+                    newExp = current.experience.map((item) => {
+                      const count = (item.bullets || []).length;
+                      const enhancedSlice = data.bullets.slice(cursor, cursor + count);
+                      cursor += count;
+                      return {
+                        ...item,
+                        bullets: enhancedSlice.length > 0 ? enhancedSlice : item.bullets
+                      };
+                    });
+                  }
+                }
               }
-              return item;
+            }
+
+            let newProjects = current.projects;
+            if (hasProj) {
+              const allProjBullets = current.projects.flatMap((p) => p.bullets || []).filter(b => b.trim().length > 0);
+              if (allProjBullets.length > 0) {
+                const res = await fetch('/api/cv/enhance', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    type: 'bullets',
+                    role: targetRole,
+                    skills: flatSkills,
+                    bullets: allProjBullets
+                  })
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  if (Array.isArray(data.bullets) && data.bullets.length > 0) {
+                    let cursor = 0;
+                    newProjects = current.projects.map((item) => {
+                      const count = (item.bullets || []).length;
+                      const enhancedSlice = data.bullets.slice(cursor, cursor + count);
+                      cursor += count;
+                      return {
+                        ...item,
+                        bullets: enhancedSlice.length > 0 ? enhancedSlice : item.bullets
+                      };
+                    });
+                  }
+                }
+              }
+            }
+
+            update((prev) => ({
+              ...prev,
+              experience: newExp,
+              projects: newProjects
+            }), 'fix-metrics');
+
+            toast.dismiss('ats-fix');
+            return 'تمت ترقية نقاط الإنجازات بنجاح بواسطة الذكاء الاصطناعي وتطبيق صياغة الـ ATS المقاسة!';
+          } catch {
+            toast.dismiss('ats-fix');
+            const fallbackExp = current.experience.map((item, idx) => ({
+              ...item,
+              bullets: (item.bullets || []).map((b, bIdx) => enhanceBullet(b, idx + bIdx))
+            }));
+            const fallbackProjects = current.projects.map((item, idx) => ({
+              ...item,
+              bullets: (item.bullets || []).map((b, bIdx) => enhanceBullet(b, idx + bIdx))
+            }));
+            update((prev) => ({
+              ...prev,
+              experience: fallbackExp,
+              projects: fallbackProjects
+            }), 'fix-metrics');
+            return 'تم تحسين صياغة نقاط الخبرات والمشاريع بأفعال إنجاز قوية.';
+          }
+        }
+
+        case 'summary-missing':
+        case 'summary-short': {
+          toast.loading(
+            'جاري كتابة ملخص مهني احترافي بالذكاء الاصطناعي مستنداً لمهاراتك وهدفك الوظيفي...',
+            { id: 'ats-fix' }
+          );
+
+          try {
+            const res = await fetch('/api/cv/enhance', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'summary',
+                role: targetRole,
+                skills: flatSkills.slice(0, 10),
+                content: current.summary
+              })
             });
-            toastMessage = 'Added descriptive, action-led bullets to thin experience entries.';
-            return { ...prev, experience: exp };
+
+            if (res.ok) {
+              const data = await res.json();
+              if (data.summary && data.summary.trim().length > 20) {
+                update((prev) => ({
+                  ...prev,
+                  summary: data.summary.trim()
+                }), 'fix-summary');
+                toast.dismiss('ats-fix');
+                return 'تمت صياغة ملخص مهني احترافي متوافق تماماً مع الـ ATS بالذكاء الاصطناعي!';
+              }
+            }
+          } catch {}
+
+          toast.dismiss('ats-fix');
+          const fallbackSummary = `Results-driven ${targetRole} with solid expertise in ${flatSkills.slice(0, 5).join(', ')}. Demonstrated experience in delivering robust technical solutions, optimizing workflows, and driving measurable impact.`;
+          update((prev) => ({ ...prev, summary: fallbackSummary }), 'fix-summary');
+          return 'تمت إضافة ملخص مهني احترافي متوافق مع أنظمة الـ ATS.';
+        }
+
+        case 'few-bullets': {
+          toast.loading(
+            'جاري توليد نقاط إنجاز تفصيلية بالأفعال القوية بالذكاء الاصطناعي...',
+            { id: 'ats-fix' }
+          );
+
+          try {
+            const res = await fetch('/api/cv/enhance', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'bullets',
+                role: targetRole,
+                skills: flatSkills,
+                bullets: [
+                  `Developed core features and technical implementations for ${targetRole}.`,
+                  `Collaborated on architecture design, testing, and continuous deployment pipelines.`,
+                  `Analyzed performance metrics and optimized workflow throughput.`
+                ]
+              })
+            });
+
+            let newBullets = [
+              `Engineered scalable ${targetRole} solutions leveraging modern technical workflows.`,
+              `Collaborated with cross-functional teams to deliver high-quality project milestones.`,
+              `Optimized execution pipelines resulting in measurable productivity gains.`
+            ];
+
+            if (res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data.bullets) && data.bullets.length > 0) {
+                newBullets = data.bullets;
+              }
+            }
+
+            update((prev) => {
+              const newExp = prev.experience.map((e) => {
+                if ((e.bullets || []).filter(b => b.trim()).length < 2) {
+                  return { ...e, bullets: [...(e.bullets || []).filter(b => b.trim()), ...newBullets.slice(0, 2)] };
+                }
+                return e;
+              });
+
+              const newProjects = prev.projects.map((p) => {
+                if ((p.bullets || []).filter(b => b.trim()).length < 2) {
+                  return { ...p, bullets: [...(p.bullets || []).filter(b => b.trim()), ...newBullets.slice(0, 2)] };
+                }
+                return p;
+              });
+
+              return { ...prev, experience: newExp, projects: newProjects };
+            }, 'fix-few-bullets');
+
+            toast.dismiss('ats-fix');
+            return 'تمت إضافة نقاط إنجاز تفصيلية مدعومة بالذكاء الاصطناعي!';
+          } catch {
+            toast.dismiss('ats-fix');
+            return 'تمت إضافة نقاط إنجاز تفصيلية.';
+          }
+        }
+
+        case 'keywords': {
+          const missing = analysis.keywords.missing.slice(0, 4);
+          if (missing.length === 0) {
+            return 'كافة الكلمات المفتاحية الأساسية موجودة بالفعل!';
           }
 
-          case 'few-skills': {
-            const candidates = ROLE_SKILLS[roleKey];
-            const currentSkillsLower = prev.skills.flatMap((g) => g.skills.map((s) => s.toLowerCase()));
-            const toAdd = candidates.filter((s) => !currentSkillsLower.includes(s.toLowerCase())).slice(0, 5);
-            if (toAdd.length === 0) {
-              toastMessage = 'Your skills section is already comprehensive!';
-              return prev;
-            }
+          update((prev) => {
             const skills = [...prev.skills];
             if (skills.length > 0) {
-              skills[0] = { ...skills[0], skills: [...new Set([...skills[0].skills, ...toAdd])] };
+              const currentSet = new Set(skills[0].skills.map(s => s.toLowerCase()));
+              const toAdd = missing.filter(m => !currentSet.has(m.toLowerCase()));
+              skills[0] = {
+                ...skills[0],
+                skills: [...skills[0].skills, ...toAdd]
+              };
             } else {
-              skills.push({ id: 'skill-tech', label: 'Technical Skills', skills: toAdd });
+              skills.push({
+                id: 'skill-tech',
+                label: 'Technical Skills',
+                skills: missing
+              });
             }
-            toastMessage = `Added ${toAdd.join(', ')} to your Technical Skills group.`;
             return { ...prev, skills };
-          }
+          }, 'fix-keywords');
 
-          case 'keywords': {
-            const missing = analysis.keywords.missing.slice(0, 3);
-            if (missing.length === 0) {
-              toastMessage = 'All priority keywords are already present.';
-              return prev;
-            }
-            toastMessage = `Added ${missing.join(', ')} to your Technical Skills group.`;
-            const skills = [...prev.skills];
-            const target = skills[0] ?? { id: 'skill-tech', label: 'Technical Skills', skills: [] };
-            const nextSkills = Array.from(new Set([...target.skills, ...missing]));
-            if (skills.length === 0) {
-              return { ...prev, skills: [{ ...target, skills: nextSkills }] };
-            }
-            skills[0] = { ...target, skills: nextSkills };
-            return { ...prev, skills };
-          }
-
-          case 'metrics': {
-            const exp = prev.experience.map((item, index) => {
-              const bullets = item.bullets.map((b, bIdx) => enhanceBullet(b, index + bIdx));
-              return { ...item, bullets };
-            });
-            toastMessage = 'Strengthened experience bullets with action verbs and impact language.';
-            return { ...prev, experience: exp };
-          }
-
-          case 'skills-summary': {
-            const topList = prev.skills.flatMap((g) => g.skills).slice(0, 8).join(' · ');
-            toastMessage = 'Added an ATS-focused Skills Summary banner.';
-            return {
-              ...prev,
-              skillsSummary: topList
-                ? `Core Competencies: ${topList}`
-                : 'Core Competencies: SQL · Python · Excel · Power BI · Data Modeling · Git',
-            };
-          }
-
-          default:
-            return prev;
+          return `تمت إضافة الكلمات المفتاحية الناقصة (${missing.join('، ')}) إلى قسم المهارات التقنية 🎯`;
         }
-      }, `fix-${id}`);
 
-      return toastMessage;
+        case 'few-skills': {
+          const roleKeywords = getMarketKeywordsForRole(targetRole);
+          const currentLower = new Set(flatSkills.map(s => s.toLowerCase()));
+          const toAdd = roleKeywords.keywords.filter((k: string) => !currentLower.has(k.toLowerCase())).slice(0, 5);
+
+          if (toAdd.length === 0) {
+            return 'قسم المهارات مكتمل وشامل بالفعل!';
+          }
+
+          update((prev) => {
+            const skills = [...prev.skills];
+            if (skills.length > 0) {
+              skills[0] = {
+                ...skills[0],
+                skills: Array.from(new Set([...skills[0].skills, ...toAdd]))
+              };
+            } else {
+              skills.push({
+                id: 'skill-tech',
+                label: 'Technical Skills',
+                skills: toAdd
+              });
+            }
+            return { ...prev, skills };
+          }, 'fix-few-skills');
+
+          return `تمت إضافة ${toAdd.join('، ')} إلى قسم المهارات التقنية لرفع مطابقة الـ ATS 🚀`;
+        }
+
+        case 'skills-summary': {
+          const topSkills = flatSkills.slice(0, 8);
+          const bannerText = topSkills.length > 0
+            ? `Core Competencies: ${topSkills.join(' · ')}`
+            : `Core Competencies: ${targetRole} · Problem Solving · Data Analysis · Git`;
+
+          update((prev) => ({
+            ...prev,
+            skillsSummary: bannerText
+          }), 'fix-skills-summary');
+
+          return 'تم إنشاء شريط المهارات المركّز لأنظمة الـ ATS بنجاح!';
+        }
+
+        case 'linkedin-missing': {
+          const cleanName = (current.contact.fullName || 'user').toLowerCase().replace(/\s+/g, '-');
+          const defaultUrl = `https://linkedin.com/in/${cleanName}`;
+
+          update((prev) => ({
+            ...prev,
+            contact: {
+              ...prev.contact,
+              linkedin: defaultUrl
+            }
+          }), 'fix-linkedin');
+
+          return 'تمت إضافة رابط LinkedIn إلى بيانات التواصل (يمكنك تعديل الرابط من قسم بيانات التواصل بمحرر الـ CV).';
+        }
+
+        default:
+          return 'تم تحديث السيرة الذاتية.';
+      }
     },
-    [analysis.keywords.missing, update]
+    [analysis.keywords.missing, activeVersion?.targetRole, update]
   );
+
 
   const value = useMemo(
     () => ({

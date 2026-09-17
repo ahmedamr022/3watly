@@ -19,7 +19,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FixesCardProps {
   analysis: Analysis;
-  onApply: (id: FixId) => string;
+  onApply: (id: FixId) => Promise<string> | string;
 }
 
 export function FixesCard({ analysis, onApply }: FixesCardProps) {
@@ -27,14 +27,17 @@ export function FixesCard({ analysis, onApply }: FixesCardProps) {
   const [applying, setApplying] = useState<string | null>(null);
   const fixes = analysis.fixes;
 
-  const apply = (fix: Analysis['fixes'][number], key: string) => {
+  const apply = async (fix: Analysis['fixes'][number], key: string) => {
     if (applying) return;
     setApplying(key);
-    window.setTimeout(() => {
-      const message = onApply(fix.id);
-      setApplying(null);
+    try {
+      const message = await onApply(fix.id);
       toast.success(message);
-    }, 550);
+    } catch (err: any) {
+      toast.error(err?.message || (isAr ? 'حدث خطأ أثناء تطبيق الإصلاح' : 'Failed to apply fix'));
+    } finally {
+      setApplying(null);
+    }
   };
 
   const getCategoryLabel = (id: string) => {
@@ -57,8 +60,12 @@ export function FixesCard({ analysis, onApply }: FixesCardProps) {
           <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
             {fixes.length === 0
               ? (isAr ? 'حالة السيرة الذاتية: معايير الـ ATS الأساسية مكتملة' : 'ATS Status: Core Standards Satisfied')
-              : (isAr ? `أهم ${fixes.length} إصلاحات موصى بها لتحسين السيرة الذاتية` : `Top ${fixes.length} Recommended Fixes to Maximize ATS Score`)}
+              : (isAr ? `أهم ${fixes.length} إصلاحات ذكية موصى بها لتحسين السيرة الذاتية` : `Top ${fixes.length} Recommended AI Fixes to Maximize ATS Score`)}
           </h3>
+          <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40">
+            <Bot className="w-3 h-3" />
+            {isAr ? 'مدعوم بـ Gemini AI' : 'Gemini AI'}
+          </span>
         </div>
 
         <Link
@@ -69,6 +76,7 @@ export function FixesCard({ analysis, onApply }: FixesCardProps) {
           <ExternalLink className="h-3.5 w-3.5" />
         </Link>
       </div>
+
 
       {fixes.length > 0 ? (
         <ul className="divide-y divide-slate-100 dark:divide-white/5 p-4 sm:p-6 space-y-3">
