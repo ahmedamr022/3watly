@@ -1,13 +1,24 @@
 "use client";
 
 import React from 'react';
-import { SiDocker, SiMongodb, SiPandas, SiPython } from 'react-icons/si';
+import { 
+  SiDocker, 
+  SiMongodb, 
+  SiPandas, 
+  SiPython, 
+  SiReact, 
+  SiNodedotjs, 
+  SiTypescript, 
+  SiPostgresql, 
+  SiKubernetes, 
+  SiGit 
+} from 'react-icons/si';
 import { BrainCircuit, UploadCloud } from 'lucide-react';
 import type { TechIconName } from '@/data/techStack';
 
 interface TechIconProps {
   name: TechIconName;
-  color: string;
+  color?: string;
 }
 
 export function TechIcon({ name }: TechIconProps) {
@@ -39,10 +50,26 @@ export function TechIcon({ name }: TechIconProps) {
         </span>
       );
 
+    case 'react':
+      return (
+        <SiReact
+          className="h-full w-full text-[#0284C7] dark:text-[#38BDF8]"
+          aria-hidden="true"
+        />
+      );
+
     case 'pandas':
       return (
         <SiPandas
           className="h-full w-full text-purple-700 dark:text-[#C084FC]"
+          aria-hidden="true"
+        />
+      );
+
+    case 'nodejs':
+      return (
+        <SiNodedotjs
+          className="h-full w-full text-emerald-600 dark:text-[#22C55E]"
           aria-hidden="true"
         />
       );
@@ -54,6 +81,14 @@ export function TechIcon({ name }: TechIconProps) {
           <rect x="9.8" y="7.5" width="4.5" height="13.5" rx="1.2" className="fill-amber-600/90 dark:fill-[#FBBF24]/90" />
           <rect x="16.5" y="3" width="4.5" height="18" rx="1.2" className="fill-amber-600 dark:fill-[#FBBF24]" />
         </svg>
+      );
+
+    case 'typescript':
+      return (
+        <SiTypescript
+          className="h-full w-full text-blue-600 dark:text-[#3B82F6]"
+          aria-hidden="true"
+        />
       );
 
     case 'ml':
@@ -77,6 +112,14 @@ export function TechIcon({ name }: TechIconProps) {
         </svg>
       );
 
+    case 'postgresql':
+      return (
+        <SiPostgresql
+          className="h-full w-full text-[#1E40AF] dark:text-[#60A5FA]"
+          aria-hidden="true"
+        />
+      );
+
     case 'cloud':
       return (
         <UploadCloud
@@ -90,6 +133,14 @@ export function TechIcon({ name }: TechIconProps) {
       return (
         <SiDocker
           className="h-full w-full text-sky-600 dark:text-[#60A5FA]"
+          aria-hidden="true"
+        />
+      );
+
+    case 'kubernetes':
+      return (
+        <SiKubernetes
+          className="h-full w-full text-blue-600 dark:text-[#6366F1]"
           aria-hidden="true"
         />
       );
@@ -113,6 +164,14 @@ export function TechIcon({ name }: TechIconProps) {
       return (
         <SiMongodb
           className="h-full w-full text-emerald-600 dark:text-[#4ADE80]"
+          aria-hidden="true"
+        />
+      );
+
+    case 'git':
+      return (
+        <SiGit
+          className="h-full w-full text-[#EA580C] dark:text-[#FB923C]"
           aria-hidden="true"
         />
       );

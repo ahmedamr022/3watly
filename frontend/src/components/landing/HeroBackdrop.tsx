@@ -68,7 +68,8 @@ export function HeroBackdrop() {
           src="/images/hero-ar-light.png"
           alt="Hero Background Arabic Light"
           className="h-full w-full object-cover object-[center_top] pointer-events-none select-none"
-          fetchPriority="high"
+          loading="lazy"
+          fetchPriority="low"
           decoding="async"
         />
       </picture>
@@ -83,7 +84,8 @@ export function HeroBackdrop() {
           src="/images/hero-en-dark.png"
           alt="Hero Background English Dark"
           className="h-full w-full object-cover object-[center_top] pointer-events-none select-none"
-          fetchPriority="high"
+          loading="lazy"
+          fetchPriority="low"
           decoding="async"
         />
       </picture>
@@ -98,7 +100,8 @@ export function HeroBackdrop() {
           src="/images/hero-en-light.png"
           alt="Hero Background English Light"
           className="h-full w-full object-cover object-[center_top] pointer-events-none select-none"
-          fetchPriority="high"
+          loading="lazy"
+          fetchPriority="low"
           decoding="async"
         />
       </picture>

@@ -19,10 +19,12 @@ const nodes = [
 
 export function MarqueeBackdrop() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden select-none" aria-hidden="true">
-      {/* PURE TRANSPARENT BACKGROUND - NO BLOBS, NO MUDDY COLORS, NO HARD EDGES */}
-
-      {/* Sinuous Glowing Energy Wave SVG */}
+    <div 
+      className="pointer-events-none absolute inset-0 overflow-hidden select-none" 
+      style={{ contain: 'strict', transform: 'translateZ(0)' }}
+      aria-hidden="true"
+    >
+      {/* Sinuous Glowing Energy Wave SVG — GPU Accelerated, Zero SVG Filter Overhead */}
       <svg
         className="tech-marquee-wave absolute inset-0 h-full w-full"
         viewBox="0 0 1600 360"
@@ -49,56 +51,56 @@ export function MarqueeBackdrop() {
             <stop offset="85%" stopColor="#C084FC" stopOpacity="0.85" />
             <stop offset="100%" stopColor="#38BDF8" stopOpacity="0" />
           </linearGradient>
-
-          {/* Wide Soft Neon Bloom Filter */}
-          <filter id="neon-glow-wide" x="-10%" y="-100%" width="120%" height="300%">
-            <feGaussianBlur stdDeviation="9" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-
-          {/* Core Hairline Crisp Glow Filter */}
-          <filter id="neon-glow-core" x="-5%" y="-50%" width="110%" height="200%">
-            <feGaussianBlur stdDeviation="1.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
 
-        {/* --- LAYER A: Wide Ambient Neon Halo --- */}
-        <g filter="url(#neon-glow-wide)" fill="none" opacity="0.65">
-          {/* Primary undulating wave */}
+        {/* --- LAYER 1: Wide Soft Atmospheric Halo (Pure GPU strokes, no filter lag) --- */}
+        <g fill="none" opacity="0.75">
           <path
             d="M -30 180 C 130 80, 270 280, 430 180 S 710 80, 870 180 S 1150 280, 1330 180 S 1490 80, 1650 180"
             stroke="url(#wave-gradient-primary)"
             strokeWidth="12"
+            opacity="0.14"
           />
-          {/* Intertwined counter wave */}
           <path
             d="M -30 180 C 130 280, 270 80, 430 180 S 710 280, 870 180 S 1150 80, 1330 180 S 1490 280, 1650 180"
             stroke="url(#wave-gradient-counter)"
-            strokeWidth="9"
+            strokeWidth="10"
+            opacity="0.12"
           />
         </g>
 
-        {/* --- LAYER B: Razor-Sharp Luminous Core Paths --- */}
-        <g filter="url(#neon-glow-core)" fill="none" strokeLinecap="round">
-          {/* Primary wave crisp line */}
+        {/* --- LAYER 2: Medium Luminous Bloom Halo --- */}
+        <g fill="none">
+          <path
+            d="M -30 180 C 130 80, 270 280, 430 180 S 710 80, 870 180 S 1150 280, 1330 180 S 1490 80, 1650 180"
+            stroke="url(#wave-gradient-primary)"
+            strokeWidth="6"
+            opacity="0.32"
+          />
+          <path
+            d="M -30 180 C 130 280, 270 80, 430 180 S 710 280, 870 180 S 1150 80, 1330 180 S 1490 280, 1650 180"
+            stroke="url(#wave-gradient-counter)"
+            strokeWidth="5"
+            opacity="0.28"
+          />
+        </g>
+
+        {/* --- LAYER 3: Razor-Sharp Core Paths & Delicate Filaments --- */}
+        <g fill="none" strokeLinecap="round">
+          {/* Primary wave crisp core */}
           <path
             d="M -30 180 C 130 80, 270 280, 430 180 S 710 80, 870 180 S 1150 280, 1330 180 S 1490 80, 1650 180"
             stroke="url(#wave-gradient-primary)"
             strokeWidth="2"
+            opacity="0.95"
           />
 
-          {/* Counter wave crisp line */}
+          {/* Counter wave crisp core */}
           <path
             d="M -30 180 C 130 280, 270 80, 430 180 S 710 280, 870 180 S 1150 80, 1330 180 S 1490 280, 1650 180"
             stroke="url(#wave-gradient-counter)"
             strokeWidth="1.6"
+            opacity="0.92"
           />
 
           {/* Delicate harmonic filament threads */}
@@ -129,7 +131,7 @@ export function MarqueeBackdrop() {
             width: node.size,
             animationDelay: node.delay,
             background: '#ffffff',
-            boxShadow: `0 0 8px 2px rgb(${node.color} / 0.95), 0 0 20px 6px rgb(${node.color} / 0.4)`
+            boxShadow: `0 0 6px 1.5px rgb(${node.color} / 0.9), 0 0 14px 4px rgb(${node.color} / 0.35)`
           }}
         />
       ))}
