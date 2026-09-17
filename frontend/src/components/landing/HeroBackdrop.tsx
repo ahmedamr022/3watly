@@ -103,21 +103,21 @@ export function HeroBackdrop() {
         />
       </picture>
 
-      {/* 5. Bottom blend — dark mode: dissolve hero into #040816 */}
-      <div 
-        className="hidden dark:block pointer-events-none absolute inset-x-0 bottom-0 z-10" 
+      {/* Bottom edge blend — dark mode */}
+      <div
+        className="hidden dark:block pointer-events-none absolute inset-x-0 bottom-0 z-10"
         style={{
-          height: '55%',
-          background: 'linear-gradient(to top, #040816 0%, #040816 25%, rgba(4,8,22,0.95) 45%, rgba(4,8,22,0.6) 70%, transparent 100%)'
+          height: '20%',
+          background: 'linear-gradient(to top, #040816 0%, transparent 100%)'
         }}
         aria-hidden="true"
       />
-      {/* Bottom blend — light mode */}
-      <div 
-        className="dark:hidden pointer-events-none absolute inset-x-0 bottom-0 z-10" 
+      {/* Bottom edge blend — light mode */}
+      <div
+        className="dark:hidden pointer-events-none absolute inset-x-0 bottom-0 z-10"
         style={{
-          height: '40%',
-          background: 'linear-gradient(to top, #ffffff 0%, #ffffff 15%, rgba(255,255,255,0.92) 40%, rgba(255,255,255,0.6) 65%, transparent 100%)'
+          height: '20%',
+          background: 'linear-gradient(to top, #ffffff 0%, transparent 100%)'
         }}
         aria-hidden="true"
       />
