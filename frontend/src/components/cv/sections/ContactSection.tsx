@@ -208,11 +208,12 @@ export function ContactSection() {
               return (
                 <div
                   key={link.id}
-                  className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-2xs transition-colors"
+                  className="p-3 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-2xs space-y-2.5 transition-colors"
                 >
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                  {/* Top Row: Platform Select + Custom Name ("الاسم") + Reorder/Delete Actions */}
+                  <div className="flex items-center gap-2">
                     {/* Platform Select */}
-                    <div className="relative min-w-[130px] sm:min-w-[155px] shrink-0">
+                    <div className="relative w-[135px] sm:w-[155px] shrink-0">
                       <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-blue-600 dark:text-blue-400">
                         <IconComp className="w-4 h-4" />
                       </div>
@@ -231,73 +232,76 @@ export function ContactSection() {
                     </div>
 
                     {/* Custom Label ("الاسم") Input */}
-                    <div className="w-[120px] sm:w-[150px] shrink-0">
+                    <div className="flex-1 min-w-0">
                       <input
                         type="text"
                         value={link.customLabel || ''}
                         onChange={(e) => updateSocialLink(link.id, 'customLabel', e.target.value)}
-                        placeholder={isAr ? "الاسم (اختياري)" : "Name (Optional)"}
+                        placeholder={isAr ? "الاسم (مثال: لينكد إن، موقعي)" : "Display Name (optional)"}
                         title={isAr ? "الاسم المعروض للرابط في السيرة الذاتية" : "Display name for this link"}
                         className="w-full h-9 px-3 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-[#040816] text-[12.5px] text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
                       />
                     </div>
 
-                    {/* URL Input */}
-                    <div className="flex-1 min-w-[140px]">
-                      <input
-                        type="url"
-                        dir="ltr"
-                        value={link.url}
-                        onChange={(e) => updateSocialLink(link.id, 'url', e.target.value)}
-                        placeholder={
-                          link.platform === 'LinkedIn'
-                            ? 'https://linkedin.com/in/username'
-                            : link.platform === 'GitHub'
-                            ? 'https://github.com/username'
-                            : link.platform === 'Twitter'
-                            ? 'https://x.com/username'
-                            : link.platform === 'Dribbble'
-                            ? 'https://dribbble.com/username'
-                            : link.platform === 'Medium'
-                            ? 'https://medium.com/@username'
-                            : 'https://yourwebsite.com'
-                        }
-                        className="w-full h-9 px-3.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-[#040816] text-[12.5px] text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 font-sans text-left"
-                      />
+                    {/* Actions: Reorder + Delete */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-0.5 border border-slate-200/90 dark:border-white/10 rounded-xl bg-slate-50/80 dark:bg-[#040816] p-0.5">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => moveLink(index, 'up')}
+                          title={isAr ? "تحريك لأعلى" : "Move up"}
+                          className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-white/10 disabled:opacity-25 cursor-pointer disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={index === links.length - 1}
+                          onClick={() => moveLink(index, 'down')}
+                          title={isAr ? "تحريك لأسفل" : "Move down"}
+                          className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-white/10 disabled:opacity-25 cursor-pointer disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeSocialLink(link.id)}
+                        title={isAr ? "حذف الرابط" : "Delete link"}
+                        className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
 
-                  {/* Actions: Reorder + Delete */}
-                  <div className="flex items-center justify-end gap-1.5 shrink-0 self-end sm:self-center">
-                    <div className="flex items-center gap-0.5 border border-slate-200/90 dark:border-white/10 rounded-xl bg-slate-50/80 dark:bg-[#040816] p-0.5">
-                      <button
-                        type="button"
-                        disabled={index === 0}
-                        onClick={() => moveLink(index, 'up')}
-                        title="Move up"
-                        className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-white/10 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed transition-colors"
-                      >
-                        <ChevronUp className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={index === links.length - 1}
-                        onClick={() => moveLink(index, 'down')}
-                        title="Move down"
-                        className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-white/10 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed transition-colors"
-                      >
-                        <ChevronDown className="w-3.5 h-3.5" />
-                      </button>
+                  {/* Bottom Row: Full URL Input with Icon — 100% width, zero overlap */}
+                  <div className="relative w-full">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                      <LinkIcon className="w-3.5 h-3.5" />
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => removeSocialLink(link.id)}
-                      title="Delete link"
-                      className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <input
+                      type="url"
+                      dir="ltr"
+                      value={link.url}
+                      onChange={(e) => updateSocialLink(link.id, 'url', e.target.value)}
+                      placeholder={
+                        link.platform === 'LinkedIn'
+                          ? 'https://linkedin.com/in/username'
+                          : link.platform === 'GitHub'
+                          ? 'https://github.com/username'
+                          : link.platform === 'Twitter'
+                          ? 'https://x.com/username'
+                          : link.platform === 'Dribbble'
+                          ? 'https://dribbble.com/username'
+                          : link.platform === 'Medium'
+                          ? 'https://medium.com/@username'
+                          : 'https://yourwebsite.com'
+                      }
+                      className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-[#040816] text-[12.5px] text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 font-sans text-left transition-all"
+                    />
                   </div>
                 </div>
               );
