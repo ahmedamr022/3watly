@@ -20,7 +20,7 @@ import {
 import { HeroBackdrop } from "@/components/landing/HeroBackdrop";
 import { HeroVisual } from "@/components/landing/HeroVisual";
 import { FeatureStrip } from "@/components/landing/FeatureStrip";
-import { MarketTicker } from "@/components/landing/MarketTicker";
+import { TechMarquee } from "@/components/landing/TechMarquee";
 import { Features } from "@/components/landing/Features";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { MarketInsights } from "@/components/landing/MarketInsights";
@@ -362,8 +362,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Live Market Dynamic Horizontal Ticker */}
-      <MarketTicker />
+      {/* Seamless Glowing Tech Marquee */}
+      <TechMarquee />
 
       {/* ========================================================================= */}
       {/* 3. CORE FEATURES SECTION                                                 */}
