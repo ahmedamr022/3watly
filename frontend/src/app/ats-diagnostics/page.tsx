@@ -196,20 +196,6 @@ export default function ATSDiagnosticsPage() {
 
             <button
               type="button"
-              disabled={isUploading}
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-blue-500/30 bg-blue-50/70 hover:bg-blue-100/70 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-[#1B57E0] dark:text-[#60A5FA] font-bold text-[13px] transition-all cursor-pointer disabled:opacity-60"
-            >
-              {isUploading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <UploadCloud className="h-4 w-4" />
-              )}
-              <span>{isUploading ? (isAr ? "جاري الرفع..." : "Uploading...") : (isAr ? "رفع CV جديد" : "Upload CV")}</span>
-            </button>
-
-            <button
-              type="button"
               onClick={handleDownloadReport}
               disabled={downloading}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1B57E0] hover:bg-blue-700 text-white font-bold text-[13px] shadow-md shadow-blue-600/20 transition-all cursor-pointer disabled:opacity-60"

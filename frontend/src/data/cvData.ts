@@ -63,32 +63,44 @@ export const KEYWORD_BENCHMARK = 13;
 export const TEMPLATES: {
   id: TemplateId;
   name: string;
+  nameAr: string;
   columns: number;
   description: string;
 }[] = [
   {
     id: 'ats-classic',
     name: 'ATS Friendly',
+    nameAr: 'ATS Friendly (كلاسيكي موصى به)',
     columns: 1,
-    description: 'Single-column template with blue accents, optimized for applicant tracking systems.'
+    description: 'Single-column academic serif layout, gold standard for ATS parsing.'
   },
   {
-    id: 'compact',
-    name: 'Compact',
+    id: 'modern-minimal',
+    name: 'Modern Tech',
+    nameAr: 'Modern Tech (عصري بشرائط ملونة)',
     columns: 1,
-    description: 'Single column ATS friendly template with tight spacing.'
+    description: 'Left-aligned modern tech layout with blue accent bars and clean typography.'
   },
   {
     id: 'two-column',
     name: 'Two Column',
+    nameAr: 'Two Column (عمودين مع شهادات كاملة)',
     columns: 2,
-    description: 'A two-column resume layout with sections side by side.'
+    description: 'Structured sidebar layout with separate skills, education, and full certifications.'
+  },
+  {
+    id: 'compact',
+    name: 'Compact',
+    nameAr: 'Compact (مدمج بعناوين مظللة)',
+    columns: 1,
+    description: 'High-density single page layout with highlighted section banner blocks.'
   },
   {
     id: 'simple',
-    name: 'Simple (Academic)',
+    name: 'Academic Simple',
+    nameAr: 'Simple (أكاديمي بإطار مزدوج)',
     columns: 1,
-    description: 'Traditional academic CV layout with labeled columns and horizontal rules.'
+    description: 'Minimalist academic layout with centered framed double-line headings.'
   }
 ];
 

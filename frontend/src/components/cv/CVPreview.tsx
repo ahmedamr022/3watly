@@ -30,84 +30,102 @@ interface StyleConfig {
   gap: string;
   itemGap: string;
   fontFamily: string;
+  headerAlign?: 'center' | 'left';
+  headingVariant?: 'classic' | 'modern-accent' | 'compact-banner' | 'simple-double';
+  skillsVariant?: 'classic' | 'chips' | 'compact';
 }
 
-// Support both light and dark mode in CV Builder editor, with high contrast and ATS structure
+// 5 DISTINCT TEMPLATES WITH OBVIOUS, PREMIUM VISUAL IDENTITIES
 const STYLES: Record<TemplateId, StyleConfig> = {
   'ats-classic': {
     page: 'p-6 sm:p-10',
-    name: 'text-[24px] sm:text-[28px] font-bold tracking-tight text-slate-900 dark:text-white text-center',
+    name: 'text-[25px] sm:text-[29px] font-bold tracking-tight text-slate-900 dark:text-white text-center',
     role: 'mt-0.5 text-[13.5px] sm:text-[14.5px] font-semibold text-slate-800 dark:text-slate-200 text-center',
     contact: 'mt-1.5 text-[11.5px] text-slate-700 dark:text-slate-300 text-center',
     heading: 'text-[12.5px] sm:text-[13px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
-    headingRule: 'mt-1 border-b border-slate-900 dark:border-white/30',
+    headingRule: 'mt-1 border-b-2 border-slate-900 dark:border-white/40',
     body: 'text-[11.5px] sm:text-[12px] leading-[1.55] text-slate-900 dark:text-slate-100',
     itemTitle: 'text-[12.5px] sm:text-[13px] font-bold text-slate-900 dark:text-white',
     itemSub: 'text-[12px] sm:text-[12.5px] italic text-slate-700 dark:text-slate-300',
     meta: 'text-[11.5px] sm:text-[12px] text-slate-600 dark:text-slate-400 font-medium',
     gap: 'mt-3.5',
     itemGap: 'mt-2',
-    fontFamily: '"Times New Roman", Times, Georgia, serif'
-  },
-  'compact': {
-    page: 'p-5 sm:p-8',
-    name: 'text-[22px] sm:text-[25px] font-bold tracking-tight text-slate-900 dark:text-white text-center',
-    role: 'mt-0.5 text-[13px] sm:text-[13.5px] font-semibold text-slate-800 dark:text-slate-200 text-center',
-    contact: 'mt-1 text-[11px] text-slate-700 dark:text-slate-300 text-center',
-    heading: 'text-[12px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
-    headingRule: 'mt-0.5 border-b border-slate-900 dark:border-white/30',
-    body: 'text-[11px] sm:text-[11.5px] leading-[1.45] text-slate-900 dark:text-slate-100',
-    itemTitle: 'text-[12px] sm:text-[12.5px] font-bold text-slate-900 dark:text-white',
-    itemSub: 'text-[11.5px] sm:text-[12px] italic text-slate-700 dark:text-slate-300',
-    meta: 'text-[11px] text-slate-600 dark:text-slate-400 font-medium',
-    gap: 'mt-3',
-    itemGap: 'mt-1.5',
-    fontFamily: 'Calibri, Arial, Helvetica, sans-serif'
-  },
-  'two-column': {
-    page: 'p-6 sm:p-9',
-    name: 'text-[24px] sm:text-[26px] font-bold tracking-tight text-slate-900 dark:text-white text-center',
-    role: 'mt-0.5 text-[13.5px] sm:text-[14px] font-semibold text-slate-800 dark:text-slate-200 text-center',
-    contact: 'mt-1.5 text-[11px] text-slate-700 dark:text-slate-300 text-center',
-    heading: 'text-[12px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
-    headingRule: 'mt-1 border-b border-slate-900 dark:border-white/30',
-    body: 'text-[11px] sm:text-[11.5px] leading-[1.5] text-slate-900 dark:text-slate-100',
-    itemTitle: 'text-[12px] sm:text-[12.5px] font-bold text-slate-900 dark:text-white',
-    itemSub: 'text-[11.5px] italic text-slate-700 dark:text-slate-300',
-    meta: 'text-[11px] text-slate-600 dark:text-slate-400 font-medium',
-    gap: 'mt-3.5',
-    itemGap: 'mt-2',
-    fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
-  },
-  'simple': {
-    page: 'p-6 sm:p-10',
-    name: 'text-[24px] sm:text-[28px] font-bold tracking-normal text-slate-900 dark:text-white text-center',
-    role: 'mt-0.5 text-[13.5px] sm:text-[14px] italic text-slate-700 dark:text-slate-300 text-center',
-    contact: 'mt-1.5 text-[11px] sm:text-[11.5px] text-slate-700 dark:text-slate-300 text-center',
-    heading: 'text-[12.5px] sm:text-[13px] font-bold uppercase tracking-widest text-slate-900 dark:text-white',
-    headingRule: 'mt-1 border-b border-slate-900 dark:border-white/30',
-    body: 'text-[11.5px] sm:text-[12px] leading-[1.6] text-slate-900 dark:text-slate-100',
-    itemTitle: 'text-[12.5px] sm:text-[13px] font-bold text-slate-900 dark:text-white',
-    itemSub: 'text-[12px] italic text-slate-700 dark:text-slate-300',
-    meta: 'text-[11.5px] text-slate-600 dark:text-slate-400',
-    gap: 'mt-3.5',
-    itemGap: 'mt-2',
-    fontFamily: 'Georgia, "Times New Roman", serif'
+    fontFamily: '"Times New Roman", Times, Georgia, serif',
+    headerAlign: 'center',
+    headingVariant: 'classic',
+    skillsVariant: 'classic'
   },
   'modern-minimal': {
     page: 'p-6 sm:p-10',
-    name: 'text-[24px] sm:text-[28px] font-bold tracking-tight text-slate-900 dark:text-white text-center',
-    role: 'mt-0.5 text-[13.5px] sm:text-[14.5px] font-semibold text-slate-800 dark:text-slate-200 text-center',
-    contact: 'mt-1.5 text-[11px] sm:text-[11.5px] text-slate-700 dark:text-slate-300 text-center',
-    heading: 'text-[12.5px] sm:text-[13px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
-    headingRule: 'mt-1 border-b border-slate-900 dark:border-white/30',
-    body: 'text-[11.5px] sm:text-[12px] leading-[1.55] text-slate-900 dark:text-slate-100',
-    itemTitle: 'text-[12.5px] sm:text-[13px] font-bold text-slate-900 dark:text-white',
-    itemSub: 'text-[12px] sm:text-[12.5px] italic text-slate-700 dark:text-slate-300',
-    meta: 'text-[11.5px] text-slate-600 dark:text-slate-400 font-medium',
+    name: 'text-[26px] sm:text-[30px] font-extrabold tracking-tight text-slate-900 dark:text-white text-left',
+    role: 'mt-0.5 text-[13.5px] sm:text-[14.5px] font-bold text-blue-600 dark:text-blue-400 tracking-wider text-left uppercase',
+    contact: 'mt-2 text-[11.5px] text-slate-600 dark:text-slate-300 text-left',
+    heading: 'text-[12.5px] sm:text-[13px] font-extrabold uppercase tracking-wider text-slate-900 dark:text-white',
+    headingRule: '',
+    body: 'text-[11.5px] sm:text-[12px] leading-[1.6] text-slate-900 dark:text-slate-100',
+    itemTitle: 'text-[13px] font-bold text-slate-900 dark:text-white',
+    itemSub: 'text-[12px] font-medium text-slate-600 dark:text-slate-400',
+    meta: 'text-[11.5px] text-slate-500 dark:text-slate-400 font-medium',
+    gap: 'mt-4',
+    itemGap: 'mt-2',
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+    headerAlign: 'left',
+    headingVariant: 'modern-accent',
+    skillsVariant: 'chips'
+  },
+  'compact': {
+    page: 'p-4 sm:p-7',
+    name: 'text-[22px] sm:text-[25px] font-bold tracking-tight text-slate-900 dark:text-white text-center',
+    role: 'mt-0.5 text-[12.5px] font-semibold text-slate-700 dark:text-slate-300 text-center',
+    contact: 'mt-1 text-[11px] text-slate-600 dark:text-slate-400 text-center',
+    heading: 'text-[11.5px] sm:text-[12px] font-bold uppercase tracking-wider text-slate-900 dark:text-white',
+    headingRule: '',
+    body: 'text-[11px] sm:text-[11.5px] leading-[1.4] text-slate-900 dark:text-slate-100',
+    itemTitle: 'text-[11.5px] sm:text-[12px] font-bold text-slate-900 dark:text-white',
+    itemSub: 'text-[11px] italic text-slate-700 dark:text-slate-300',
+    meta: 'text-[10.5px] text-slate-600 dark:text-slate-400 font-medium',
+    gap: 'mt-2.5',
+    itemGap: 'mt-1',
+    fontFamily: 'Calibri, Arial, Helvetica, sans-serif',
+    headerAlign: 'center',
+    headingVariant: 'compact-banner',
+    skillsVariant: 'compact'
+  },
+  'two-column': {
+    page: 'p-5 sm:p-8',
+    name: 'text-[24px] sm:text-[28px] font-extrabold tracking-tight text-slate-900 dark:text-white text-center',
+    role: 'mt-0.5 text-[13px] sm:text-[14px] font-semibold text-blue-600 dark:text-blue-400 text-center',
+    contact: 'mt-1.5 text-[11px] text-slate-600 dark:text-slate-300 text-center',
+    heading: 'text-[11.5px] sm:text-[12px] font-extrabold uppercase tracking-wider text-slate-900 dark:text-white',
+    headingRule: 'mt-1 border-b-2 border-blue-600/70 dark:border-blue-400/60',
+    body: 'text-[11px] sm:text-[11.5px] leading-[1.5] text-slate-900 dark:text-slate-100',
+    itemTitle: 'text-[12px] sm:text-[12.5px] font-bold text-slate-900 dark:text-white',
+    itemSub: 'text-[11.5px] italic text-slate-700 dark:text-slate-300',
+    meta: 'text-[10.5px] text-slate-500 dark:text-slate-400 font-medium',
     gap: 'mt-3.5',
     itemGap: 'mt-2',
-    fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+    headerAlign: 'center',
+    headingVariant: 'classic',
+    skillsVariant: 'chips'
+  },
+  'simple': {
+    page: 'p-6 sm:p-10',
+    name: 'text-[23px] sm:text-[27px] font-normal tracking-[0.18em] uppercase text-slate-900 dark:text-white text-center',
+    role: 'mt-1 text-[13px] italic tracking-widest text-slate-600 dark:text-slate-300 text-center',
+    contact: 'mt-2 text-[11px] text-slate-600 dark:text-slate-400 text-center',
+    heading: 'text-[11.5px] sm:text-[12px] font-bold uppercase tracking-[0.2em] text-slate-900 dark:text-white text-center',
+    headingRule: '',
+    body: 'text-[11.5px] sm:text-[12px] leading-[1.65] text-slate-900 dark:text-slate-100',
+    itemTitle: 'text-[12.5px] sm:text-[13px] font-bold text-slate-900 dark:text-white',
+    itemSub: 'text-[12px] italic text-slate-700 dark:text-slate-300',
+    meta: 'text-[11px] text-slate-500 dark:text-slate-400',
+    gap: 'mt-4',
+    itemGap: 'mt-2',
+    fontFamily: 'Georgia, "Times New Roman", serif',
+    headerAlign: 'center',
+    headingVariant: 'simple-double',
+    skillsVariant: 'classic'
   }
 };
 
@@ -219,6 +237,47 @@ export function CVPreview() {
     return SECTION_META[id]?.label || id.toUpperCase();
   };
 
+  // Dynamic heading renderer supporting all 5 template styles
+  const renderHeading = (title: string) => {
+    if (style.headingVariant === 'modern-accent') {
+      return (
+        <div className="mb-2">
+          <h2 className="inline-block border-l-[3.5px] border-blue-600 dark:border-blue-500 pl-2.5 font-extrabold uppercase text-[12px] sm:text-[12.5px] tracking-wider text-slate-900 dark:text-white bg-blue-50/60 dark:bg-blue-950/30 py-0.5 pr-3 rounded-r">
+            {title}
+          </h2>
+        </div>
+      );
+    }
+
+    if (style.headingVariant === 'compact-banner') {
+      return (
+        <div className="mb-1.5">
+          <h2 className="w-full bg-slate-100 dark:bg-slate-800/90 px-2.5 py-1 rounded-sm text-[11px] sm:text-[11.5px] font-bold uppercase tracking-wider text-slate-900 dark:text-white border-l-[3px] border-slate-700 dark:border-slate-300">
+            {title}
+          </h2>
+        </div>
+      );
+    }
+
+    if (style.headingVariant === 'simple-double') {
+      return (
+        <div className="mb-2 text-center">
+          <h2 className="border-t border-b border-slate-300 dark:border-slate-700 py-1 uppercase tracking-[0.2em] text-[11.5px] font-bold text-slate-900 dark:text-white">
+            {title}
+          </h2>
+        </div>
+      );
+    }
+
+    // Classic default (ats-classic, two-column)
+    return (
+      <div>
+        <h2 className={style.heading}>{title}</h2>
+        {style.headingRule && <div className={style.headingRule} />}
+      </div>
+    );
+  };
+
   return (
     <div className="print-region">
       {/* Scrollable viewport with neutral backdrop */}
@@ -229,14 +288,20 @@ export function CVPreview() {
           className={`print-page cv-paper-root relative w-full max-w-[820px] min-h-[1080px] mx-auto bg-white dark:bg-[#0E1626] text-slate-900 dark:text-slate-100 shadow-2xl border border-slate-200 dark:border-white/10 rounded-sm transition-all duration-300 text-left ${style.page}`}
           style={{ fontFamily: style.fontFamily }}
         >
-          {/* Header: Name + Headline + Contact Line + Profiles Line (Matching PDF 1:1) */}
-          <header className="text-center pb-2.5">
+          {/* Header: Name + Headline + Contact Line + Profiles Line */}
+          <header className={`pb-3 ${
+            style.headerAlign === 'left'
+              ? 'text-left border-b-2 border-slate-200/80 dark:border-white/10 mb-4'
+              : 'text-center pb-2.5'
+          }`}>
             <h1 className={style.name}>{cv.contact.fullName || 'Candidate Name'}</h1>
             {cv.contact.jobTitle && <p className={style.role}>{cv.contact.jobTitle}</p>}
 
             {/* Line 1: Primary Contacts (Email • Phone • Location) */}
             {(cv.contact.email || cv.contact.phone || cv.contact.location) && (
-              <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11.5px] text-slate-700 dark:text-slate-300 mt-1.5 font-sans">
+              <div className={`flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-slate-700 dark:text-slate-300 mt-1.5 font-sans ${
+                style.headerAlign === 'left' ? 'justify-start' : 'justify-center'
+              }`}>
                 {cv.contact.email && (
                   <a
                     href={`mailto:${cv.contact.email}`}
@@ -267,7 +332,9 @@ export function CVPreview() {
 
             {/* Line 2: Online Social / Portfolio Links (LinkedIn • GitHub • Portfolio) */}
             {activeSocialLinks.length > 0 && (
-              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11.5px] text-slate-700 dark:text-slate-300 mt-1 font-sans">
+              <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-slate-700 dark:text-slate-300 mt-1 font-sans ${
+                style.headerAlign === 'left' ? 'justify-start' : 'justify-center'
+              }`}>
                 {activeSocialLinks.map((item, idx) => {
                   const IconComp = getPlatformIcon(item.platform);
                   const displayLabel = item.customLabel?.trim() || item.platform || 'Link';
@@ -298,58 +365,58 @@ export function CVPreview() {
 
           {/* Render 2-Column or Single Column */}
           {isTwoColumn ? (
-            /* Perfectly Balanced Two-Column Layout */
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 sm:gap-8 pt-4 items-start">
-              {/* Left Column (Skills + Education): 5 cols (42% width) */}
-              <div className="col-span-1 sm:col-span-5 space-y-5 border-b sm:border-b-0 sm:border-r border-slate-200 dark:border-white/10 pb-4 sm:pb-0 sm:pr-6">
+            /* Perfectly Balanced Executive Two-Column Layout */
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 pt-2 items-start">
+              {/* Left Column (Sidebar): 5 cols (~40% width) with clean container */}
+              <div className="col-span-1 sm:col-span-5 bg-slate-50/70 dark:bg-slate-900/50 p-4 sm:p-5 rounded-xl border border-slate-200/80 dark:border-white/10 space-y-5">
                 {sections.includes('skills') && (
                   <section>
-                    <h2 className={style.heading}>{getSectionTitle('skills')}</h2>
-                    <div className={style.headingRule} />
+                    {renderHeading(getSectionTitle('skills'))}
                     <TwoColumnSkillsContent cv={cv} style={style} />
                   </section>
                 )}
                 {sections.includes('education') && (
                   <section>
-                    <h2 className={style.heading}>{getSectionTitle('education')}</h2>
-                    <div className={style.headingRule} />
+                    {renderHeading(getSectionTitle('education'))}
                     <TwoColumnEducationContent cv={cv} style={style} />
+                  </section>
+                )}
+                {sections.includes('certifications') && (
+                  <section>
+                    {renderHeading(getSectionTitle('certifications'))}
+                    <TwoColumnCertificationsContent cv={cv} style={style} />
                   </section>
                 )}
               </div>
 
-              {/* Right Column (Summary + Experience + Projects): 7 cols (58% width) */}
+              {/* Right Column (Main): 7 cols (~60% width) */}
               <div className="col-span-1 sm:col-span-7 space-y-5">
                 {sections.includes('summary') && (
                   <section>
-                    <h2 className={style.heading}>{getSectionTitle('summary')}</h2>
-                    <div className={style.headingRule} />
+                    {renderHeading(getSectionTitle('summary'))}
                     <SummarySectionContent cv={cv} style={style} />
                   </section>
                 )}
                 {sections.includes('experience') && (
                   <section>
-                    <h2 className={style.heading}>{getSectionTitle('experience')}</h2>
-                    <div className={style.headingRule} />
+                    {renderHeading(getSectionTitle('experience'))}
                     <ExperienceSectionContent cv={cv} style={style} />
                   </section>
                 )}
                 {sections.includes('projects') && (
                   <section>
-                    <h2 className={style.heading}>{getSectionTitle('projects')}</h2>
-                    <div className={style.headingRule} />
+                    {renderHeading(getSectionTitle('projects'))}
                     <ProjectsSectionContent cv={cv} style={style} />
                   </section>
                 )}
               </div>
             </div>
           ) : (
-            /* Standard Single-Column Flow (Ivy League / ATS Gold Standard) */
+            /* Standard Single-Column Flow */
             <div className="space-y-3.5 pt-1">
               {sections.map((id) => (
                 <section key={id} className={style.gap}>
-                  <h2 className={style.heading}>{getSectionTitle(id)}</h2>
-                  <div className={style.headingRule} />
+                  {renderHeading(getSectionTitle(id))}
                   <SectionContent id={id} cv={cv} style={style} />
                 </section>
               ))}
@@ -511,15 +578,28 @@ function SkillsSectionContent({ cv, style }: { cv: CVData; style: StyleConfig })
   return (
     <div className={`${style.itemGap}`}>
       {cv.skillsSummary && (
-        <p className={`mb-1.5 ${style.body}`}>{cv.skillsSummary}</p>
+        <p className={`mb-2 ${style.body}`}>{cv.skillsSummary}</p>
       )}
-      <dl className="space-y-1.5">
+      <dl className="space-y-2">
         {cv.skills.map((group) => (
-          <div key={group.id} className="flex flex-wrap sm:flex-nowrap gap-x-2 gap-y-0.5">
+          <div key={group.id} className="flex flex-wrap sm:flex-nowrap gap-x-2.5 gap-y-1">
             <dt className={`font-bold text-slate-900 dark:text-white shrink-0 ${style.body}`}>
               {group.label}:
             </dt>
-            <dd className={style.body}>{group.skills.join(', ')}</dd>
+            {style.skillsVariant === 'chips' ? (
+              <dd className="flex flex-wrap gap-1.5 flex-1">
+                {group.skills.map((s, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[11px] font-medium border border-slate-200/80 dark:border-white/10"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </dd>
+            ) : (
+              <dd className={style.body}>{group.skills.join(', ')}</dd>
+            )}
           </div>
         ))}
       </dl>
@@ -527,23 +607,30 @@ function SkillsSectionContent({ cv, style }: { cv: CVData; style: StyleConfig })
   );
 }
 
-/** Spacious Stacked Skills Layout specifically for Two-Column Sidebar (No horizontal cramming) */
+/** Spacious Stacked Skills Layout specifically for Two-Column Sidebar */
 function TwoColumnSkillsContent({ cv, style }: { cv: CVData; style: StyleConfig }) {
   if (cv.skills.length === 0) return null;
   return (
     <div className="mt-2 space-y-3">
       {cv.skillsSummary && (
-        <p className={`mb-2 text-[11px] leading-relaxed text-slate-700 dark:text-slate-300 font-medium`}>
+        <p className="mb-2 text-[10.5px] leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
           {cv.skillsSummary}
         </p>
       )}
       {cv.skills.map((group) => (
-        <div key={group.id} className="space-y-0.5">
-          <dt className="font-bold text-slate-900 dark:text-white text-[12px] block">
+        <div key={group.id} className="space-y-1">
+          <dt className="font-bold text-slate-900 dark:text-white text-[11px] block">
             {group.label}
           </dt>
-          <dd className="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed">
-            {group.skills.join(' • ')}
+          <dd className="flex flex-wrap gap-1">
+            {group.skills.map((s, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[10px] font-medium border border-slate-200 dark:border-white/10 shadow-2xs"
+              >
+                {s}
+              </span>
+            ))}
           </dd>
         </div>
       ))}
@@ -555,24 +642,63 @@ function TwoColumnSkillsContent({ cv, style }: { cv: CVData; style: StyleConfig 
 function TwoColumnEducationContent({ cv, style }: { cv: CVData; style: StyleConfig }) {
   if (cv.education.length === 0) return null;
   return (
-    <div className="mt-2 space-y-3">
+    <div className="mt-2 space-y-2.5">
       {cv.education.map((item) => {
         const cleanLoc = cleanLocationText(item.location);
         return (
           <div key={item.id} className="space-y-0.5">
-            <p className="font-bold text-slate-900 dark:text-white text-[12px] leading-snug">
+            <p className="font-bold text-slate-900 dark:text-white text-[11.5px] leading-snug">
               {item.degree} {item.major && `(${item.major})`}
             </p>
-            <p className="italic text-slate-700 dark:text-slate-300 text-[11.5px]">
+            <p className="italic text-slate-700 dark:text-slate-300 text-[11px]">
               {item.institution}
             </p>
-            <p className="text-[10.5px] text-slate-500 dark:text-slate-400 font-medium">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
               {formatDateRange(item.startDate, item.endDate, false)}
               {cleanLoc && ` • ${cleanLoc}`}
             </p>
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/** Clean Stacked Certifications Layout for Two-Column Sidebar */
+function TwoColumnCertificationsContent({ cv, style }: { cv: CVData; style: StyleConfig }) {
+  const certs = cv.certifications || [];
+  if (certs.length === 0) return null;
+
+  const fmtUrl = (url?: string) => {
+    if (!url) return '';
+    const u = url.trim();
+    return u.startsWith('http://') || u.startsWith('https://') ? u : `https://${u}`;
+  };
+
+  return (
+    <div className="mt-2 space-y-2.5">
+      {certs.map((cert) => (
+        <div key={cert.id} className="space-y-0.5">
+          <p className="font-bold text-slate-900 dark:text-white text-[11.5px] leading-snug">
+            {cert.name}
+          </p>
+          <div className="flex flex-wrap items-center justify-between gap-1 text-[10.5px] text-slate-600 dark:text-slate-400">
+            {cert.issuer && <span className="italic">{cert.issuer}</span>}
+            {cert.date && <span className="font-medium">{cert.date}</span>}
+          </div>
+          {cert.url && (
+            <a
+              href={fmtUrl(cert.url)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 text-blue-600 dark:text-blue-400 text-[10.5px] font-semibold hover:underline"
+            >
+              <span>Verify</span>
+              <span className="text-[9px]">↗</span>
+            </a>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

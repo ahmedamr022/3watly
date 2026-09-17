@@ -11,8 +11,7 @@ import {
   Redo2Icon,
   Undo2Icon,
   UploadCloudIcon,
-  PlusCircleIcon,
-  PrinterIcon
+  PlusCircleIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCV } from "@/contexts/CVContext";
@@ -24,7 +23,7 @@ import type { CVData, TemplateId } from "@/types/cv";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Dropdown } from "@/components/ui/Dropdown";
-import { exportCvToPdf, printCv } from "@/utils/pdfExport";
+import { exportCvToPdf } from "@/utils/pdfExport";
 
 export default function CVBuilderPage() {
   const {
@@ -204,17 +203,7 @@ export default function CVBuilderPage() {
 
   const templateOptions = TEMPLATES.map((item) => ({
     id: item.id,
-    label: isAr
-      ? item.id === 'ats-classic'
-        ? 'ATS Friendly (موصى به)'
-        : item.id === 'compact'
-        ? 'Compact (مدمج لصفحة واحدة)'
-        : item.id === 'two-column'
-        ? 'Two Column (تخطيط عمودين)'
-        : item.id === 'simple'
-        ? 'Simple (أكاديمي كلاسيكي)'
-        : item.name
-      : item.name
+    label: isAr ? item.nameAr : item.name
   }));
 
   return (
@@ -331,17 +320,6 @@ export default function CVBuilderPage() {
               label={isAr ? "القالب المختار:" : "Active Template:"}
               menuWidth="w-[240px]"
             />
-
-            {/* Direct Print Button */}
-            <button
-              type="button"
-              onClick={() => printCv('cv-paper-root')}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] hover:bg-slate-50 dark:hover:bg-white/5 px-3.5 py-2 text-[13px] font-bold text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-xs"
-              title={isAr ? "طباعة السيرة الذاتية أو حفظها عبر المتصفح" : "Print resume or Save as PDF"}
-            >
-              <PrinterIcon className="h-4 w-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
-              <span>{isAr ? "طباعة" : "Print"}</span>
-            </button>
 
             {/* Download PDF Button */}
             <button
