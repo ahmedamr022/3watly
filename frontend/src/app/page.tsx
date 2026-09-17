@@ -268,7 +268,7 @@ export default function LandingPage() {
       {/* ========================================================================= */}
       {/* 2. UNIFIED HERO AREA (Matching 1920x1080 Viewport & Mobile Responsive)    */}
       {/* ========================================================================= */}
-      <section className="relative w-full overflow-hidden pt-16 sm:pt-20 lg:pt-20 pb-4 sm:pb-6 lg:pb-6 px-4 sm:px-6 lg:px-6 xl:px-8 min-h-auto lg:h-[calc(100vh-4rem)] lg:min-h-[700px] lg:max-h-[940px] flex flex-col justify-between">
+      <section className="relative w-full overflow-hidden pt-16 sm:pt-20 lg:pt-20 pb-4 sm:pb-6 lg:pb-6 px-4 sm:px-6 lg:px-6 xl:px-8 min-h-auto lg:h-[calc(100vh-4rem)] lg:min-h-[700px] lg:max-h-[940px] flex flex-col justify-between bg-white dark:bg-[#040816]">
         {/* Full Section Background */}
         <HeroBackdrop />
 

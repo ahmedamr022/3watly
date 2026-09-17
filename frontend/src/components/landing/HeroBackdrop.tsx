@@ -103,16 +103,16 @@ export function HeroBackdrop() {
         />
       </picture>
 
-      {/* 5. Seamless Bottom Gradient Blend: dissolves 3D hero artwork smoothly into the page canvas */}
+      {/* 5. Bottom blend — dark mode: dissolve hero into #040816 */}
       <div 
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-10" 
+        className="hidden dark:block pointer-events-none absolute inset-x-0 bottom-0 z-10" 
         style={{
-          height: '40%',
-          background: 'linear-gradient(to top, #040816 0%, #040816 15%, rgba(4,8,22,0.92) 40%, rgba(4,8,22,0.6) 65%, transparent 100%)'
+          height: '55%',
+          background: 'linear-gradient(to top, #040816 0%, #040816 25%, rgba(4,8,22,0.95) 45%, rgba(4,8,22,0.6) 70%, transparent 100%)'
         }}
         aria-hidden="true"
       />
-      {/* Light mode bottom blend */}
+      {/* Bottom blend — light mode */}
       <div 
         className="dark:hidden pointer-events-none absolute inset-x-0 bottom-0 z-10" 
         style={{
