@@ -67,25 +67,33 @@ export function FinalCta() {
 
   return (
     <section className="w-full bg-white dark:bg-[#040816] pt-2 pb-6 px-4 sm:px-8 lg:px-12 transition-colors duration-300">
-      <div className="relative mx-auto max-w-[1360px] overflow-hidden rounded-[26px] border border-slate-200 bg-gradient-to-br from-white via-[#F0F6FF] to-[#E8F2FF] dark:border-cyan-500/25 dark:bg-gradient-to-r dark:from-[#060D1E] dark:via-[#081533] dark:to-[#040816] p-5 sm:p-7 lg:p-8 shadow-[0_8px_40px_-4px_rgba(0,80,200,0.10),0_0_0_1px_rgba(0,80,200,0.04)] dark:shadow-2xl dark:shadow-black/80">
-        
-        {/* Light Mode subtle background pattern overlay */}
-        <div className="pointer-events-none absolute inset-0 select-none dark:hidden overflow-hidden rounded-[26px]">
-          {/* Soft radial glow top-right */}
-          <div
-            className="absolute -top-20 -right-20 w-[500px] h-[500px]"
-            style={{
-              background: 'radial-gradient(circle at 70% 30%, rgba(59,130,246,0.10) 0%, rgba(99,102,241,0.06) 40%, transparent 70%)',
-            }}
-          />
-          {/* Subtle bottom accent */}
-          <div
-            className="absolute -bottom-10 -left-10 w-[300px] h-[300px]"
-            style={{
-              background: 'radial-gradient(circle at 30% 70%, rgba(16,185,129,0.07) 0%, transparent 60%)',
-            }}
-          />
-        </div>
+      {/* Card container — NO gradient here, just the frame */}
+      <div className="relative mx-auto max-w-[1360px] overflow-hidden rounded-[26px] border border-slate-200 dark:border-cyan-500/25 p-5 sm:p-7 lg:p-8 shadow-[0_8px_40px_-4px_rgba(0,80,200,0.10)] dark:shadow-2xl dark:shadow-black/80">
+
+        {/* ── Light mode background layer ── */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-[26px] dark:hidden"
+          style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f0f6ff 50%, #e6efff 100%)' }}
+        />
+        {/* Soft accent glows — light mode only */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-20 -right-20 w-[500px] h-[500px] dark:hidden"
+          style={{ background: 'radial-gradient(circle at 70% 30%, rgba(59,130,246,0.09) 0%, rgba(99,102,241,0.04) 45%, transparent 70%)' }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-10 -left-10 w-[300px] h-[300px] dark:hidden"
+          style={{ background: 'radial-gradient(circle at 30% 70%, rgba(16,185,129,0.06) 0%, transparent 60%)' }}
+        />
+
+        {/* ── Dark mode background layer ── */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-[26px] hidden dark:block"
+          style={{ background: 'linear-gradient(90deg, #060D1E 0%, #081533 50%, #040816 100%)' }}
+        />
 
         {/* Content Layout */}
         <div className="relative z-10 grid items-center gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-6">

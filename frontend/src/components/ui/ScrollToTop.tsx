@@ -84,18 +84,7 @@ export function ScrollToTop() {
             /* wrapper is 80×80 so the orbit SVG (centered) fits without clipping */
             style={{ width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            {/* ── Ambient radial glow (no filter, pure gradient) ── */}
-            <div
-              aria-hidden
-              style={{
-                position: 'absolute',
-                inset: '-16px',
-                borderRadius: '50%',
-                background:
-                  'radial-gradient(circle at 50% 58%, rgba(30,120,255,0.30) 0%, rgba(0,180,255,0.12) 50%, transparent 75%)',
-                pointerEvents: 'none',
-              }}
-            />
+
 
             {/* ── Orbital ring (SVG ellipse spinning in a fixed container) ── */}
             <div
