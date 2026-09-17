@@ -22,7 +22,7 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
       href={`/jobs?q=${encodeURIComponent(item.query)}`}
       aria-hidden={duplicate || undefined}
       tabIndex={duplicate ? -1 : undefined}
-      className="group/card relative block shrink-0 rounded-[26px] p-[1px] transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.02] cursor-pointer"
+      className="tech-card-shell group/card relative block shrink-0 rounded-[26px] p-[1px] transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.02] cursor-pointer"
       style={{
         background: `linear-gradient(140deg, rgb(${a} / 0.9) 0%, rgb(${b} / 0.5) 30%, rgb(${a} / 0.1) 60%, rgb(${a} / 0.7) 100%)`,
         boxShadow: `0 0 0 1px rgb(${a} / 0.15), 0 16px 32px -12px rgba(0, 0, 0, 0.9), 0 0 24px rgb(${a} / 0.35)`
@@ -30,7 +30,7 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
     >
       {/* Floor reflection / under-card glow */}
       <span
-        className="pointer-events-none absolute -bottom-3 left-6 right-6 h-5 rounded-full blur-md opacity-70 transition-opacity duration-300 group-hover/card:opacity-100"
+        className="tech-card-glow pointer-events-none absolute -bottom-3 left-6 right-6 h-5 rounded-full blur-md opacity-70 transition-opacity duration-300 group-hover/card:opacity-100"
         style={{ background: `rgb(${a} / 0.45)` }}
         aria-hidden="true"
       />
@@ -81,7 +81,7 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
 
         {/* Raised Tech Icon Squircle */}
         <span
-          className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] transition-transform duration-300 group-hover/card:scale-105 sm:h-11 sm:w-11"
+          className="tech-card-squircle relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] transition-transform duration-300 group-hover/card:scale-105 sm:h-11 sm:w-11"
           style={{
             background: `linear-gradient(150deg, rgb(${a} / 0.25) 0%, rgba(4, 12, 28, 0.92) 75%)`,
             border: `1px solid rgb(${a} / 0.45)`,
@@ -107,7 +107,7 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
             {item.name}
           </span>
           <span
-            className="mt-0.5 whitespace-nowrap text-[11px] sm:text-[11.5px] font-semibold leading-tight tracking-wide"
+            className="tech-card-subtitle mt-0.5 whitespace-nowrap text-[11px] sm:text-[11.5px] font-semibold leading-tight tracking-wide"
             style={{ color: `rgb(${a} / 0.95)` }}
           >
             {isAr ? item.subtitleAr : item.subtitleEn}

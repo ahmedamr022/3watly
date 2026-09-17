@@ -185,17 +185,23 @@ body {
 }
 
 html.dark body {
-  background-color: #060913;
+  background-color: #040816;
   color: #F8FAFC;
 }
 
-/* Base dark mode card foundations */
-.dark .bg-white:not(.cv-paper-root) {
+/* Base dark mode card foundations — do not override explicit dark:bg-* utilities */
+.dark .bg-white:not(.cv-paper-root):not([class*="dark:bg-"]) {
   background-color: #0B1120;
 }
 
-.dark .bg-slate-50 {
+.dark .bg-slate-50:not([class*="dark:bg-"]) {
   background-color: #070C18;
+}
+
+/* Enforce the exact #040816 dark background for all sections and page canvas */
+.dark [class*="dark:bg-[#040816]"],
+.dark .dark\:bg-\[\#040816\] {
+  background-color: #040816 !important;
 }
 
 .dark .border-slate-200 {
@@ -438,13 +444,31 @@ html.dark .cv-scroll-viewport::-webkit-scrollbar-thumb:hover {
 }
 
 /* Light mode overrides */
+html:not(.dark) .tech-card-shell {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 8px 24px -6px rgba(0, 0, 0, 0.08), 0 0 16px rgba(56, 189, 248, 0.15) !important;
+}
+
+html:not(.dark) .tech-card-glow {
+  opacity: 0.25 !important;
+}
+
 html:not(.dark) .tech-card-inner {
   background: linear-gradient(155deg, rgba(248, 252, 255, 0.97) 0%, rgba(255, 255, 255, 0.99) 55%, rgba(240, 248, 255, 0.96) 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 12px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(148,198,255,0.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 12px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(148,198,255,0.3);
+}
+
+html:not(.dark) .tech-card-squircle {
+  background: linear-gradient(150deg, rgba(241, 245, 249, 0.95) 0%, rgba(255, 255, 255, 0.98) 75%) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(203, 213, 225, 0.8) !important;
 }
 
 html:not(.dark) .tech-card-title {
   color: #0F172A;
+}
+
+html:not(.dark) .tech-card-subtitle {
+  color: #475569 !important;
 }
 
 html:not(.dark) .tech-card-chevron-bg {
@@ -453,11 +477,12 @@ html:not(.dark) .tech-card-chevron-bg {
 
 /* Light mode: make neon wave visible on light background */
 html:not(.dark) .tech-marquee-wave {
-  opacity: 0.5;
+  opacity: 0.45;
+  filter: saturate(1.2);
 }
 
 /* Light mode: spark nodes dimmer */
 html:not(.dark) .animate-glow-drift {
-  opacity: 0.6;
+  opacity: 0.5;
 }
 

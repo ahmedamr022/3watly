@@ -107,7 +107,7 @@ export function Features() {
       ];
 
   return (
-    <section id="features" className="relative w-full bg-transparent py-16 px-6 sm:px-10 lg:px-16 transition-colors duration-300 scroll-mt-20 overflow-hidden">
+    <section id="features" className="relative w-full bg-white dark:bg-[#040816] py-16 px-6 sm:px-10 lg:px-16 transition-colors duration-300 scroll-mt-20 overflow-hidden">
       {/* Seamless Ambient Glow overlapping from Hero section */}
       <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[1000px] h-[300px] bg-gradient-to-b from-[#0066FF]/15 via-[#00D2FF]/6 to-transparent blur-[110px] rounded-full dark:block hidden" />
       <div className="pointer-events-none absolute top-12 right-12 w-[400px] h-[400px] bg-indigo-500/5 blur-[120px] rounded-full dark:block hidden" />
