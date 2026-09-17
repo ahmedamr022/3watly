@@ -24,7 +24,7 @@ import type { CVData, TemplateId } from "@/types/cv";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Dropdown } from "@/components/ui/Dropdown";
-import { exportCvToPdf } from "@/utils/pdfExport";
+import { exportCvToPdf, printCv } from "@/utils/pdfExport";
 
 export default function CVBuilderPage() {
   const {
@@ -335,18 +335,7 @@ export default function CVBuilderPage() {
             {/* Direct Print Button */}
             <button
               type="button"
-              onClick={() => {
-                document.body.classList.add('cv-printing');
-                window.print();
-                // Remove after print dialog closes
-                const cleanup = () => {
-                  document.body.classList.remove('cv-printing');
-                  window.removeEventListener('afterprint', cleanup);
-                };
-                window.addEventListener('afterprint', cleanup);
-                // Fallback: remove after 5s in case afterprint doesn't fire
-                setTimeout(cleanup, 5000);
-              }}
+              onClick={() => printCv('cv-paper-root')}
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] hover:bg-slate-50 dark:hover:bg-white/5 px-3.5 py-2 text-[13px] font-bold text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-xs"
               title={isAr ? "طباعة السيرة الذاتية أو حفظها عبر المتصفح" : "Print resume or Save as PDF"}
             >

@@ -48,105 +48,101 @@
 }
 
 @media print {
-  /* ═══════════════════════════════════════════════════════
-     NUCLEAR PRINT ISOLATION — show ONLY the CV paper
-  ═══════════════════════════════════════════════════════ */
-
   @page {
     size: A4 portrait;
     margin: 10mm 12mm;
   }
 
-  /* 1. Force white background on everything — kill dark mode */
   html,
   html.dark,
   body,
   html.dark body {
     background: #ffffff !important;
     background-color: #ffffff !important;
+    background-image: none !important;
     color: #0f172a !important;
-    width: 100% !important;
-    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* 2. Hide EVERYTHING at body level */
-  body > * {
+  /* 1. Explicitly hide all UI chrome and extraneous elements */
+  aside,
+  header,
+  nav,
+  footer,
+  button,
+  input,
+  select,
+  textarea,
+  .no-print,
+  [data-no-print],
+  [role="banner"],
+  [role="navigation"],
+  [aria-hidden="true"] {
     display: none !important;
+    visibility: hidden !important;
   }
 
-  /* 3. Un-hide only the chain leading to the CV paper */
-  body > *:has(#cv-paper-root),
-  body > *:has(#cv-paper-root) > *,
-  body > *:has(#cv-paper-root) > * > *,
-  body > *:has(#cv-paper-root) > * > * > *,
-  body > *:has(#cv-paper-root) > * > * > * > * {
-    display: block !important;
-    background: transparent !important;
-    background-color: transparent !important;
-    background-image: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
+  /* 2. Hide everything by default in print */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* 3. Make ONLY the CV paper and its descendants visible */
+  #cv-paper-root,
+  #cv-paper-root * {
+    visibility: visible !important;
+  }
+
+  /* 4. Position the CV paper cleanly at the top of the printed page */
+  #cv-paper-root {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    min-height: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    overflow: visible !important;
-    max-height: none !important;
-  }
-
-  /* 4. The CV paper itself — clean white A4 */
-  #cv-paper-root {
-    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
     background-image: none !important;
     color: #0f172a !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: 0 !important;
-    height: auto !important;
-    margin: 0 auto !important;
-    padding: 24px 40px !important;
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
-    overflow: visible !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    min-height: 0 !important;
+    z-index: 9999999 !important;
   }
 
-  /* 5. Force every element inside the CV to have dark text */
   #cv-paper-root,
   #cv-paper-root * {
     color: #0f172a !important;
-    background-color: transparent !important;
-    background-image: none !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* 6. SVG icons — crisp black */
+  /* Official black social icons */
   #cv-paper-root svg {
     display: inline-block !important;
     color: #000000 !important;
     fill: currentColor !important;
     vertical-align: middle !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  /* 7. Preserve section headings underline */
+  /* Preserve headings underline */
   #cv-paper-root [class*="border-b"] {
     border-color: #94a3b8 !important;
     border-bottom-width: 1px !important;
   }
 
-  /* 8. Keep blue accents on links and role text */
+  /* Link styling in print */
   #cv-paper-root [class*="text-blue"],
   #cv-paper-root a {
     color: #1d4ed8 !important;
@@ -156,36 +152,10 @@
     content: none !important;
   }
 
-  /* 9. Keep bullet dots blue */
+  /* Bullet dots */
   #cv-paper-root [class*="bg-blue"] {
     background-color: #2563eb !important;
   }
-
-  /* 10. Explicitly hide all .no-print anywhere in the tree */
-  .no-print,
-  [data-no-print] {
-    display: none !important;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════
-   PRINT FALLBACK — when body.cv-printing is set by JS
-   (supports browsers without :has() in @media print)
-═══════════════════════════════════════════════════════ */
-body.cv-printing > *:not(:has(#cv-paper-root)) {
-  display: none !important;
-}
-body.cv-printing * {
-  background-image: none !important;
-}
-body.cv-printing #cv-paper-root {
-  display: block !important;
-  position: static !important;
-  width: 100% !important;
-  margin: 0 auto !important;
-  box-shadow: none !important;
-  border: none !important;
-  border-radius: 0 !important;
 }
 
 :root {
