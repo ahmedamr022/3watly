@@ -24,8 +24,8 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
       tabIndex={duplicate ? -1 : undefined}
       className="group/card relative block shrink-0 rounded-[26px] p-[1px] transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.02] cursor-pointer"
       style={{
-        background: `linear-gradient(140deg, rgb(${a} / 0.95) 0%, rgb(${b} / 0.55) 30%, rgb(${a} / 0.15) 60%, rgb(${a} / 0.75) 100%)`,
-        boxShadow: `0 0 0 1px rgb(${a} / 0.15), 0 16px 32px -12px rgba(0, 0, 0, 0.85), 0 0 24px rgb(${a} / 0.32), 0 0 50px rgb(${b} / 0.15)`
+        background: `linear-gradient(140deg, rgb(${a} / 0.9) 0%, rgb(${b} / 0.5) 30%, rgb(${a} / 0.1) 60%, rgb(${a} / 0.7) 100%)`,
+        boxShadow: `0 0 0 1px rgb(${a} / 0.15), 0 16px 32px -12px rgba(0, 0, 0, 0.9), 0 0 24px rgb(${a} / 0.35)`
       }}
     >
       {/* Floor reflection / under-card glow */}
@@ -37,9 +37,10 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
 
       {/* Internal Glassmorphic Capsule */}
       <span
-        className="relative flex items-center gap-3.5 overflow-hidden rounded-[25px] py-3 pl-3.5 pr-10 sm:gap-4 sm:py-3.5 sm:pl-4 sm:pr-12"
+        dir="ltr"
+        className="relative flex items-center gap-3.5 overflow-hidden rounded-[25px] py-3 pl-3.5 pr-11 sm:gap-4 sm:py-3.5 sm:pl-4 sm:pr-12 text-left"
         style={{
-          background: `linear-gradient(155deg, rgba(12, 26, 52, 0.92) 0%, rgba(6, 16, 35, 0.95) 50%, rgba(3, 8, 20, 0.98) 100%)`,
+          background: `linear-gradient(155deg, rgba(10, 22, 45, 0.92) 0%, rgba(5, 12, 28, 0.95) 55%, rgba(2, 6, 16, 0.98) 100%)`,
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           boxShadow: `inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 -12px 20px -12px rgba(0, 0, 0, 0.9), inset 0 0 28px rgb(${a} / 0.1)`
@@ -104,9 +105,9 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
         </span>
 
         {/* Title & Subtitle */}
-        <span className="relative flex min-w-0 flex-col pr-1">
+        <span className="relative flex min-w-0 flex-col pr-2 text-left" dir="ltr">
           <span
-            className="text-[15.5px] sm:text-[17px] font-bold leading-tight tracking-tight text-white whitespace-nowrap"
+            className="text-[15px] sm:text-[16.5px] font-bold leading-tight tracking-tight text-white whitespace-nowrap"
             style={{ textShadow: `0 0 16px rgb(${a} / 0.4)` }}
           >
             {item.name}

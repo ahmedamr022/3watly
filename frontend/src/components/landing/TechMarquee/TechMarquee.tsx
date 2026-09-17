@@ -16,13 +16,13 @@ interface TechMarqueeProps {
 
 export function TechMarquee({
   items = techStack,
-  durationSeconds = 42,
+  durationSeconds = 40,
   className = ''
 }: TechMarqueeProps) {
   const { isAr } = useLanguage();
   const [isPaused, setIsPaused] = useState(false);
 
-  // Duplicate items twice to ensure completely seamless, unbroken continuous looping
+  // Duplicate items to create an unbroken seamless loop
   const loop = [...items, ...items];
 
   return (
@@ -32,8 +32,13 @@ export function TechMarquee({
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       className={`group relative isolate w-full overflow-hidden select-none py-10 sm:py-14 bg-transparent ${className}`}
+      style={{
+        // Pure Alpha Mask: Fade to 100% transparent at left & right edges with ZERO background color overlays
+        WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+        maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+      }}
     >
-      {/* Dynamic Ambient Neon Backdrop with Sinuous Glowing Waves */}
+      {/* Sinuous Glowing Energy Wave & Floating Elements */}
       <MarqueeBackdrop />
 
       {/* Marquee Track Container */}
@@ -59,20 +64,6 @@ export function TechMarquee({
           ))}
         </motion.div>
       </div>
-
-      {/* Top and Bottom soft dissolves (Zero hard borders against hero and features) */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white dark:from-[#060B18] to-transparent z-20" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white dark:from-[#060B18] to-transparent z-20" />
-
-      {/* Left and Right edge fades (Cards melt into the dark void) */}
-      <div
-        className="pointer-events-none absolute inset-y-0 left-0 w-20 sm:w-44 z-20 bg-gradient-to-r from-white dark:from-[#060B18] via-white/80 dark:via-[#060B18]/80 to-transparent"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-20 sm:w-44 z-20 bg-gradient-to-l from-white dark:from-[#060B18] via-white/80 dark:via-[#060B18]/80 to-transparent"
-        aria-hidden="true"
-      />
     </section>
   );
 }
