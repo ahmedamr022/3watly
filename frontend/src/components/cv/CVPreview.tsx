@@ -463,32 +463,37 @@ function ProjectsSectionContent({ cv, style }: { cv: CVData; style: StyleConfig 
     <div className="space-y-3">
       {cv.projects.map((item, index) => (
         <div key={item.id} className={index === 0 ? style.itemGap : 'mt-2.5'}>
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-            <div className="flex flex-wrap items-baseline gap-2">
-              <span className={style.itemTitle}>{item.title}</span>
-              {item.github && (
-                <a
-                  href={formatUrl(item.github)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-slate-900 dark:text-blue-400 underline text-[11.5px] font-medium"
-                >
-                  GitHub
-                </a>
-              )}
-              {item.link && (
-                <a
-                  href={formatUrl(item.link)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-slate-900 dark:text-blue-400 underline text-[11.5px] font-medium"
-                >
-                  Live Demo
-                </a>
-              )}
+          {/* Top row: Project Title & Links on left, Technologies on right */}
+          <div className="flex items-start justify-between gap-x-4 gap-y-1">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                <span className={style.itemTitle}>{item.title}</span>
+                {item.github && (
+                  <a
+                    href={formatUrl(item.github)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline text-[11px] font-semibold inline-flex items-center gap-0.5"
+                  >
+                    <span>GitHub</span>
+                    <span className="text-[9px]">↗</span>
+                  </a>
+                )}
+                {item.link && (
+                  <a
+                    href={formatUrl(item.link)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline text-[11px] font-semibold inline-flex items-center gap-0.5"
+                  >
+                    <span>Live Demo</span>
+                    <span className="text-[9px]">↗</span>
+                  </a>
+                )}
+              </div>
             </div>
-            {item.technologies.length > 0 && (
-              <span className={`text-right ${style.meta}`}>
+            {item.technologies && item.technologies.length > 0 && (
+              <span className={`shrink-0 text-right ${style.meta} max-w-[45%]`}>
                 {item.technologies.join(', ')}
               </span>
             )}

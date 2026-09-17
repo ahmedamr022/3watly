@@ -352,33 +352,47 @@ export function generateDirectVectorPdf(cv: CVData, options: VectorPdfOptions = 
           doc.text(projectTitle, marginX, cursorY);
         }
 
+        const techStr = item.technologies && item.technologies.length > 0 ? item.technologies.join(', ') : '';
+        doc.setFont(fontRegular, 'normal');
+        doc.setFontSize(8.5);
+        const techWidth = techStr ? doc.getTextWidth(techStr) : 0;
+        const maxTitleX = marginX + contentWidth - techWidth - 14;
+
         let linkOffsetX = marginX + titleWidth + 6;
+
+        // If title and links would collide with technologies, wrap links to their own line
+        const needsWrap = linkOffsetX + 80 > maxTitleX;
+        if (needsWrap && (item.github?.trim() || item.link?.trim())) {
+          cursorY += 11;
+          linkOffsetX = marginX;
+        }
 
         // Render Clickable GitHub Link
         if (item.github?.trim()) {
           doc.setFont(fontRegular, 'normal');
           doc.setFontSize(8.5);
-          doc.setTextColor(0, 0, 0);
-          const ghLabel = '[GitHub]';
+          doc.setTextColor(29, 78, 216); // Professional blue for clickable links
+          const ghLabel = 'GitHub ↗';
           doc.textWithLink(ghLabel, linkOffsetX, cursorY, { url: formatUrl(item.github) });
-          linkOffsetX += doc.getTextWidth(ghLabel) + 5;
+          linkOffsetX += doc.getTextWidth(ghLabel) + 6;
         }
 
         // Render Clickable Live Demo Link
         if (item.link?.trim() && !projectTitle.includes('http')) {
           doc.setFont(fontRegular, 'normal');
           doc.setFontSize(8.5);
-          doc.setTextColor(0, 0, 0);
-          const demoLabel = '[Live Demo]';
+          doc.setTextColor(29, 78, 216); // Professional blue for clickable links
+          const demoLabel = 'Live Demo ↗';
           doc.textWithLink(demoLabel, linkOffsetX, cursorY, { url: formatUrl(item.link) });
         }
 
-        // Technologies on right
-        if (item.technologies && item.technologies.length > 0) {
+        // Technologies on right (aligned with the first line)
+        if (techStr) {
           doc.setFont(fontRegular, 'normal');
           doc.setFontSize(8.5);
           doc.setTextColor(0, 0, 0);
-          doc.text(item.technologies.join(', '), marginX + contentWidth, cursorY, { align: 'right' });
+          const techY = needsWrap ? cursorY - 11 : cursorY;
+          doc.text(techStr, marginX + contentWidth, techY, { align: 'right' });
         }
         cursorY += 12;
 
