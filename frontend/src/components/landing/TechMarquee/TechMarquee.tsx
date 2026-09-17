@@ -31,17 +31,19 @@ export function TechMarquee({
       aria-label={isAr ? "المهارات والتقنيات الأكثر طلباً في سوق العمل" : "Most in-demand technologies"}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className={`group relative isolate w-full overflow-hidden select-none py-10 sm:py-14 bg-white dark:bg-[#040816] ${className}`}
-      style={{
-        WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
-        maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
-      }}
+      className={`group relative isolate w-full select-none py-10 sm:py-14 bg-white dark:bg-[#040816] ${className}`}
     >
       {/* Sinuous Glowing Energy Wave & Floating Elements */}
       <MarqueeBackdrop />
 
-      {/* Marquee Track Container */}
-      <div className="relative py-4 sm:py-6 z-10">
+      {/* Marquee Track — mask fades edges of the scrolling strip only */}
+      <div
+        className="relative py-4 sm:py-6 z-10 overflow-hidden"
+        style={{
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+          maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+        }}
+      >
         <motion.div
           className="flex w-max items-center gap-5 pr-5 sm:gap-6 sm:pr-6"
           animate={{
