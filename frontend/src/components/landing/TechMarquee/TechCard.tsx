@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from 'react';
 import Link from 'next/link';
@@ -38,13 +38,7 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
       {/* Internal Glassmorphic Capsule */}
       <span
         dir="ltr"
-        className="relative flex items-center gap-3.5 overflow-hidden rounded-[25px] py-3 pl-3.5 pr-11 sm:gap-4 sm:py-3.5 sm:pl-4 sm:pr-12 text-left"
-        style={{
-          background: `linear-gradient(155deg, rgba(10, 22, 45, 0.92) 0%, rgba(5, 12, 28, 0.95) 55%, rgba(2, 6, 16, 0.98) 100%)`,
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          boxShadow: `inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 -12px 20px -12px rgba(0, 0, 0, 0.9), inset 0 0 28px rgb(${a} / 0.1)`
-        }}
+        className="tech-card-inner relative flex items-center gap-3.5 overflow-hidden rounded-[25px] py-3 pl-3.5 pr-11 sm:gap-4 sm:py-3.5 sm:pl-4 sm:pr-12 text-left"
       >
         {/* Top specular sheen highlight */}
         <span
@@ -107,7 +101,7 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
         {/* Title & Subtitle */}
         <span className="relative flex min-w-0 flex-col pr-2 text-left" dir="ltr">
           <span
-            className="text-[15px] sm:text-[16.5px] font-bold leading-tight tracking-tight text-white whitespace-nowrap"
+            className="tech-card-title text-[15px] sm:text-[16.5px] font-bold leading-tight tracking-tight whitespace-nowrap"
             style={{ textShadow: `0 0 16px rgb(${a} / 0.4)` }}
           >
             {item.name}
@@ -122,9 +116,8 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
 
         {/* Sleek Chevron Arrow Button */}
         <span
-          className="absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full transition-transform duration-200 group-hover/card:translate-x-0.5 sm:h-7 sm:w-7"
+          className="tech-card-chevron-bg absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full transition-transform duration-200 group-hover/card:translate-x-0.5 sm:h-7 sm:w-7"
           style={{
-            background: `linear-gradient(150deg, rgb(${a} / 0.28) 0%, rgba(4, 12, 28, 0.85) 80%)`,
             border: `1px solid rgb(${a} / 0.45)`,
             boxShadow: `0 0 10px rgb(${a} / 0.35)`
           }}
@@ -143,3 +136,4 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
     </Link>
   );
 }
+

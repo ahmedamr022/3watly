@@ -363,7 +363,10 @@ export default function LandingPage() {
       </section>
 
       {/* Seamless Glowing Tech Marquee */}
-      <TechMarquee />
+      {/* Dark: gradient from hero bottom (~#05091A) → page bg (#040816). Light: soft slate-50 band */}
+      <div className="w-full bg-white dark:bg-[#040816]">
+        <TechMarquee />
+      </div>
 
       {/* ========================================================================= */}
       {/* 3. CORE FEATURES SECTION                                                 */}

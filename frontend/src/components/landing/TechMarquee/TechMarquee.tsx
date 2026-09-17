@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -31,9 +31,8 @@ export function TechMarquee({
       aria-label={isAr ? "المهارات والتقنيات الأكثر طلباً في سوق العمل" : "Most in-demand technologies"}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className={`group relative isolate w-full overflow-hidden select-none py-10 sm:py-14 bg-transparent ${className}`}
+      className={`group relative isolate w-full overflow-hidden select-none py-10 sm:py-14 bg-[#EFF6FF] dark:bg-transparent ${className}`}
       style={{
-        // Pure Alpha Mask: Fade to 100% transparent at left & right edges with ZERO background color overlays
         WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
         maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
       }}

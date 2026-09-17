@@ -24,7 +24,7 @@ export function MarqueeBackdrop() {
 
       {/* Sinuous Glowing Energy Wave SVG */}
       <svg
-        className="absolute inset-0 h-full w-full"
+        className="tech-marquee-wave absolute inset-0 h-full w-full"
         viewBox="0 0 1600 360"
         preserveAspectRatio="none"
       >
