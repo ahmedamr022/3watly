@@ -67,17 +67,7 @@ export function FinalCta() {
 
   return (
     <section className="w-full bg-white dark:bg-[#040816] pt-2 pb-6 px-4 sm:px-8 lg:px-12 transition-colors duration-300">
-      <div className="relative mx-auto max-w-[1360px] overflow-hidden rounded-[26px]
-        /* ── LIGHT MODE: clean white card with blue-tinted gradient ── */
-        border border-slate-200
-        bg-gradient-to-br from-white via-[#F0F6FF] to-[#E8F2FF]
-        /* ── DARK MODE: original navy gradient ── */
-        dark:border-cyan-500/25
-        dark:bg-none dark:bg-gradient-to-r dark:from-[#060D1E] dark:via-[#081533] dark:to-[#040816]
-        p-5 sm:p-7 lg:p-8
-        shadow-[0_8px_40px_-4px_rgba(0,80,200,0.10),0_0_0_1px_rgba(0,80,200,0.04)]
-        dark:shadow-2xl dark:shadow-black/80
-      ">
+      <div className="relative mx-auto max-w-[1360px] overflow-hidden rounded-[26px] border border-slate-200 bg-gradient-to-br from-white via-[#F0F6FF] to-[#E8F2FF] dark:border-cyan-500/25 dark:bg-gradient-to-r dark:from-[#060D1E] dark:via-[#081533] dark:to-[#040816] p-5 sm:p-7 lg:p-8 shadow-[0_8px_40px_-4px_rgba(0,80,200,0.10),0_0_0_1px_rgba(0,80,200,0.04)] dark:shadow-2xl dark:shadow-black/80">
         
         {/* Light Mode subtle background pattern overlay */}
         <div className="pointer-events-none absolute inset-0 select-none dark:hidden overflow-hidden rounded-[26px]">
