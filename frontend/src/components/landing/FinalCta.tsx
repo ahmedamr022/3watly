@@ -102,11 +102,7 @@ export function FinalCta() {
           <div className="space-y-3.5">
 
             {/* AI badge — accent chip, not pill */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
-              bg-gradient-to-r from-blue-600/10 to-transparent
-              border-l-[3px] border-blue-600 dark:border-cyan-400
-              text-blue-700 dark:text-cyan-300 text-[11.5px] font-bold tracking-wide"
-            >
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ltr:bg-gradient-to-r rtl:bg-gradient-to-l from-blue-600/10 to-transparent ltr:border-l-[3px] rtl:border-r-[3px] border-blue-600 dark:border-cyan-400 text-blue-700 dark:text-cyan-300 text-[11.5px] font-bold tracking-wide">
               <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
               <span>{isAr ? 'تحليلات مدعومة بالذكاء الاصطناعي' : 'AI-Powered Analytics'}</span>
             </div>

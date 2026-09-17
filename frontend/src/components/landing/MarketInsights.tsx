@@ -172,7 +172,7 @@ export function MarketInsights() {
         
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600/10 to-transparent border-l-[3px] border-blue-600 dark:border-blue-400 text-blue-700 dark:text-blue-300 text-[12px] font-bold tracking-wide">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ltr:bg-gradient-to-r rtl:bg-gradient-to-l from-blue-600/10 to-transparent ltr:border-l-[3px] rtl:border-r-[3px] border-blue-600 dark:border-blue-400 text-blue-700 dark:text-blue-300 text-[12px] font-bold tracking-wide">
             <TrendingUp className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>{isAr ? "بيانات حية • تحليلات محلية" : "Real Data. Local Insights."}</span>
           </div>
@@ -444,45 +444,55 @@ export function MarketInsights() {
         </div>
 
         {/* ========================================================================= */}
-        {/* PREMIUM 3D REDESIGNED CTA BANNER CARD (Issue 8)                           */}
+        {/* PREMIUM CTA BANNER CARD (Full Light/Dark Mode Support)                   */}
         {/* ========================================================================= */}
-        <div className="relative mt-10 overflow-hidden rounded-[30px] border border-cyan-500/25 dark:border-cyan-500/30 bg-gradient-to-br from-[#060D1E] via-[#08132B] to-[#040816] text-white p-7 sm:p-9 shadow-[0_20px_50px_rgba(4,8,22,0.6),0_0_30px_rgba(0,210,255,0.12)]">
-          {/* Ambient Glows */}
-          <div className="absolute -top-24 ltr:-right-24 rtl:-left-24 w-72 h-72 rounded-full bg-blue-500/15 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 ltr:-left-24 rtl:-right-24 w-72 h-72 rounded-full bg-emerald-500/15 blur-3xl pointer-events-none" />
+        <div className="relative mt-10 overflow-hidden rounded-[26px] border border-slate-200 dark:border-cyan-500/25 p-7 sm:p-9 shadow-lg shadow-slate-200/50 dark:shadow-[0_20px_50px_rgba(4,8,22,0.6)]">
+          {/* Light mode background layer */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-[26px] dark:hidden"
+            style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f0f6ff 50%, #e6efff 100%)' }}
+          />
+          {/* Dark mode background layer */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-[26px] hidden dark:block"
+            style={{ background: 'linear-gradient(135deg, #060D1E 0%, #08132B 50%, #040816 100%)' }}
+          />
 
           <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
             
             {/* Left Info & Badges */}
             <div className="space-y-3.5 max-w-2xl text-center lg:text-left rtl:lg:text-right">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-400/30 text-blue-300 text-[12px] font-bold">
-                <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
+              {/* AI badge — modern accent chip, NOT an oval pill */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ltr:bg-gradient-to-r rtl:bg-gradient-to-l from-blue-600/10 to-transparent ltr:border-l-[3px] rtl:border-r-[3px] border-blue-600 dark:border-cyan-400 text-blue-700 dark:text-cyan-300 text-[11.5px] font-bold tracking-wide">
+                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
                 <span>{isAr ? "تحليلات مدعومة بالذكاء الاصطناعي" : "AI-Powered Career Intelligence"}</span>
               </div>
 
-              <h4 className="text-[22px] sm:text-[26px] font-black leading-tight text-white">
+              <h4 className="text-[22px] sm:text-[26px] font-black leading-tight text-slate-900 dark:text-white">
                 {isAr 
                   ? "احصل على تحليلات سوق أعمق وأدق مع عواطلي" 
                   : "Unlock Deeper, Actionable Market Insights with 3WATLY"}
               </h4>
 
-              <p className="text-[14px] text-slate-300 leading-relaxed font-normal">
+              <p className="text-[14px] text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                 {isAr
                   ? "اكتشف سلم رواتب الشركات الحقيقية، واتجاهات التوظيف الآنية، وتوصيات سد فجوة المهارات المخصصة لملفك الشخصي بنقرة واحدة."
                   : "Discover verified company salary scales, live hiring velocity, and personalized skill gap roadmaps tailored directly to your profile."}
               </p>
 
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1 text-[12.5px] text-slate-300 font-semibold">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1 text-[12.5px] text-slate-700 dark:text-slate-300 font-semibold">
                 <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <span>{isAr ? "بيانات رواتب موثقة" : "Verified Salaries"}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <span>{isAr ? "خطة تطوير مهارات فورية" : "Instant Skill Roadmap"}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <span>{isAr ? "مجاني 100%" : "100% Free"}</span>
                 </div>
               </div>
@@ -492,7 +502,7 @@ export function MarketInsights() {
             <div className="flex-shrink-0">
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-[15px] font-extrabold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-1 transition-all duration-200 group"
+                className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-[15px] font-extrabold shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/35 hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer"
               >
                 <span>{isAr ? "ابدأ التحليل مجاناً الآن" : "Start Free Analysis Now"}</span>
                 <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isAr ? "rotate-180 group-hover:-translate-x-1" : ""}`} />

@@ -67,8 +67,8 @@ export function Testimonials() {
         
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto space-y-2.5">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-300 text-[11.5px] font-bold tracking-wider uppercase border border-blue-100/80 dark:border-blue-500/30">
-            <UserCheck className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ltr:bg-gradient-to-r rtl:bg-gradient-to-l from-blue-600/10 to-transparent ltr:border-l-[3px] rtl:border-r-[3px] border-blue-600 dark:border-blue-400 text-blue-700 dark:text-blue-300 text-[12px] font-bold tracking-wide">
+            <UserCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>{isAr ? "قصص النجاح وآراء المستخدمين" : "Success Stories & Reviews"}</span>
           </div>
 
