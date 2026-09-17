@@ -130,8 +130,12 @@ export function Features() {
         
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-300 text-[12px] font-bold tracking-wider uppercase border border-blue-100/80 dark:border-blue-500/30">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
+            bg-gradient-to-r from-blue-600/10 to-transparent
+            border-l-[3px] border-blue-600 dark:border-blue-400
+            text-blue-700 dark:text-blue-300 text-[12px] font-bold tracking-wide"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>{isAr ? "أقوى المميزات" : "Powerful Features"}</span>
           </div>
 
