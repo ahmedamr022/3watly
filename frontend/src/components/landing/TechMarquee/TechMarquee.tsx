@@ -31,7 +31,7 @@ export function TechMarquee({
       aria-label={isAr ? "المهارات والتقنيات الأكثر طلباً في سوق العمل" : "Most in-demand technologies"}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className={`group relative isolate w-full overflow-hidden select-none py-10 sm:py-14 bg-[#EFF6FF] dark:bg-transparent ${className}`}
+      className={`group relative isolate w-full overflow-hidden select-none py-10 sm:py-14 bg-white dark:bg-[#040816] ${className}`}
       style={{
         WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
         maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
