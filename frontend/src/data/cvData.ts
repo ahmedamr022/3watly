@@ -70,37 +70,37 @@ export const TEMPLATES: {
   {
     id: 'ats-classic',
     name: 'ATS Friendly',
-    nameAr: 'ATS Friendly (كلاسيكي موصى به)',
+    nameAr: 'ATS Friendly (موصى به)',
     columns: 1,
     description: 'Single-column academic serif layout, gold standard for ATS parsing.'
   },
   {
-    id: 'modern-minimal',
-    name: 'Modern Tech',
-    nameAr: 'Modern Tech (عصري بشرائط ملونة)',
+    id: 'compact',
+    name: 'Compact',
+    nameAr: 'Compact (مدمج لصفحة واحدة)',
     columns: 1,
-    description: 'Left-aligned modern tech layout with blue accent bars and clean typography.'
+    description: 'High-density single page layout with highlighted section banners.'
   },
   {
     id: 'two-column',
     name: 'Two Column',
-    nameAr: 'Two Column (عمودين مع شهادات كاملة)',
+    nameAr: 'Two Column (تخطيط عمودين)',
     columns: 2,
-    description: 'Structured sidebar layout with separate skills, education, and full certifications.'
-  },
-  {
-    id: 'compact',
-    name: 'Compact',
-    nameAr: 'Compact (مدمج بعناوين مظللة)',
-    columns: 1,
-    description: 'High-density single page layout with highlighted section banner blocks.'
+    description: 'Structured sidebar layout with separate skills, education, and certifications.'
   },
   {
     id: 'simple',
-    name: 'Academic Simple',
-    nameAr: 'Simple (أكاديمي بإطار مزدوج)',
+    name: 'Simple',
+    nameAr: 'Simple (أكاديمي كلاسيكي)',
     columns: 1,
-    description: 'Minimalist academic layout with centered framed double-line headings.'
+    description: 'Traditional academic CV layout with clean horizontal rules.'
+  },
+  {
+    id: 'modern-minimal',
+    name: 'Modern Minimal',
+    nameAr: 'Modern Minimal',
+    columns: 1,
+    description: 'Clean modern tech layout with sleek typography and badges.'
   }
 ];
 
