@@ -66,7 +66,7 @@ function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
 export default function SettingsPage() {
   const router = useRouter();
   const { isAr } = useLanguage();
-  const { user, updateAvatar, removeAvatar, updateFullName, deleteAccount } = useAuth();
+  const { user, updateAvatar, removeAvatar, updateFullName, updateTargetRole, deleteAccount } = useAuth();
   const { file, role } = useOnboarding();
   
   // View mode: 'settings' | 'edit-profile'
@@ -144,7 +144,8 @@ export default function SettingsPage() {
       ...prev,
       fullName: savedSettings?.fullName || user?.fullName || cvData?.fullName || prev.fullName,
       email: savedSettings?.email || user?.email || cvData?.email || prev.email,
-      jobTitle: savedSettings?.jobTitle || user?.targetRole || cvData?.targetRole || cvData?.currentTitle || prev.jobTitle,
+      // user.targetRole (Supabase) is the canonical source — savedSettings no longer overrides it
+      jobTitle: user?.targetRole || cvData?.targetRole || cvData?.currentTitle || prev.jobTitle,
       location: savedSettings?.location || cvData?.location || prev.location,
       phone: savedSettings?.phone || cvData?.phone || prev.phone,
       linkedin: savedSettings?.linkedin || cvData?.linkedin || prev.linkedin,
@@ -217,10 +218,21 @@ export default function SettingsPage() {
       return;
     }
 
-    // Persist to localStorage & AuthContext
-    localStorage.setItem('3watly_profile_settings', JSON.stringify(profile));
+    // Persist full name to AuthContext + Supabase
     updateFullName(profile.fullName);
-    
+
+    // Persist target role to AuthContext + Supabase (the single canonical source of truth)
+    if (profile.jobTitle.trim()) {
+      updateTargetRole(profile.jobTitle.trim());
+      // Also sync the 3watly_role key used by SkillPlanContext
+      localStorage.setItem('3watly_role', profile.jobTitle.trim().toLowerCase().replace(/\s+/g, '-'));
+    }
+
+    // Save remaining profile fields to localStorage, but exclude jobTitle
+    // so the next load always reads the role from user.targetRole (Supabase), not a stale local cache
+    const { jobTitle: _omit, ...restProfile } = profile;
+    localStorage.setItem('3watly_profile_settings', JSON.stringify(restProfile));
+
     toast.success(isAr ? 'تم حفظ التغييرات بنجاح!' : 'Changes saved successfully!');
     setIsEditing(false);
   };

@@ -404,6 +404,14 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           updateFullName(data.fullName.trim());
         }
 
+        // Sync detected target role to AuthContext + Supabase (canonical source of truth)
+        const detectedRole = finalParsedCv.targetRole || finalParsedCv.currentTitle;
+        if (detectedRole && detectedRole.trim()) {
+          updateTargetRole(detectedRole.trim());
+          // Also sync 3watly_role for SkillPlanContext
+          localStorage.setItem('3watly_role', detectedRole.trim().toLowerCase().replace(/\s+/g, '-'));
+        }
+
         // If candidate experiences are all internships, align experience level to 'Fresh Graduate'
         if (data.isAllInternships || (Array.isArray(data.experiences) && data.experiences.length > 0 && data.experiences.every((e: any) => e.type === 'internship'))) {
           setExperienceState('Fresh Graduate');
