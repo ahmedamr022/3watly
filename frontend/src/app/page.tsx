@@ -42,22 +42,7 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isClickScrollingRef = useRef(false);
 
-  const handleLoginClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const hasSavedAccount =
-      !!user ||
-      (typeof window !== 'undefined' &&
-        (!!localStorage.getItem('3watly_user') ||
-          !!localStorage.getItem('3watly_token') ||
-          document.cookie.includes('sb-') ||
-          document.cookie.includes('supabase')));
 
-    if (hasSavedAccount) {
-      router.push('/dashboard');
-    } else {
-      router.push('/login');
-    }
-  };
 
   const navigationLinks = isAr
     ? [
@@ -177,13 +162,12 @@ export default function LandingPage() {
             <ThemeToggle />
 
             {/* Log In - desktop only */}
-            <button
-              type="button"
-              onClick={handleLoginClick}
+            <Link
+              href="/login"
               className="hidden md:block text-[13px] sm:text-[14px] font-bold text-slate-700 dark:text-white hover:text-blue-600 dark:hover:text-cyan-400 px-2.5 py-1.5 transition-colors cursor-pointer"
             >
               {isAr ? "تسجيل الدخول" : "Log In"}
-            </button>
+            </Link>
 
             {/* Sign Up Free - Prominent Navbar CTA */}
             <Link 
@@ -241,16 +225,13 @@ export default function LandingPage() {
               </nav>
 
               <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    setMobileMenuOpen(false);
-                    handleLoginClick(e);
-                  }}
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-center font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                 >
                   {isAr ? "تسجيل الدخول" : "Log In"}
-                </button>
+                </Link>
                 <Link
                   href="/signup"
                   onClick={() => setMobileMenuOpen(false)}

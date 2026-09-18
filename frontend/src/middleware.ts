@@ -16,8 +16,8 @@ const PROTECTED_PREFIXES = [
   '/api/copilot',
 ];
 
-/** Routes where logged-in users are redirected to dashboard */
-const AUTH_ONLY_ROUTES = ['/login', '/signup', '/sign-up', '/forgot-password'];
+/** Routes where logged-in users are redirected to dashboard (disabled so users can always access signup) */
+const AUTH_ONLY_ROUTES: string[] = [];
 
 function matchesPath(pathname: string, target: string): boolean {
   return pathname === target || pathname.startsWith(target + '/');
