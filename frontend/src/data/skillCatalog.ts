@@ -4,7 +4,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
   sql: {
     id: 'sql',
     name: 'SQL',
-    aliases: ['SQL', 'T-SQL', 'PL/SQL'],
+    aliases: [
+      'SQL', 'T-SQL', 'TSQL', 'PL/SQL', 'PLSQL', 'PostgreSQL', 'Postgres',
+      'MySQL', 'MSSQL', 'MS SQL', 'SQL Server', 'SQLite', 'Oracle SQL', 'Structured Query Language'
+    ],
     tier: 'foundation',
     hours: 8,
     courses: 3,

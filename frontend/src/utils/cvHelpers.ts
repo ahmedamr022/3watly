@@ -95,8 +95,20 @@ export function cvToText(cv: CVData): string {
 }
 
 export function containsKeyword(text: string, keyword: string): boolean {
+  if (!text || !keyword) return false;
   const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, 'i').test(text);
+  if (new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, 'i').test(text)) {
+    return true;
+  }
+  // Robust check for punctuation/casing variants (e.g. "T-SQL" vs "TSQL", "Power-BI" vs "PowerBI")
+  const normKw = keyword.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (normKw.length >= 3) {
+    const normText = text.toLowerCase().replace(/[^a-z0-9]/g, ' ');
+    if (new RegExp(`(^|\\s)${normKw}(\\s|$)`, 'i').test(normText)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 const STRONGER_VERBS: Record<string, string> = {

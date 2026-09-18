@@ -130,6 +130,10 @@ export default function MarketPage() {
   };
 
   const handleStatSelect = (id: string) => {
+    if (id === 'jobs') {
+      router.push('/jobs');
+      return;
+    }
     if (id === 'skill') {
       setSelectedSkill(ranking[0]?.name || 'SQL');
       toast.info(
@@ -139,7 +143,6 @@ export default function MarketPage() {
       );
       return;
     }
-    router.push(statTargets[id] || '/jobs');
   };
 
   const getPlan = () => {
