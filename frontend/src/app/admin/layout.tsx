@@ -4,13 +4,15 @@ import React, { useState } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminTopbar } from '@/components/admin/AdminTopbar';
 import { AdminGuard } from '@/components/admin/AdminGuard';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isAr } = useLanguage();
 
   return (
     <AdminGuard>
-      <div className="min-h-screen bg-[#040816] flex" dir="ltr">
+      <div className="min-h-screen bg-[#040816] flex" dir={isAr ? 'rtl' : 'ltr'}>
         {/* Sidebar */}
         <AdminSidebar
           mobileOpen={mobileOpen}
