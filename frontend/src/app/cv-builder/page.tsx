@@ -476,7 +476,8 @@ export default function CVBuilderPage() {
             <div className="no-print lg:col-span-5 h-full min-h-0 flex flex-col">
               <div 
                 ref={editorScrollRef}
-                className="editor-scroll-container flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-4 pr-1 pb-16"
+                className="editor-scroll-container no-scrollbar flex-1 min-h-0 overflow-y-auto space-y-4 pr-1 pb-16"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 <EditorPanel />
                 <div className="p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] text-xs text-slate-500 dark:text-slate-400 shadow-xs">

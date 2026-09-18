@@ -308,6 +308,31 @@ html.dark .scroll-slim {
   scrollbar-color: rgba(30, 58, 138, 0.8) transparent;
 }
 
+/* 100% Guaranteed Scrollbar Hider (keeps smooth scroll functional) */
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.no-scrollbar::-webkit-scrollbar,
+.no-scrollbar *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+.no-scrollbar::-webkit-scrollbar-thumb,
+.no-scrollbar::-webkit-scrollbar-track,
+.no-scrollbar::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+html.dark .no-scrollbar,
+html.dark .no-scrollbar * {
+  scrollbar-width: none !important;
+}
+
+
 /* ========================================================================= */
 /* ULTRA-SMOOTH TOAST NOTIFICATIONS (3WATLY CUSTOM THEME)                   */
 /* ========================================================================= */
