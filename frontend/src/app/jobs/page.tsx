@@ -119,6 +119,12 @@ function JobsPageContent() {
     return parsedCv?.targetRole || profile?.targetRoles?.[0]?.title || 'Data Analyst';
   }, [parsedCv, profile]);
 
+  const primaryTargetRole = useMemo(() => {
+    if (!targetRole) return isAr ? 'محلل بيانات' : 'Data Analyst';
+    const first = targetRole.split('|')[0].trim();
+    return first || targetRole;
+  }, [targetRole, isAr]);
+
   // — Live jobs from Supabase with safe client cache hydration —
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [totalJobs, setTotalJobs] = useState(0);
@@ -1105,122 +1111,115 @@ function JobsPageContent() {
 
           {/* Right Sidebar Column (Span 4) — 1 Single Powerful Card, Completely Static, No Overflow/Scrollbar */}
           <div className="lg:col-span-4 shrink-0">
-            <div className="rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 sm:p-6 shadow-sm space-y-5">
+            <div className="rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-sm space-y-5">
               
-              {/* Header: Title & Target Role Badge */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
+              {/* Header: Clean Horizontal Title + Score Ring/Badge */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white leading-tight truncate">
                       {isAr ? "رادار التوافق المهني" : "Career Match Radar"}
                     </h3>
+                    <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                      {primaryTargetRole}
+                    </p>
                   </div>
-                  <p className="text-[12px] text-slate-500 dark:text-slate-400">
-                    {isAr ? "تحليل مباشر لتطابق سيرتك الذاتية مع الوظائف" : "Live match analysis for your target role"}
-                  </p>
                 </div>
 
-                <span className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/40">
-                  {targetRole}
-                </span>
-              </div>
-
-              {/* Match Score & Status Banner */}
-              <div className="rounded-2xl p-4 bg-gradient-to-br from-blue-50/90 via-slate-50 to-indigo-50/70 dark:from-blue-950/40 dark:via-[#0E1726] dark:to-indigo-950/30 border border-blue-100 dark:border-blue-900/30 flex items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <span className="text-[11.5px] font-bold text-slate-500 dark:text-slate-400">
-                    {isAr ? "أعلى نسبة توافق مع الوظائف" : "Top Match Score"}
+                {/* Prominent Match Pill */}
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 shrink-0">
+                  <span className="text-[14px] font-black leading-none">
+                    {filteredJobs[0]?.matchScore ? `${filteredJobs[0].matchScore}%` : "94%"}
                   </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[26px] font-black text-blue-600 dark:text-blue-400 leading-none">
-                      {filteredJobs[0]?.matchScore ? `+${filteredJobs[0].matchScore}%` : "+85%"}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
-                      {isAr ? "توافق ممتاز" : "High Match"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-left rtl:text-right">
-                  <div className="text-[11.5px] font-bold text-slate-700 dark:text-slate-300">
-                    {filteredJobs.length} {isAr ? "وظيفة متاحة" : "active jobs"}
-                  </div>
-                  <span className="text-[11px] text-slate-400">
-                    {isAr ? "جاهزة للتقديم اليوم" : "ready to apply"}
+                  <span className="text-[11px] font-bold">
+                    {isAr ? "توافق" : "Match"}
                   </span>
                 </div>
               </div>
 
-              {/* Market Key Metrics */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-[#070B14] border border-slate-100 dark:border-white/5 space-y-1">
-                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[11px] font-bold">
-                    <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>{isAr ? "متوسط الراتب" : "Avg. Salary"}</span>
-                  </div>
-                  <p className="text-[14px] font-black text-slate-900 dark:text-white">
-                    {marketOverview.avgSalary}
-                  </p>
-                  <span className="text-[10.5px] font-bold text-emerald-600 block">
-                    {isAr ? "↗ +8% عن الشهر السابق" : "↗ +8% vs last mo."}
+              {/* Divider */}
+              <div className="h-px bg-slate-100 dark:bg-white/5" />
+
+              {/* Clean Stats Grid (3 Metrics, No nested heavy cards) */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-3 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5">
+                  <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mb-1">
+                    {isAr ? "وظائف متطابقة" : "Matching"}
+                  </span>
+                  <span className="text-[18px] font-black text-slate-900 dark:text-white block leading-tight">
+                    {filteredJobs.length}
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">
+                    {isAr ? "متاحة للتقديم" : "Active"}
                   </span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-[#070B14] border border-slate-100 dark:border-white/5 space-y-1">
-                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[11px] font-bold">
-                    <TrendingUp className="w-3.5 h-3.5 text-blue-600" />
-                    <span>{isAr ? "الطلب بالسوق" : "Market Demand"}</span>
-                  </div>
-                  <p className="text-[14px] font-black text-slate-900 dark:text-white">
-                    {marketOverview.competition === 'شديدة' || marketOverview.competition === 'High' ? (isAr ? "مرتفع جداً" : "Very High") : marketOverview.competition}
-                  </p>
-                  <span className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400 block">
-                    {isAr ? "فرص توظيف نشطة" : "Active hiring"}
+                <div className="p-3 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5">
+                  <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mb-1">
+                    {isAr ? "متوسط الراتب" : "Avg Salary"}
+                  </span>
+                  <span className="text-[15px] font-black text-slate-900 dark:text-white block leading-tight">
+                    {marketOverview.avgSalary.replace('شهرياً', '').replace('/mo', '').trim()}
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">
+                    {isAr ? "شهرياً" : "/month"}
+                  </span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5">
+                  <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mb-1">
+                    {isAr ? "الطلب بالسوق" : "Demand"}
+                  </span>
+                  <span className="text-[15px] font-black text-blue-600 dark:text-blue-400 block leading-tight">
+                    {isAr ? "مرتفع جداً" : "Very High"}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400 block mt-0.5">
+                    {isAr ? "فرص نشطة" : "Active hiring"}
                   </span>
                 </div>
               </div>
 
-              {/* Skills Alignment & Top Gap */}
-              <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-white/5">
+              {/* Skills Alignment */}
+              <div className="space-y-2">
                 <div className="flex items-center justify-between text-[12px]">
                   <span className="font-bold text-slate-700 dark:text-slate-300">
-                    {isAr ? "أهم مهاراتك المتطابقة:" : "Your Matched Skills:"}
+                    {isAr ? "أهم مهاراتك المتطابقة:" : "Matched Skills:"}
                   </span>
-                  <span className="text-[11px] text-slate-400">
-                    {userSkills.length > 0 ? `${userSkills.length} مهارات` : "SQL, Python, Excel"}
-                  </span>
+                  <Link href="/skills" className="text-[11.5px] font-bold text-[#1B57E0] dark:text-blue-400 hover:underline">
+                    {isAr ? "عرض الكل" : "View all"}
+                  </Link>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5">
-                  {(userSkills.length > 0 ? userSkills.slice(0, 4) : ['SQL', 'Python', 'Excel', 'Power BI']).map((skill: string) => (
+                  {(userSkills.length > 0 ? userSkills.slice(0, 4) : ['Python', 'SQL', 'Excel', 'Power BI']).map((skill: string) => (
                     <span
                       key={skill}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11.5px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/30"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11.5px] font-semibold bg-slate-100/80 dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-white/5"
                     >
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
                       <span>{skill}</span>
                     </span>
                   ))}
                 </div>
+              </div>
 
-                {/* Smart Tip for Higher Acceptance */}
-                <div className="mt-2 p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/30 flex items-start gap-2">
-                  <span className="text-[13px] leading-tight">💡</span>
-                  <p className="text-[11px] font-semibold text-amber-900 dark:text-amber-300 leading-relaxed">
-                    {isAr 
-                      ? "إضافة مهارة Tableau أو Cloud ترفع نسبة تطابقك بنسبة +12% في كبرى الشركات."
-                      : "Adding Tableau or Cloud skills boosts your match rate by +12% in top companies."}
-                  </p>
-                </div>
+              {/* Smart Tip for Higher Acceptance */}
+              <div className="p-3 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/30 flex items-start gap-2.5">
+                <span className="text-[15px] shrink-0">💡</span>
+                <p className="text-[11.5px] font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+                  {isAr 
+                    ? "إضافة مهارة Tableau أو Cloud ترفع نسبة تطابقك بنسبة +12% في كبرى الشركات."
+                    : "Adding Tableau or Cloud skills boosts your profile match rate by +12%."}
+                </p>
               </div>
 
               {/* Action Button: Boost Match in CV Builder */}
               <Link
                 href="/cv-builder"
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1B57E0] hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-[13px] transition-all shadow-md shadow-blue-600/20 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#1B57E0] hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-[13px] transition-all shadow-md shadow-blue-600/20 cursor-pointer"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>{isAr ? "تحسين السيرة الذاتية لزيادة التوافق" : "Optimize CV to Boost Match"}</span>
