@@ -43,6 +43,117 @@ export default function CVBuilderPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewScrollRef = useRef<HTMLDivElement>(null);
+
+  // Guarantee calm, natural scrolling on CV Builder without runaway wheel acceleration
+  useEffect(() => {
+    const prevScrollBehavior = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = 'auto';
+
+    return () => {
+      document.documentElement.style.scrollBehavior = prevScrollBehavior;
+    };
+  }, []);
+
+  // Calm & gentle smooth scroll controller for the CV preview panel
+  useEffect(() => {
+    const container = previewScrollRef.current;
+    if (!container) return;
+
+    let targetY = container.scrollTop;
+    let animId: number | null = null;
+
+    const smoothStep = () => {
+      if (!container) return;
+      const current = container.scrollTop;
+      const diff = targetY - current;
+
+      if (Math.abs(diff) > 0.5) {
+        container.scrollTop = current + diff * 0.16; // gentle, calm ease-out
+        animId = requestAnimationFrame(smoothStep);
+      } else {
+        container.scrollTop = targetY;
+        animId = null;
+      }
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      // Only calibrate discrete mouse wheel ticks (not precision trackpads)
+      const isDiscreteWheel = e.deltaMode !== 0 || Math.abs(e.deltaY) >= 40;
+      if (isDiscreteWheel) {
+        e.preventDefault();
+        // Comfortable, calm step (max 75px), never leaps out of control
+        const step = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY) * 0.6, 75);
+        const maxScroll = Math.max(0, container.scrollHeight - container.clientHeight);
+        const base = animId !== null ? targetY : container.scrollTop;
+        targetY = Math.max(0, Math.min(maxScroll, base + step));
+
+        if (animId === null) {
+          animId = requestAnimationFrame(smoothStep);
+        }
+      }
+    };
+
+    container.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', onWheel);
+      if (animId !== null) cancelAnimationFrame(animId);
+    };
+  }, []);
+
+  // Calm & gentle smooth scroll controller for the window in CV Builder
+  useEffect(() => {
+    let targetY = window.scrollY;
+    let animId: number | null = null;
+
+    const smoothStep = () => {
+      const current = window.scrollY;
+      const diff = targetY - current;
+
+      if (Math.abs(diff) > 0.5) {
+        window.scrollTo(0, current + diff * 0.16);
+        animId = requestAnimationFrame(smoothStep);
+      } else {
+        window.scrollTo(0, targetY);
+        animId = null;
+      }
+    };
+
+    const onWindowWheel = (e: WheelEvent) => {
+      const target = e.target as HTMLElement | null;
+      // Do not intercept if user is scrolling inside the preview, a dropdown, a dialog, or inputs
+      if (
+        target?.closest('.cv-preview-scroll') ||
+        target?.closest('[role="dialog"]') ||
+        target?.closest('[data-dropdown]') ||
+        target?.closest('textarea') ||
+        target?.closest('input')
+      ) {
+        return;
+      }
+
+      // Only calibrate discrete mouse wheel ticks (not precision trackpads)
+      const isDiscreteWheel = e.deltaMode !== 0 || Math.abs(e.deltaY) >= 40;
+      if (isDiscreteWheel) {
+        e.preventDefault();
+        // Calm, relaxed step (max 85px per tick) - never shoots down the page
+        const step = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY) * 0.7, 85);
+        const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        const base = animId !== null ? targetY : window.scrollY;
+        targetY = Math.max(0, Math.min(maxScroll, base + step));
+
+        if (animId === null) {
+          animId = requestAnimationFrame(smoothStep);
+        }
+      }
+    };
+
+    window.addEventListener('wheel', onWindowWheel, { passive: false });
+    return () => {
+      window.removeEventListener('wheel', onWindowWheel);
+      if (animId !== null) cancelAnimationFrame(animId);
+    };
+  }, []);
 
   const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -219,8 +330,8 @@ export default function CVBuilderPage() {
       showSearch={false}
     >
       <div className="flex flex-col min-h-0">
-        {/* Top Actions & Toolbar — Sticky, stays handy while scrolling */}
-        <div className="no-print sticky top-3 z-30 flex flex-wrap items-center justify-between gap-4 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-xl shadow-sm mb-5">
+        {/* Top Actions & Toolbar — Clean relative layout, never collides with sticky AppTopbar */}
+        <div className="no-print relative z-10 flex flex-wrap items-center justify-between gap-4 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-sm mb-5">
           
           {/* Multi-CV Version Selector & Status badge & Direct Upload */}
           <div className="flex flex-wrap items-center gap-3">
@@ -397,7 +508,7 @@ export default function CVBuilderPage() {
 
           {/* ── Right: CV Preview (Sticky on desktop, natural internal scroll if needed) ── */}
           <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} lg:sticky lg:top-24 max-h-[calc(100vh-7.5rem)] flex flex-col min-w-0`}>
-            <div className="cv-preview-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent rounded-2xl overscroll-contain">
+            <div ref={previewScrollRef} className="cv-preview-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent rounded-2xl overscroll-contain">
               <CVPreview />
             </div>
           </div>

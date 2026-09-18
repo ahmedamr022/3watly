@@ -477,6 +477,8 @@ export function parseCVText(
   // 6. Extract Current Title / Professional Headline
   const ROLE_TITLE_PATTERN = new RegExp(
     '\\b(' +
+    // Sales, Support, Business & Customer Service
+    'sales\\s*representative|sales\\s*executive|sales\\s*specialist|sales\\s*manager|sales\\s*consultant|sales\\s*associate|account\\s*executive|account\\s*manager|business\\s*development|bdr|sdr|pharmacy\\s*assistant|medical\\s*representative|customer\\s*service|telesales|retail\\s*sales|' +
     // Technical & Engineering
     'engineer|developer|analyst|scientist|architect|specialist|technician|administrator|admin|sysadmin|programmer|coder|tester|testing|' +
     // IT & Support & Helpdesk
@@ -497,7 +499,7 @@ export function parseCVText(
     'i'
   );
 
-  const ARABIC_ROLE_PATTERN = /(?:مهندس|مطور|محلل|مبرمج|أخصائي|فني|مسؤول|مدير|مستشار|باحث|طالب|متدرب|مصمم|رئيس|مشرف|منسق|معاون|مساعد|تقني|خبير|دعم\s*فني|شبكات|نظم)/i;
+  const ARABIC_ROLE_PATTERN = /(?:مهندس|مطور|محلل|مبرمج|أخصائي|فني|مسؤول|مدير|مستشار|باحث|طالب|متدرب|مصمم|رئيس|مشرف|منسق|معاون|مساعد|تقني|خبير|دعم\s*فني|شبكات|نظم|مندوب\s*مبيعات|أخصائي\s*مبيعات|مسؤول\s*مبيعات|مساعد\s*صيدلي|خدمة\s*عملاء)/i;
 
   const NON_TITLE_LINE_REGEX = /(?:@|https?:\/\/|www\.|\.com|\.io|\.net|\.org|\+?\d{8,}|linkedin\.com|github\.com)/i;
   const SECTION_HEADING_NAMES = /^(?:summary|profile|about\s*me|objective|experience|work\s*history|employment|education|academic|skills|technical\s*skills|projects|certificates|certifications|languages|interests|references|الملخص|النبذة|الخبرة|الخبرات|التعليم|المهارات|المشاريع|الشهادات)[:\s]*$/i;
@@ -555,6 +557,15 @@ export function parseCVText(
         currentTitle = cleanHeadlineCandidate(line);
         if (currentTitle) break;
       }
+    }
+  }
+
+  // Priority 3: Check fileName for explicit role title (e.g. "Bassem Mahmoud Refaie Sales Representative resume.pdf")
+  if (!currentTitle && fileName) {
+    const cleanName = fileName.replace(/\.[^.]+$/, '').replace(/[_–—\-]/g, ' ');
+    const fileRoleMatch = cleanName.match(/\b(sales\s*representative|sales\s*executive|sales\s*specialist|medical\s*representative|pharmacy\s*assistant|technical\s*support|help\s*desk|desktop\s*support|it\s*support|systems?\s*administrator|network\s*engineer|software\s*engineer|frontend\s*developer|backend\s*developer|full\s*stack|mobile\s*developer|data\s*analyst|data\s*engineer|machine\s*learning|product\s*manager|project\s*manager|graphic\s*designer|ui\/ux|qa\s*engineer)\b/i);
+    if (fileRoleMatch) {
+      currentTitle = fileRoleMatch[0].trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
     }
   }
 
@@ -1249,7 +1260,7 @@ export function parseCVText(
     if (experiences.length > 0 && experiences[0].role && experiences[0].role.trim().length >= 3) {
       currentTitle = experiences[0].role.replace(/\s*at\s+.*$/i, '').trim();
     } else if (summary) {
-      const summaryRoleMatch = summary.match(/(?:as\s+(?:a|an)\s+|seeking\s+(?:a|an)?\s*|passionate\s+|experienced\s+|certified\s+|dedicated\s+)([A-Za-z\s\/\-&]+?(?:engineer|developer|analyst|specialist|technician|administrator|designer|architect|scientist|consultant|programmer|tester|specialist))/i);
+      const summaryRoleMatch = summary.match(/(?:results[- ]driven|results[- ]oriented|accomplished|seasoned|experienced|dynamic|passionate|certified|dedicated|motivated|ambitious|skilled|proven|successful|seeking\s+(?:a|an)?\s*|as\s+(?:a|an)\s+)([A-Za-z\s\/\-&]{3,40}?(?:representative|specialist|engineer|developer|analyst|technician|administrator|manager|coordinator|assistant|consultant|associate|executive|officer|agent|designer|architect|programmer|tester))/i);
       if (summaryRoleMatch && summaryRoleMatch[1]) {
         currentTitle = summaryRoleMatch[1].trim();
       }

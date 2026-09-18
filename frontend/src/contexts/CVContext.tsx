@@ -394,6 +394,29 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
         const currentToEdit = initialVersionsList.find(v => v.id === activeId) || initialVersionsList[0];
         if (currentToEdit) {
+          // Auto-heal misclassified 'Data Analyst' titles when version name, summary or experience clearly indicates another profession
+          if (
+            currentToEdit.cvData &&
+            currentToEdit.cvData.contact &&
+            (!currentToEdit.cvData.contact.jobTitle || /data\s*analyst/i.test(currentToEdit.cvData.contact.jobTitle))
+          ) {
+            const nameMatch = currentToEdit.name.match(/\b(sales\s*representative|sales\s*executive|sales\s*specialist|medical\s*representative|pharmacy\s*assistant|technical\s*support|help\s*desk|desktop\s*support|it\s*support|systems?\s*administrator|network\s*engineer|software\s*engineer|frontend\s*developer|backend\s*developer|full\s*stack|mobile\s*developer|product\s*manager|project\s*manager|graphic\s*designer|ui\/ux|devops|cyber\s*security)\b/i);
+            const summaryMatch = (currentToEdit.cvData.summary || '').match(/(?:results[- ]driven|results[- ]oriented|accomplished|seasoned|experienced|dynamic|passionate|certified|dedicated|motivated|seeking|as)\s+([A-Za-z\s\/\-&]{3,40}?(?:representative|specialist|engineer|developer|analyst|technician|administrator|manager|coordinator|assistant|consultant|associate|executive|officer|agent))/i);
+            const expRole = currentToEdit.cvData.experience?.[0]?.role;
+
+            const detectedRealTitle = (nameMatch ? nameMatch[1] : null) || (summaryMatch ? summaryMatch[1] : null) || (expRole && !/data\s*analyst/i.test(expRole) ? expRole : null);
+
+            if (detectedRealTitle && detectedRealTitle.trim()) {
+              const cleanTitle = detectedRealTitle.replace(/\s*resume$/i, '').trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+              currentToEdit.cvData.contact.jobTitle = cleanTitle;
+              currentToEdit.targetRole = cleanTitle;
+              try {
+                localStorage.setItem('3watly_cv_versions', JSON.stringify(initialVersionsList));
+                syncActiveCVToPlatform(currentToEdit);
+              } catch {}
+            }
+          }
+
           setHistory({
             present: currentToEdit.cvData,
             past: [],
