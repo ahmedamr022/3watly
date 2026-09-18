@@ -363,6 +363,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             await supabase.from('profiles').upsert({
               id: data.user.id,
+              email: data.user.email || email,
               full_name: resolvedName,
               avatar_url: null,
               onboarding_completed: false,

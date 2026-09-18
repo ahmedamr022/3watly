@@ -5,13 +5,64 @@
 -- ============================================================
 
 -- ─────────────────────────────────────────────
--- 1. PROFILES — add role & account_status
+-- 1. PROFILES — add email, role & account_status + auto-sync trigger
 -- ─────────────────────────────────────────────
-ALTER TABLE profiles
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id                  UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email               TEXT,
+  full_name           TEXT,
+  avatar_url          TEXT,
+  onboarding_completed BOOLEAN    DEFAULT FALSE,
+  role                TEXT        NOT NULL DEFAULT 'user' CHECK (role IN ('owner', 'admin', 'user')),
+  account_status      TEXT        NOT NULL DEFAULT 'active' CHECK (account_status IN ('active', 'suspended')),
+  created_at          TIMESTAMPTZ DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS email          TEXT,
   ADD COLUMN IF NOT EXISTS role           TEXT NOT NULL DEFAULT 'user'
     CHECK (role IN ('owner', 'admin', 'user')),
   ADD COLUMN IF NOT EXISTS account_status TEXT NOT NULL DEFAULT 'active'
     CHECK (account_status IN ('active', 'suspended'));
+
+-- Automatic trigger: whenever a user is created in auth.users, sync to public.profiles
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, avatar_url, role, account_status)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1)),
+    COALESCE(NEW.raw_user_meta_data->>'avatar_url', NEW.raw_user_meta_data->>'picture', NULL),
+    'user',
+    'active'
+  )
+  ON CONFLICT (id) DO UPDATE
+  SET email = EXCLUDED.email,
+      full_name = COALESCE(profiles.full_name, EXCLUDED.full_name);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Back-fill any existing users from auth.users into profiles
+INSERT INTO public.profiles (id, email, full_name, avatar_url, role, account_status)
+SELECT 
+  id, 
+  email, 
+  COALESCE(raw_user_meta_data->>'full_name', raw_user_meta_data->>'name', split_part(email, '@', 1)),
+  COALESCE(raw_user_meta_data->>'avatar_url', raw_user_meta_data->>'picture', NULL),
+  'user',
+  'active'
+FROM auth.users
+ON CONFLICT (id) DO UPDATE
+SET email = EXCLUDED.email;
 
 -- ─────────────────────────────────────────────
 -- 2. RESOURCES TABLE
