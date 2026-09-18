@@ -574,13 +574,13 @@ export function parseCVText(
 
   // --- 7. SECTION SPLITTER ---
   const SECTION_HEADERS = [
-    { key: 'profile', regex: /(?:^|\n)\s*(?:profile|summary|professional\s*summary|about\s*me|objective|نبذة|الملخص)\s*(?:[:\n]|$)/i },
-    { key: 'education', regex: /(?:^|\n)\s*(?:education|academic\s*background|qualifications|التعليم|المؤهلات\s*الدراسية)\s*(?:[:\n]|$)/i },
-    { key: 'internships', regex: /(?:^|\n)\s*(?:internships?|practical\s*experience|training|التدريب|التدريب\s*العملي)\s*(?:[:\n]|$)/i },
-    { key: 'experience', regex: /(?:^|\n)\s*(?:experience|work\s*history|employment\s*history|professional\s*experience|الخبرات|الخبرة\s*المهنية)\s*(?:[:\n]|$)/i },
-    { key: 'skills', regex: /(?:^|\n)\s*(?:skills|technical\s*skills|core\s*competencies|competencies|المهارات|المهارات\s*التقنية)\s*(?:[:\n]|$)/i },
-    { key: 'projects', regex: /(?:^|\n)\s*(?:projects|key\s*projects|academic\s*projects|personal\s*projects|المشاريع|أبرز\s*المشاريع)\s*(?:[:\n]|$)/i },
-    { key: 'certificates', regex: /(?:^|\n)\s*(?:certificates?|certifications?|courses|licenses|الشهادات|الدورات\s*التدريبية)\s*(?:[:\n]|$)/i },
+    { key: 'profile', regex: /(?:^|\n)\s*(?:profile|summary|professional\s*summary|executive\s*summary|about\s*me|career\s*objective|objective|نبذة\s*عني|نبذة\s*مهنية|نبذة|الملخص\s*المهني|الملخص|الهدف\s*المهني)\s*(?:[:\n\-]|$)/i },
+    { key: 'education', regex: /(?:^|\n)\s*(?:education(?:\s*(?:&|and|\+)\s*(?:qualifications|training|certifications?|background|history|credentials))?|academic\s*(?:background|qualifications?|history|credentials?|details?|record)|educational\s*(?:background|details?|history|qualifications?)|degrees?|qualifications?|studies|higher\s*education|university\s*education|التعليم|المؤهل\s*(?:الدراسي|العلمي)|المؤهلات\s*(?:الدراسية|العلمية)|التعليم\s*والتدريب|الخلفية\s*الأكاديمية|التحصيل\s*الدراسي|الشهادات\s*الدراسية|المسار\s*الأكاديمي|الدراسة)\s*(?:[:\n\-]|$)/i },
+    { key: 'internships', regex: /(?:^|\n)\s*(?:internships?|practical\s*experience|clinical\s*training|field\s*training|industrial\s*training|التدريب|التدريب\s*العملي|التدريب\s*الميداني|التدريب\s*الصيفي|تدريب)\s*(?:[:\n\-]|$)/i },
+    { key: 'experience', regex: /(?:^|\n)\s*(?:experience(?:\s*(?:&|and|\+)\s*(?:history|background))?|work\s*(?:experience|history)|employment(?:\s*history)?|professional\s*experience|career\s*history|work\s*background|relevant\s*experience|الخبرات(?:\s*المهنية|\s*العملية)?|الخبرة\s*(?:المهنية|العملية)|تاريخ\s*العمل|سجل\s*الخبرات)\s*(?:[:\n\-]|$)/i },
+    { key: 'skills', regex: /(?:^|\n)\s*(?:skills(?:\s*(?:&|and|\+)\s*(?:competencies|abilities|tools|technologies))?|technical\s*skills|core\s*competencies|key\s*skills|professional\s*skills|competencies|tools\s*(?:&|and)\s*technologies|المهارات(?:\s*التقنية|\s*المهنية|\s*الشخصية)?|المهارات|الكفاءات|القدرات|أدوات\s*وتقنيات)\s*(?:[:\n\-]|$)/i },
+    { key: 'projects', regex: /(?:^|\n)\s*(?:projects?|key\s*projects|academic\s*projects|personal\s*projects|selected\s*projects|featured\s*projects|المشاريع|أبرز\s*المشاريع|مشاريع\s*(?:أكاديمية|عملية|شخصية)|الأعمال)\s*(?:[:\n\-]|$)/i },
+    { key: 'certificates', regex: /(?:^|\n)\s*(?:certificates?|certifications?|courses(?:\s*(?:&|and)\s*certificates?)?|training\s*courses?|licenses(?:\s*(?:&|and)\s*certifications?)?|credentials|الشهادات(?:\s*المهنية|\s*المعتمدة)?|الدورات(?:\s*التدريبية)?|الرخص\s*والشهادات|الاعتمادات)\s*(?:[:\n\-]|$)/i },
   ];
 
   const matches: Array<{ key: string; index: number; matchLen: number }> = [];
@@ -633,8 +633,145 @@ export function parseCVText(
   }
   summary = summary.replace(/\s+/g, ' ').trim();
 
-  // 9. Education
-  const eduText = sections.education || '';
+  // ─── 9. ROBUST MULTI-DEGREE EDUCATION ENGINE ──────────────────────────────
+  const KNOWN_UNIVERSITIES_REGEX = new RegExp(
+    '\\b(' +
+    // Egyptian Public Universities
+    'cairo\\s*university|ain\\s*shams\\s*university|alexandria\\s*university|mansoura\\s*university|helwan\\s*university|assiut\\s*university|zagazig\\s*university|tanta\\s*university|benha\\s*university|menoufia\\s*university|suez\\s*canal\\s*university|south\\s*valley\\s*university|fayoum\\s*university|beni[- ]suef\\s*university|kafr\\s*el[- ]sheikh\\s*university|sohag\\s*university|port\\s*said\\s*university|damanhour\\s*university|aswan\\s*university|damietta\\s*university|suez\\s*university|luxor\\s*university|al[- ]azhar\\s*university|' +
+    // Egyptian Private & International Universities
+    'the\\s*american\\s*university\\s*in\\s*cairo|auc|german\\s*university\\s*in\\s*cairo|guc|british\\s*university\\s*in\\s*egypt|bue|future\\s*university\\s*in\\s*egypt|fue|misr\\s*international\\s*university|miu|misr\\s*university\\s*for\\s*science\\s*and\\s*technology|must|october\\s*6\\s*university|o6u|modern\\s*sciences\\s*and\\s*arts|msa\\s*university|ahram\\s*canadian\\s*university|acu|pharos\\s*university|pua|badr\\s*university|buc|galala\\s*university|alamein\\s*international\\s*university|king\\s*salman\\s*international\\s*university|egypt[- ]japan\\s*university|e-just|nile\\s*university|zewail\\s*city|arab\\s*academy\\s*for\\s*science(?:\\s*,?\\s*technology)?(?:\\s*and\\s*maritime\\s*transport)?|aastmt|aast|higher\\s*technological\\s*institute|hti|canadian\\s*international\\s*college|cic|thebes\\s*academy|modern\\s*academy|akhbar\\s*el\\s*yom\\s*academy|el\\s*shorouk\\s*academy|delta\\s*university|nahda\\s*university|' +
+    // Arab & Global Top Universities
+    'king\\s*saud\\s*university|king\\s*abdulaziz\\s*university|kfupm|kaust|american\\s*university\\s*of\\s*beirut|aub|lebanese\\s*university|university\\s*of\\s*jordan|just|qatar\\s*university|kuwait\\s*university|uaeu|khalifa\\s*university|american\\s*university\\s*of\\s*sharjah|aus|' +
+    // Generic University patterns
+    '[a-zA-Z\\s]{2,40}\\s+(?:university|college|polytechnic|institute\\s+of\\s+technology|higher\\s+institute|academy)' +
+    ')\\b',
+    'i'
+  );
+
+  const ARABIC_UNIVERSITIES_REGEX = /(?:جامعة\s+(?:القاهرة|عين\s*شمس|الإسكندرية|المنصورة|حلوان|أسيوط|الزقازيق|طنطا|بنها|المنوفية|قناة\s*السويس|جنوب\s*الوادي|الفيوم|بني\s*سويف|كفر\s*الشيخ|سوهاج|بورسعيد|دمنهور|أسوان|دمياط|السويس|الأقصر|الأزهر|الأمريكية|الألمانية|البريطانية|المستقبل|مصر\s*الدولية|مصر\s*للعلوم\s*والتكنولوجيا|6\s*أكتوبر|فاروس|بدر|الجلالة|العلمين|الملك\s*سلمان|النيل|اليرموك|الملك\s*سعود|الملك\s*عبد\s*العزيز|الكويت|قطر|بيروت\s*العربية|الأردنية|الدلتا|النهضة|[\u0600-\u06FF\s]+)|الأكاديمية\s+العربية\s+للعلوم\s+والتكنولوجيا|مدينة\s+زويل|المعهد\s+التكنولوجي\s+العالي|الكلية\s+الكندية|أكاديمية\s+[\u0600-\u06FF\s]+|معهد\s+[\u0600-\u06FF\s]+)/i;
+
+  const KNOWN_FACULTIES_REGEX = new RegExp(
+    '\\b(' +
+    'faculty\\s*of\\s*(?:pharmacy|medicine|engineering|computers?(?:\\s*(?:and|&)\\s*(?:artificial\\s*intelligence|information|ai))?|science|commerce|business(?:\\s*administration)?|management(?:\\s*sciences)?|economics(?:\\s*(?:and|&)\\s*political\\s*science)?|mass\\s*communication|arts|languages|al[- ]alsun|law|nursing|applied\\s*arts|fine\\s*arts|dentistry|oral\\s*(?:and|&)\\s*dental\\s*medicine|physical\\s*therapy|agriculture|veterinary\\s*medicine|education|specific\\s*education|[a-zA-Z\\s]{3,35})|' +
+    'college\\s*of\\s*(?:pharmacy|medicine|engineering|computer(?:s|\\s*science)?|science|commerce|business(?:\\s*administration)?|management|arts|law|nursing|dentistry|physical\\s*therapy|[a-zA-Z\\s]{3,35})|' +
+    'school\\s*of\\s*(?:pharmacy|medicine|engineering|computer\\s*science|business|management|arts|law|science|[a-zA-Z\\s]{3,35})' +
+    ')\\b',
+    'i'
+  );
+
+  const ARABIC_FACULTIES_REGEX = /(?:كلية\s+(?:الصيدلة|الطب(?:\s*البشري)?|طب\s*(?:الفم\s*و)?الأسنان|العلاج\s*الطبيعي|الهندسة|الحاسبات(?:\s*و(?:المعلومات|الذكاء\s*الاصطناعي))?|علوم\s*الحاسب|العلوم|التجارة|إدارة\s*الأعمال|الاقتصاد\s*والعلوم\s*السياسية|الإعلام|الآداب|الألسن|اللغات\s*والترجمة|الحقوق|الشريعة\s*والقانون|التمريض|الفنون\s*(?:التطبيقية|الجميلة)|الزراعة|التربية(?:\s*النوعية)?|الطب\s*البيطري|[\u0600-\u06FF\s]{3,30}))/i;
+
+  const KNOWN_DEGREES_REGEX = new RegExp(
+    '\\b(' +
+    'bachelor(?:[\'’]s)?(?:\\s*(?:degree|of|in)\\s*[a-zA-Z\\s&,]+)?|' +
+    'b\\.?\\s*sc(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'b\\.?\\s*eng(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'b\\.?\\s*pharm(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'pharm\\.?\\s*d(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'b\\.?\\s*com(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'b\\.?\\s*b\\.?\\s*a(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'b\\.?\\s*a(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'b\\.?\\s*c\\.?\\s*s(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'll\\.?\\s*b(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'mbbch|mbbs|md|bds|' +
+    'master(?:[\'’]s)?(?:\\s*(?:degree|of|in)\\s*[a-zA-Z\\s&,]+)?|' +
+    'm\\.?\\s*sc(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'm\\.?\\s*ba(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'm\\.?\\s*a(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'm\\.?\\s*eng(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'ph\\.?\\s*d(?:\\.?|\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'doctorate(?:\\s+in\\s+[a-zA-Z\\s&,]+)?|' +
+    'diploma|postgraduate\\s*diploma|associate(?:[\'’]s)?\\s*degree|' +
+    'high\\s*school(?:\\s*diploma)?|secondary\\s*school(?:\\s*certificate)?|thanaweya\\s*amma|general\\s*secondary\\s*certificate|igcse|i\\.g\\.c\\.s\\.e|american\\s*diploma|' +
+    'بكالوريوس(?:\\s+[\u0600-\u06FF\\s]+)?|' +
+    'ليسانس(?:\\s+[\u0600-\u06FF\\s]+)?|' +
+    'ماجستير(?:\\s+[\u0600-\u06FF\\s]+)?|' +
+    'دكتوراه(?:\\s+[\u0600-\u06FF\\s]+)?|' +
+    'دبلوم(?:\\s+دراسات\\s+عليا|\\s+[\u0600-\u06FF\\s]+)?|' +
+    'الثانوية\\s*العامة|شهادة\\s*إتمام\\s*الثانوية\\s*العامة' +
+    ')\\b',
+    'i'
+  );
+
+  function inferCanonicalDegree(degreeInput: string, facultyInput: string): { degree: string; major: string } {
+    const rawDeg = (degreeInput || '').trim();
+    const rawFac = (facultyInput || '').trim();
+
+    let degree = rawDeg;
+    let major = '';
+
+    // If degree is blank but faculty is present, infer high-fidelity degree & major
+    if (!degree && rawFac) {
+      if (/pharmacy|صيدل/i.test(rawFac)) {
+        degree = 'Bachelor of Pharmacy (B.Pharm)';
+        major = 'Pharmacy';
+      } else if (/commerce|تجارة|accounting|محاسبة|business/i.test(rawFac)) {
+        degree = 'Bachelor of Commerce (B.Com)';
+        major = 'Commerce / Business Administration';
+      } else if (/computers?|حاسبات|artificial|ذكاء/i.test(rawFac)) {
+        degree = 'Bachelor of Computer Science (B.Sc.)';
+        major = 'Computer Science & AI';
+      } else if (/engineering|هندس/i.test(rawFac)) {
+        degree = 'Bachelor of Science in Engineering (B.Sc.)';
+        major = 'Engineering';
+      } else if (/dentistry|dental|أسنان/i.test(rawFac)) {
+        degree = 'Bachelor of Dental Surgery (BDS)';
+        major = 'Dentistry';
+      } else if (/medicine|طب/i.test(rawFac)) {
+        degree = 'Bachelor of Medicine, Bachelor of Surgery (MBBCh)';
+        major = 'Medicine';
+      } else if (/science|علوم/i.test(rawFac)) {
+        degree = 'Bachelor of Science (B.Sc.)';
+        major = 'Science';
+      } else if (/arts|آداب/i.test(rawFac)) {
+        degree = 'Bachelor of Arts (B.A.)';
+        major = 'Arts';
+      } else if (/law|حقوق/i.test(rawFac)) {
+        degree = 'Bachelor of Law (LL.B.)';
+        major = 'Law';
+      } else if (/nursing|تمريض/i.test(rawFac)) {
+        degree = 'Bachelor of Nursing (B.Sc.)';
+        major = 'Nursing';
+      } else {
+        degree = rawFac;
+        major = rawFac.replace(/^(?:faculty|college|school|كلية)\s*(?:of|لـ)?\s*/i, '').trim();
+      }
+    }
+
+    if (degree) {
+      // Extract major if embedded in degree (e.g. "Bachelor of Science in Computer Science")
+      const inMatch = degree.match(/\b(?:in|major\s+in|specialization\s+in|قسم|تخصص)\s+([A-Za-z\u0600-\u06FF\s&,]+)/i);
+      if (inMatch && !major) {
+        major = inMatch[1].replace(/[,–-].*$/, '').trim();
+      }
+    }
+
+    return {
+      degree: degree || rawFac || 'Bachelor Degree',
+      major: major || ''
+    };
+  }
+
+  function extractEduDateRange(text: string): { startDate: string; endDate: string } {
+    const fullDateRegex = /(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember))\s+)?(19\d{2}|20\d{2})\s*(?:[-–—to\s]+)\s*(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember))\s+)?(19\d{2}|20\d{2}|present|expected|current|now|حالياً)/i;
+    const match = text.match(fullDateRegex);
+    if (match) {
+      const parts = match[0].split(/[-–—]|(?:\s+to\s+)/i);
+      return {
+        startDate: parts[0]?.trim() || '',
+        endDate: parts[1]?.trim() || ''
+      };
+    }
+    const years = text.match(/\b(19\d{2}|20\d{2})\b/g);
+    if (years && years.length >= 2) {
+      return { startDate: years[0], endDate: years[1] };
+    } else if (years && years.length === 1) {
+      const y = parseInt(years[0], 10);
+      return { startDate: (y - 4).toString(), endDate: y.toString() };
+    }
+    return { startDate: '2018', endDate: '2022' };
+  }
+
   const education: Array<{
     id: string;
     institution: string;
@@ -645,38 +782,145 @@ export function parseCVText(
     location?: string;
   }> = [];
 
+  const eduText = sections.education || '';
   if (eduText) {
+    // Break into logical degree blocks (by blank lines, bullet points, or degree/institution starts)
     const eduLines = eduText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    let degree = '';
-    let institution = '';
-    let startYear = '2022';
-    let endYear = '2026';
+    const degreeBlocks: string[][] = [];
+    let currentBlock: string[] = [];
 
     for (const line of eduLines) {
-      if (!degree && /\b(bachelor|master|phd|b\.?sc|b\.?eng|b\.?a|diploma|بكالوريوس|ماجستير|دكتوراه)\b/i.test(line)) {
-        degree = line.replace(/\s*at\s+.*$/i, '').trim();
-      }
-      if (!institution && /\b(university|college|academy|institute|جامعة|كلية|أكاديمية|معهد)\b/i.test(line)) {
-        const instMatch = line.match(/(?:at\s+)?([A-Za-z\s]+(?:University|College|Academy|Institute|جامعة|كلية|أكاديمية))/i) || line.match(/^[A-Za-z\s]+(?:University|College|Academy|Institute)/i);
-        institution = instMatch ? instMatch[0].replace(/^at\s+/i, '').trim() : line.split(/[,–-]/)[0].trim();
-      }
-      const years = line.match(/\b(19\d{2}|20\d{2})\b/g);
-      if (years && years.length >= 2) {
-        startYear = years[0];
-        endYear = years[1];
+      const isNewDegreeHeader =
+        (KNOWN_DEGREES_REGEX.test(line) || KNOWN_FACULTIES_REGEX.test(line) || ARABIC_FACULTIES_REGEX.test(line)) &&
+        !line.startsWith('•') &&
+        !line.startsWith('-') &&
+        currentBlock.length > 0 &&
+        currentBlock.some(b => KNOWN_DEGREES_REGEX.test(b) || KNOWN_UNIVERSITIES_REGEX.test(b) || ARABIC_UNIVERSITIES_REGEX.test(b));
+
+      if (isNewDegreeHeader) {
+        degreeBlocks.push(currentBlock);
+        currentBlock = [line];
+      } else {
+        currentBlock.push(line);
       }
     }
+    if (currentBlock.length > 0) {
+      degreeBlocks.push(currentBlock);
+    }
 
-    if (institution || degree) {
-      education.push({
-        id: 'edu-1',
-        institution: institution || '',
-        degree: degree || '',
-        major: '',
-        startDate: startYear,
-        endDate: endYear,
-        location: location
-      });
+    let eduIdx = 1;
+    for (const block of degreeBlocks) {
+      const blockCombined = block.join(' \n ');
+      let blockDegree = '';
+      let blockFaculty = '';
+      let blockInstitution = '';
+      let blockLocation = location;
+
+      for (const line of block) {
+        // 1. Institution Match
+        if (!blockInstitution) {
+          const uniMatch = line.match(KNOWN_UNIVERSITIES_REGEX) || line.match(ARABIC_UNIVERSITIES_REGEX);
+          if (uniMatch) {
+            blockInstitution = uniMatch[0].trim();
+          } else if (/\b(university|college|academy|institute|جامعة|أكاديمية|معهد)\b/i.test(line)) {
+            const genericInst = line.match(/^[A-Za-z\s]+(?:University|College|Academy|Institute)/i) || line.match(/(?:at\s+)?([A-Za-z\s]+(?:University|College|Academy|Institute))/i);
+            if (genericInst) {
+              blockInstitution = genericInst[0].replace(/^at\s+/i, '').trim();
+            } else {
+              blockInstitution = line.split(/[,|–-]/)[0].trim();
+            }
+          }
+        }
+
+        // 2. Faculty Match
+        if (!blockFaculty) {
+          const facMatch = line.match(KNOWN_FACULTIES_REGEX) || line.match(ARABIC_FACULTIES_REGEX);
+          if (facMatch) {
+            blockFaculty = facMatch[0].trim();
+          }
+        }
+
+        // 3. Degree Match
+        if (!blockDegree) {
+          const degMatch = line.match(KNOWN_DEGREES_REGEX);
+          if (degMatch) {
+            blockDegree = degMatch[0].replace(/\s*at\s+.*$/i, '').trim();
+          }
+        }
+
+        // 4. Location match on line
+        if (/cairo|giza|alexandria|mansoura|egypt|القاهرة|الجيزة|الإسكندرية|المنصورة|مصر/i.test(line)) {
+          const locM = line.match(/(?:Cairo|Giza|Alexandria|Mansoura|Egypt|القاهرة|الجيزة|الإسكندرية|المنصورة|مصر)(?:,\s*[A-Za-z\u0600-\u06FF]+)?/i);
+          if (locM) blockLocation = locM[0].trim();
+        }
+      }
+
+      // If institution is still blank, but faculty has university attached (e.g. "Faculty of Pharmacy, Cairo University")
+      if (!blockInstitution && blockFaculty) {
+        const uM = blockCombined.match(KNOWN_UNIVERSITIES_REGEX) || blockCombined.match(ARABIC_UNIVERSITIES_REGEX);
+        if (uM) blockInstitution = uM[0].trim();
+      }
+
+      const dateRange = extractEduDateRange(blockCombined);
+      const { degree: finalDegree, major: finalMajor } = inferCanonicalDegree(blockDegree, blockFaculty);
+
+      if (blockInstitution || blockFaculty || blockDegree) {
+        education.push({
+          id: `edu-${eduIdx++}`,
+          institution: blockInstitution || (blockFaculty ? `${blockFaculty}` : 'University'),
+          degree: finalDegree,
+          major: finalMajor,
+          startDate: dateRange.startDate || '2018',
+          endDate: dateRange.endDate || '2022',
+          location: blockLocation || location
+        });
+      }
+    }
+  }
+
+  // ─── 9b. GLOBAL FALLBACK SCANNER FOR EDUCATION ───────────────────────────
+  // If no education was found via section headers, scan the entire text for degrees/universities
+  if (education.length === 0) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const hasUni = KNOWN_UNIVERSITIES_REGEX.test(line) || ARABIC_UNIVERSITIES_REGEX.test(line);
+      const hasFac = KNOWN_FACULTIES_REGEX.test(line) || ARABIC_FACULTIES_REGEX.test(line);
+      const hasDeg = KNOWN_DEGREES_REGEX.test(line);
+
+      if (hasUni || hasFac || hasDeg) {
+        // Collect window of 3 lines around the match
+        const windowLines = lines.slice(Math.max(0, i - 1), Math.min(lines.length, i + 3));
+        const windowText = windowLines.join(' \n ');
+
+        let inst = '';
+        let fac = '';
+        let deg = '';
+
+        const uniM = windowText.match(KNOWN_UNIVERSITIES_REGEX) || windowText.match(ARABIC_UNIVERSITIES_REGEX);
+        if (uniM) inst = uniM[0].trim();
+
+        const facM = windowText.match(KNOWN_FACULTIES_REGEX) || windowText.match(ARABIC_FACULTIES_REGEX);
+        if (facM) fac = facM[0].trim();
+
+        const degM = windowText.match(KNOWN_DEGREES_REGEX);
+        if (degM) deg = degM[0].trim();
+
+        const dateRange = extractEduDateRange(windowText);
+        const { degree: finalDeg, major: finalMajor } = inferCanonicalDegree(deg, fac);
+
+        if (inst || fac || deg) {
+          education.push({
+            id: `edu-${education.length + 1}`,
+            institution: inst || (fac ? fac : 'University'),
+            degree: finalDeg,
+            major: finalMajor,
+            startDate: dateRange.startDate || '2018',
+            endDate: dateRange.endDate || '2022',
+            location: location
+          });
+          break; // Stop after capturing the primary degree
+        }
+      }
     }
   }
 

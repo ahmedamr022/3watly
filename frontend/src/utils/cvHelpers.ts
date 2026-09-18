@@ -36,8 +36,29 @@ export function hasMetric(text: string): boolean {
   return /\d/.test(text);
 }
 
+export function hasSectionContent(cv: CVData, id: SectionId): boolean {
+  switch (id) {
+    case 'contact':
+      return Boolean(cv.contact.fullName || cv.contact.email || cv.contact.phone);
+    case 'summary':
+      return Boolean(cv.summary && cv.summary.trim().length > 0);
+    case 'experience':
+      return Boolean(cv.experience && cv.experience.length > 0 && cv.experience.some(e => e.role?.trim() || e.company?.trim()));
+    case 'education':
+      return Boolean(cv.education && cv.education.length > 0 && cv.education.some(e => e.degree?.trim() || e.institution?.trim()));
+    case 'projects':
+      return Boolean(cv.projects && cv.projects.length > 0 && cv.projects.some(p => p.title?.trim() || (p.bullets && p.bullets.length > 0)));
+    case 'skills':
+      return Boolean(cv.skills && cv.skills.length > 0 && cv.skills.some(g => g.skills && g.skills.length > 0));
+    case 'certifications':
+      return Boolean(cv.certifications && cv.certifications.length > 0 && cv.certifications.some(c => c.name?.trim()));
+    default:
+      return true;
+  }
+}
+
 export function visibleSections(cv: CVData): SectionId[] {
-  return cv.sectionOrder.filter((id) => !cv.hiddenSections.includes(id));
+  return cv.sectionOrder.filter((id) => !cv.hiddenSections.includes(id) && hasSectionContent(cv, id));
 }
 
 export function totalSkills(cv: CVData): number {

@@ -417,6 +417,62 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
             }
           }
 
+          // Auto-heal missing education if education is empty or invalid
+          if (
+            currentToEdit.cvData &&
+            (!Array.isArray(currentToEdit.cvData.education) || currentToEdit.cvData.education.length === 0 || !currentToEdit.cvData.education.some(e => e.degree?.trim() || e.institution?.trim()))
+          ) {
+            try {
+              const rawParsedStr = localStorage.getItem('3watly_parsed_cv');
+              let healedEdu: import('../types/cv').EducationItem[] = [];
+              if (rawParsedStr) {
+                const parsed = JSON.parse(rawParsedStr);
+                const rawEdu = Array.isArray(parsed.education) && parsed.education.length > 0 ? parsed.education : (Array.isArray(parsed.educationHistory) ? parsed.educationHistory : []);
+                if (rawEdu.length > 0) {
+                  healedEdu = rawEdu.map((edu: any, idx: number) => ({
+                    id: edu.id || `edu-${idx + 1}`,
+                    degree: edu.degree || 'Bachelor Degree',
+                    institution: edu.institution || edu.school || 'University',
+                    startDate: edu.startDate || '2018',
+                    endDate: edu.endDate || edu.period || '2022',
+                    location: edu.location || currentToEdit.cvData.contact.location || '',
+                    major: edu.major || ''
+                  }));
+                } else if (parsed.rawText) {
+                  // Re-scan rawText for universities or faculties
+                  const uniMatch = parsed.rawText.match(/\b(cairo|ain\s*shams|alexandria|mansoura|helwan|assiut|zagazig|auc|guc|bue|fue|must|msa|miu|aastmt|hti|جامعة\s*[\u0600-\u06FF]+|كلية\s*[\u0600-\u06FF]+)[a-zA-Z\s]{0,30}(?:university|college|academy|institute)?/i);
+                  const facMatch = parsed.rawText.match(/\b(faculty\s*of\s*[a-zA-Z\s]+|college\s*of\s*[a-zA-Z\s]+|كلية\s*[\u0600-\u06FF\s]+)/i);
+                  if (uniMatch || facMatch) {
+                    const instName = uniMatch ? uniMatch[0].trim() : (facMatch ? facMatch[0].trim() : 'University');
+                    let degName = facMatch ? facMatch[0].trim() : 'Bachelor Degree';
+                    if (/pharmacy|صيدل/i.test(parsed.rawText)) degName = 'Bachelor of Pharmacy (B.Pharm)';
+                    else if (/commerce|تجارة/i.test(parsed.rawText)) degName = 'Bachelor of Commerce (B.Com)';
+                    else if (/engineering|هندس/i.test(parsed.rawText)) degName = 'Bachelor of Engineering (B.Sc.)';
+                    else if (/computer|حاسبات/i.test(parsed.rawText)) degName = 'Bachelor of Computer Science (B.Sc.)';
+
+                    healedEdu = [{
+                      id: 'edu-healed-1',
+                      degree: degName,
+                      institution: instName,
+                      startDate: '2018',
+                      endDate: '2022',
+                      location: currentToEdit.cvData.contact.location || 'Cairo, Egypt',
+                      major: /pharmacy/i.test(degName) ? 'Pharmacy' : ''
+                    }];
+                  }
+                }
+              }
+
+              if (healedEdu.length > 0) {
+                currentToEdit.cvData.education = healedEdu;
+                localStorage.setItem('3watly_cv_versions', JSON.stringify(initialVersionsList));
+                syncActiveCVToPlatform(currentToEdit);
+              }
+            } catch (e) {
+              console.warn('Education auto-heal error:', e);
+            }
+          }
+
           setHistory({
             present: currentToEdit.cvData,
             past: [],
