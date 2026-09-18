@@ -28,6 +28,7 @@ import { ApiService } from '@/services/api';
 import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useCV } from '@/contexts/CVContext';
+import { toast } from 'sonner';
 
 export default function DashboardPage() {
   const { isAr } = useLanguage();
@@ -45,6 +46,13 @@ export default function DashboardPage() {
       const savedCv = localStorage.getItem('3watly_parsed_cv');
       if (savedCv) {
         setUserParsedCv(JSON.parse(savedCv));
+      }
+    } catch {}
+
+    try {
+      const rawSavedJobs = localStorage.getItem('3watly_saved_jobs');
+      if (rawSavedJobs) {
+        setBookmarkedJobs(JSON.parse(rawSavedJobs) as string[]);
       }
     } catch {}
 
@@ -235,8 +243,16 @@ export default function DashboardPage() {
     e.stopPropagation();
     const strId = String(id);
     setBookmarkedJobs(prev => {
-      const next = prev.includes(strId) ? prev.filter(item => item !== strId) : [...prev, strId];
-      try { localStorage.setItem('3watly_saved_jobs', JSON.stringify(next)); } catch {}
+      const willBeSaved = !prev.includes(strId);
+      const next = willBeSaved ? [...prev, strId] : prev.filter(item => item !== strId);
+      try { 
+        localStorage.setItem('3watly_saved_jobs', JSON.stringify(next)); 
+      } catch {}
+      if (willBeSaved) {
+        toast.success(isAr ? 'تم حفظ الوظيفة في قائمة المحفوظات ⭐' : 'Job saved to bookmarks ⭐');
+      } else {
+        toast.info(isAr ? 'تمت إزالة الوظيفة من المحفوظات' : 'Job removed from bookmarks');
+      }
       return next;
     });
   };
@@ -808,119 +824,120 @@ export default function DashboardPage() {
 
             {/* Live Job Cards */}
             {topJobs.map((job) => {
-              const isSaved = bookmarkedJobs.includes(job.id);
+              const isSaved = bookmarkedJobs.includes(String(job.id));
               return (
-                <Link
+                <div
                   key={job.id}
-                  href={`/jobs/${job.id}`}
                   className="rounded-[20px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0E1628] p-4 hover:shadow-md hover:border-blue-400/50 transition-all flex flex-col justify-between group"
                 >
-                  <div>
-                    {/* Top Row: Company Logo + Title/Company + Match Donut Ring */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-start gap-2.5 min-w-0">
-                        {/* Official Company Logo Badge */}
-                        <CompanyLogo
-                          company={job.company}
-                          logoUrl={job.companyLogo}
-                          size="sm"
-                          className="shrink-0"
-                        />
+                  <Link
+                    href={`/jobs/${job.id}`}
+                    className="flex-1 flex flex-col justify-between"
+                  >
+                    <div>
+                      {/* Top Row: Company Logo + Title/Company + Match Donut Ring */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          {/* Official Company Logo Badge */}
+                          <CompanyLogo
+                            company={job.company}
+                            logoUrl={job.companyLogo}
+                            size="sm"
+                            className="shrink-0"
+                          />
 
-                        <div className="min-w-0">
-                          <h3 className="text-[13.5px] font-bold text-[#0B132B] dark:text-white leading-tight truncate group-hover:text-blue-600 transition-colors">
-                            {isAr ? job.titleAr : job.title}
-                          </h3>
-                          <p className="text-[12px] font-normal text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                            {isAr ? job.companyAr : job.company}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Match Ring */}
-                      <div className="flex flex-col items-center shrink-0">
-                        <div className="relative h-11 w-11">
-                          <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-                            <circle cx="50" cy="50" r="40" fill="none" stroke="#E8F8F0" className="dark:stroke-emerald-950/60" strokeWidth="9" />
-                            {job.matchScore != null && (
-                              <circle
-                                cx="50"
-                                cy="50"
-                                r="40"
-                                fill="none"
-                                stroke="#12B76A"
-                                strokeWidth="9"
-                                strokeLinecap="round"
-                                strokeDasharray={2 * Math.PI * 40}
-                                strokeDashoffset={2 * Math.PI * 40 * (1 - job.matchScore / 100)}
-                              />
-                            )}
-                          </svg>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-[11px] font-black text-[#0B132B] dark:text-white leading-none">
-                              {job.matchScore != null ? `${job.matchScore}%` : '--%'}
-                            </span>
+                          <div className="min-w-0">
+                            <h3 className="text-[13.5px] font-bold text-[#0B132B] dark:text-white leading-tight truncate group-hover:text-blue-600 transition-colors">
+                              {isAr ? job.titleAr : job.title}
+                            </h3>
+                            <p className="text-[12px] font-normal text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                              {isAr ? job.companyAr : job.company}
+                            </p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-medium text-slate-400 mt-0.5">
-                          {job.matchScore != null
-                            ? (isAr ? 'توافق' : 'Match')
-                            : (isAr ? 'يتطلب CV' : 'Needs CV')}
-                        </span>
+
+                        {/* Match Ring */}
+                        <div className="flex flex-col items-center shrink-0">
+                          <div className="relative h-11 w-11">
+                            <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+                              <circle cx="50" cy="50" r="40" fill="none" stroke="#E8F8F0" className="dark:stroke-emerald-950/60" strokeWidth="9" />
+                              {job.matchScore != null && (
+                                <circle
+                                  cx="50"
+                                  cy="50"
+                                  r="40"
+                                  fill="none"
+                                  stroke="#12B76A"
+                                  strokeWidth="9"
+                                  strokeLinecap="round"
+                                  strokeDasharray={2 * Math.PI * 40}
+                                  strokeDashoffset={2 * Math.PI * 40 * (1 - job.matchScore / 100)}
+                                />
+                              )}
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-[11px] font-black text-[#0B132B] dark:text-white leading-none">
+                                {job.matchScore != null ? `${job.matchScore}%` : '--%'}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-medium text-slate-400 mt-0.5">
+                            {job.matchScore != null
+                              ? (isAr ? 'توافق' : 'Match')
+                              : (isAr ? 'يتطلب CV' : 'Needs CV')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Location & Work Type */}
+                      <p className="mt-2 text-[11.5px] text-slate-500 dark:text-slate-400 truncate">
+                        {isAr ? job.locationAr : job.location}
+                      </p>
+
+                      {/* Skill Pills */}
+                      <div className="mt-3 flex flex-wrap items-center gap-1.5 min-h-[30px]">
+                        {job.skills.map((skill: { name: string; isMatched: boolean }) => (
+                          <span
+                            key={skill.name}
+                            className={`px-2.5 py-0.5 rounded-md text-[11px] font-semibold border transition-colors ${
+                              skill.isMatched
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                : 'bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/10'
+                            }`}
+                          >
+                            {skill.name}
+                          </span>
+                        ))}
+                        {job.extraSkillsCount > 0 && (
+                          <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-[10.5px] font-bold text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                            +{job.extraSkillsCount}
+                          </span>
+                        )}
                       </div>
                     </div>
-
-                    {/* Location & Work Type */}
-                    <p className="mt-2 text-[11.5px] text-slate-500 dark:text-slate-400 truncate">
-                      {isAr ? job.locationAr : job.location}
-                    </p>
-
-                    {/* Skill Pills */}
-                    <div className="mt-3 flex flex-wrap items-center gap-1.5 min-h-[30px]">
-                      {job.skills.map((skill: { name: string; isMatched: boolean }) => (
-                        <span
-                          key={skill.name}
-                          className={`px-2.5 py-0.5 rounded-md text-[11px] font-semibold border transition-colors ${
-                            skill.isMatched
-                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                              : 'bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/10'
-                          }`}
-                        >
-                          {skill.name}
-                        </span>
-                      ))}
-                      {job.extraSkillsCount > 0 && (
-                        <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-[10.5px] font-bold text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                          +{job.extraSkillsCount}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  </Link>
 
                   {/* Bottom Info: Posted Time + Bookmark Icon */}
                   <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
                     <span className="text-[11px] font-normal text-slate-400 dark:text-slate-500">
                       {isAr ? job.postedAgoAr : job.postedAgo}
                     </span>
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      onClick={(e) => toggleBookmark(job.id, e)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          toggleBookmark(job.id, e as any);
-                        }
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleBookmark(job.id, e);
                       }}
-                      className={`p-1 rounded-lg transition-colors cursor-pointer ${
-                        isSaved ? 'text-blue-600 fill-blue-600' : 'text-slate-400 hover:text-slate-600'
+                      className={`p-1.5 rounded-lg transition-all cursor-pointer hover:scale-110 active:scale-95 ${
+                        isSaved ? 'text-blue-600 fill-blue-600 bg-blue-50 dark:bg-blue-950/60' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                       aria-label={isSaved ? "Remove bookmark" : "Bookmark job"}
                     >
                       <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-                    </span>
+                    </button>
                   </div>
-                </Link>
+                </div>
               );
             })}
 

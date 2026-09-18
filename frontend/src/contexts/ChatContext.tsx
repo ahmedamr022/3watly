@@ -253,6 +253,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({
             message: trimmed,
             attachment,
+            attachmentText: attachmentData?.rawText || activeCvPayload?.rawText || undefined,
+            attachmentData: attachmentData || undefined,
             userId: user?.id,
             activeCv: activeCvPayload,
             recentMessages: recentMessagesPayload,

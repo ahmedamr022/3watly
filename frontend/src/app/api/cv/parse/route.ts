@@ -1503,7 +1503,10 @@ export async function POST(request: NextRequest) {
       filename: fileName,
       fileSize: file.size,
       textLength: extractedText.length,
-      data: structuredData
+      data: {
+        ...structuredData,
+        rawText: extractedText,
+      }
     });
   } catch (error: any) {
     console.error('CV Parsing API Error:', error);

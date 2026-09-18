@@ -41,6 +41,8 @@ export interface CopilotContext {
   recentHistorySummary: string;
   currentPageContext?: string;
   hasCv: boolean;
+  attachmentName?: string;
+  attachedDocumentText?: string;
 }
 
 export async function buildCopilotContext(
@@ -210,6 +212,13 @@ export async function buildCopilotContext(
       .join('\n');
   }
 
+  const attachmentName = rawBody.attachment || undefined;
+  const attachedDocumentText =
+    rawBody.attachmentText ||
+    rawBody.attachmentData?.rawText ||
+    rawBody.activeCv?.rawText ||
+    undefined;
+
   return {
     userName,
     targetRole,
@@ -225,5 +234,7 @@ export async function buildCopilotContext(
     recentHistorySummary,
     currentPageContext: rawBody.currentPage || '/copilot',
     hasCv,
+    attachmentName,
+    attachedDocumentText,
   };
 }
