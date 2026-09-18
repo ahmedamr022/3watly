@@ -318,7 +318,7 @@ export default function CVBuilderPage() {
     >
       <div className="flex flex-col h-full min-h-0">
         {/* Top Actions & Toolbar — Static, completely frozen in place */}
-        <div className="no-print shrink-0 flex flex-wrap items-center justify-between gap-4 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-xl shadow-sm mb-4">
+        <div className="no-print shrink-0 relative z-30 flex flex-wrap items-center justify-between gap-4 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-xl shadow-sm mb-4">
           
           {/* Multi-CV Version Selector & Status badge & Direct Upload */}
           <div className="flex flex-wrap items-center gap-3">
