@@ -217,8 +217,8 @@ export default function CVBuilderPage() {
       showSearch={false}
     >
       <div className="space-y-6 max-w-[1500px] mx-auto pb-16">
-        {/* Top Actions & Toolbar */}
-        <div className="no-print flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+        {/* Top Actions & Toolbar — Sticky directly below AppTopbar */}
+        <div className="no-print sticky top-[72px] z-20 flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-xl shadow-md">
           
           {/* Multi-CV Version Selector & Status badge & Direct Upload */}
           <div className="flex flex-wrap items-center gap-3">
@@ -396,8 +396,8 @@ export default function CVBuilderPage() {
           )}
 
           {/* ── Right: CV Preview (sticky — stays pinned on screen while page scrolls, single internal scroll) ── */}
-          <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} lg:sticky lg:top-[5.5rem] self-start`}>
-            <div className="max-h-[calc(100vh-7rem)] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent rounded-2xl">
+          <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} lg:sticky lg:top-[168px] self-start`}>
+            <div className="max-h-[calc(100vh-185px)] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent rounded-2xl">
               <CVPreview />
             </div>
           </div>
