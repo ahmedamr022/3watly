@@ -110,7 +110,14 @@ export default function MarketPage() {
       }))
     : computedTopSkills;
 
-  const ranking = getSkillRanking(filters);
+  const ranking = liveStats?.topSkills?.length > 0
+    ? liveStats.topSkills.map((s: any) => ({
+        name: s.name,
+        value: s.percentage || s.count,
+        icon: '📊',
+        color: '#3B82F6',
+      }))
+    : getSkillRanking(filters);
 
   const setFilter = (key: keyof Filters) => (value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
