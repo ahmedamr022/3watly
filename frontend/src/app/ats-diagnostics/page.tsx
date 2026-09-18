@@ -62,10 +62,12 @@ export default function ATSDiagnosticsPage() {
             data.portfolio ? { id: "link-pf", platform: "Portfolio", url: data.portfolio } : null,
           ].filter(Boolean);
 
+      const resolvedJobTitle = data.currentTitle || data.targetRole || data.experiences?.[0]?.role || (data.education?.[0]?.degree ? `${data.education[0].degree} Graduate` : "") || (isAr ? "متخصص تقني" : "Tech Professional");
+
       const newCvData: CVData = {
         contact: {
           fullName: data.fullName || "User",
-          jobTitle: data.currentTitle || data.targetRole || "Data Analyst",
+          jobTitle: resolvedJobTitle,
           phone: data.phone || "",
           email: data.email || "",
           location: data.location || "Cairo, Egypt",
@@ -106,7 +108,7 @@ export default function ATSDiagnosticsPage() {
       };
 
       const cleanFileName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ").trim() || "سيرة ذاتية مرفوعة";
-      createVersion(cleanFileName, data.targetRole || data.currentTitle || "Data Analyst", newCvData);
+      createVersion(cleanFileName, resolvedJobTitle, newCvData);
       setRunKey(prev => prev + 1);
 
       toast.success(

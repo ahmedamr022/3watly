@@ -474,24 +474,92 @@ export function parseCVText(
     }
   }
 
-  // 6. Extract Current Title / Professional Headline (from top 8 lines)
+  // 6. Extract Current Title / Professional Headline
+  const ROLE_TITLE_PATTERN = new RegExp(
+    '\\b(' +
+    // Technical & Engineering
+    'engineer|developer|analyst|scientist|architect|specialist|technician|administrator|admin|sysadmin|programmer|coder|tester|testing|' +
+    // IT & Support & Helpdesk
+    'technical\\s*support|desktop\\s*support|help\\s*desk|service\\s*desk|it\\s*support|it\\s*specialist|it\\s*technician|systems?\\s*administrator|network\\s*administrator|network\\s*engineer|' +
+    // Operations & Cloud & DevOps
+    'devops|sre|site\\s*reliability|cloud\\s*engineer|infrastructure|cyber\\s*security|information\\s*security|soc\\s*analyst|qa|qc|quality\\s*assurance|test\\s*automation|' +
+    // Software & Web & Mobile
+    'frontend|front-end|backend|back-end|fullstack|full-stack|software|web|mobile|flutter|android|ios|react|node|python|java|\\.net|php|' +
+    // Data & AI
+    'data|machine\\s*learning|deep\\s*learning|artificial\\s*intelligence|business\\s*intelligence|power\\s*bi|tableau|etl|' +
+    // Design & Product & Management
+    'ui\\/ux|ui\\s*designer|ux\\s*designer|product\\s*manager|product\\s*owner|scrum\\s*master|project\\s*manager|agile\\s*coach|' +
+    // Leadership & General Professional
+    'consultant|expert|lead|leader|manager|director|officer|executive|coordinator|supervisor|instructor|trainer|associate|assistant|representative|' +
+    // Student & Entry
+    'intern|internship|trainee|graduate|student|fellow|apprentice' +
+    ')\\b',
+    'i'
+  );
+
+  const ARABIC_ROLE_PATTERN = /(?:مهندس|مطور|محلل|مبرمج|أخصائي|فني|مسؤول|مدير|مستشار|باحث|طالب|متدرب|مصمم|رئيس|مشرف|منسق|معاون|مساعد|تقني|خبير|دعم\s*فني|شبكات|نظم)/i;
+
+  const NON_TITLE_LINE_REGEX = /(?:@|https?:\/\/|www\.|\.com|\.io|\.net|\.org|\+?\d{8,}|linkedin\.com|github\.com)/i;
+  const SECTION_HEADING_NAMES = /^(?:summary|profile|about\s*me|objective|experience|work\s*history|employment|education|academic|skills|technical\s*skills|projects|certificates|certifications|languages|interests|references|الملخص|النبذة|الخبرة|الخبرات|التعليم|المهارات|المشاريع|الشهادات)[:\s]*$/i;
+
+  function cleanHeadlineCandidate(raw: string): string {
+    if (!raw) return '';
+    // If line has pipe, bullets, or dashes separating roles/contact
+    const segments = raw.split(/[|•·–—]/).map(s => s.trim()).filter(Boolean);
+    const roleSegments: string[] = [];
+    for (const seg of segments) {
+      if (
+        NON_TITLE_LINE_REGEX.test(seg) ||
+        /^(?:cairo|giza|alexandria|egypt|riyadh|jeddah|dubai|uae|remote|القاهرة|الجيزة|مصر|عن بعد)$/i.test(seg)
+      ) {
+        continue;
+      }
+      if (ROLE_TITLE_PATTERN.test(seg) || ARABIC_ROLE_PATTERN.test(seg)) {
+        roleSegments.push(seg);
+      }
+    }
+    if (roleSegments.length > 0) {
+      return roleSegments.join(' | ');
+    }
+    return raw.trim();
+  }
+
   let currentTitle = '';
-  for (const line of lines.slice(0, 8)) {
+  const fullNameIdx = lines.findIndex(l => l === fullName);
+
+  // Priority 1: Check line immediately following fullName
+  if (fullNameIdx !== -1 && lines[fullNameIdx + 1]) {
+    const nextLine = lines[fullNameIdx + 1].trim();
     if (
-      line !== fullName &&
-      line.length >= 4 &&
-      line.length <= 140 &&
-      !line.includes('@') &&
-      !line.includes('http') &&
-      !line.includes('+20') &&
-      (/\b(engineer|analyst|developer|scientist|specialist|designer|manager|architect|enthusiast|intern|lead|consultant|student|graduate)\b/i.test(line) || line.includes('|') || line.includes('•'))
+      nextLine.length >= 3 &&
+      nextLine.length <= 140 &&
+      !NON_TITLE_LINE_REGEX.test(nextLine) &&
+      !SECTION_HEADING_NAMES.test(nextLine) &&
+      (ROLE_TITLE_PATTERN.test(nextLine) || ARABIC_ROLE_PATTERN.test(nextLine) || nextLine.includes('|'))
     ) {
-      currentTitle = line.trim();
-      break;
+      currentTitle = cleanHeadlineCandidate(nextLine);
     }
   }
-  if (!currentTitle) currentTitle = targetRoleInput || '';
-  const targetRole = targetRoleInput || currentTitle;
+
+  // Priority 2: Scan top 25 lines (before main section bodies)
+  if (!currentTitle) {
+    for (const line of lines.slice(0, 25)) {
+      if (
+        line !== fullName &&
+        line.length >= 3 &&
+        line.length <= 140 &&
+        !NON_TITLE_LINE_REGEX.test(line) &&
+        !SECTION_HEADING_NAMES.test(line) &&
+        (ROLE_TITLE_PATTERN.test(line) || ARABIC_ROLE_PATTERN.test(line))
+      ) {
+        currentTitle = cleanHeadlineCandidate(line);
+        if (currentTitle) break;
+      }
+    }
+  }
+
+  // Target role determination (preliminary, finalized after experiences)
+  let targetRole = targetRoleInput || currentTitle;
 
   // --- 7. SECTION SPLITTER ---
   const SECTION_HEADERS = [
@@ -1175,9 +1243,33 @@ export function parseCVText(
 
   const fallbackName = email ? email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
 
+  // Final resolution of currentTitle:
+  // If not found in header, fallback to experiences[0].role, summary, or education
+  if (!currentTitle || currentTitle.toLowerCase() === 'data-analyst' || currentTitle.toLowerCase() === 'data analyst') {
+    if (experiences.length > 0 && experiences[0].role && experiences[0].role.trim().length >= 3) {
+      currentTitle = experiences[0].role.replace(/\s*at\s+.*$/i, '').trim();
+    } else if (summary) {
+      const summaryRoleMatch = summary.match(/(?:as\s+(?:a|an)\s+|seeking\s+(?:a|an)?\s*|passionate\s+|experienced\s+|certified\s+|dedicated\s+)([A-Za-z\s\/\-&]+?(?:engineer|developer|analyst|specialist|technician|administrator|designer|architect|scientist|consultant|programmer|tester|specialist))/i);
+      if (summaryRoleMatch && summaryRoleMatch[1]) {
+        currentTitle = summaryRoleMatch[1].trim();
+      }
+    } else if (education.length > 0 && education[0].degree) {
+      const deg = education[0].degree;
+      if (/computer|software|data|technology|engineering|information|science/i.test(deg)) {
+        currentTitle = deg.replace(/\b(degree|program|faculty\s*of|bachelor\s*of)\b/gi, '').trim();
+      }
+    }
+  }
+
+  // Ensure targetRole aligns with detected currentTitle if targetRole was omitted or default
+  let resolvedTargetRole = targetRoleInput || '';
+  if (!resolvedTargetRole || resolvedTargetRole === 'data-analyst') {
+    resolvedTargetRole = currentTitle || targetRoleInput || '';
+  }
+
   return {
     fullName: fullName || fallbackName,
-    currentTitle: currentTitle || targetRole || '',
+    currentTitle: currentTitle || resolvedTargetRole || '',
     email,
     phone,
     location,
@@ -1191,7 +1283,7 @@ export function parseCVText(
       type: c.platform.toLowerCase() as any
     })),
     summary,
-    targetRole,
+    targetRole: resolvedTargetRole,
     experienceYears: experiences.filter(e => e.type !== 'internship').length,
     isAllInternships: experiences.length > 0 && experiences.every(e => e.type === 'internship'),
     sectionOrder: (() => {

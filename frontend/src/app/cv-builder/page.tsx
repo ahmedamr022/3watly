@@ -80,10 +80,12 @@ export default function CVBuilderPage() {
             data.portfolio ? { id: "link-pf", platform: "Portfolio", url: data.portfolio } : null,
           ].filter(Boolean);
 
+      const resolvedJobTitle = data.currentTitle || data.targetRole || data.experiences?.[0]?.role || (data.education?.[0]?.degree ? `${data.education[0].degree} Graduate` : "") || (isAr ? "متخصص تقني" : "Tech Professional");
+
       const newCvData: CVData = {
         contact: {
           fullName: data.fullName || "User",
-          jobTitle: data.currentTitle || data.targetRole || "Data Analyst",
+          jobTitle: resolvedJobTitle,
           phone: data.phone || "",
           email: data.email || "",
           location: data.location || "",
@@ -97,7 +99,7 @@ export default function CVBuilderPage() {
         experience: Array.isArray(data.experiences) && data.experiences.length > 0
           ? data.experiences.map((exp: any, idx: number) => ({
               id: exp.id || `exp-${idx + 1}`,
-              role: exp.role || data.currentTitle || "Professional",
+              role: exp.role || resolvedJobTitle || "Professional",
               company: exp.company || "",
               companyUrl: exp.companyUrl || "",
               startDate: exp.startDate || "",
@@ -136,7 +138,7 @@ export default function CVBuilderPage() {
       };
 
       const cleanFileName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ").trim() || "سيرة ذاتية مرفوعة";
-      createVersion(cleanFileName, data.targetRole || data.currentTitle || "Data Analyst", newCvData);
+      createVersion(cleanFileName, resolvedJobTitle, newCvData);
 
       try {
         localStorage.setItem('3watly_parsed_cv', JSON.stringify(data));

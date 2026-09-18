@@ -36,7 +36,7 @@ interface OnboardingState {
 function syncParsedCvToCVBuilder(finalParsedCv: ParsedCv, userFullName?: string) {
   if (typeof window === 'undefined') return;
 
-  const roleTitle = finalParsedCv.targetRole || finalParsedCv.currentTitle || 'Data Analyst';
+  const roleTitle = finalParsedCv.currentTitle || finalParsedCv.targetRole || finalParsedCv.experiences?.[0]?.role || 'Professional';
 
   const adaptedProjects = (finalParsedCv.projects || []).map((p, idx) => ({
     id: p.id || `prj-${idx + 1}`,
@@ -295,7 +295,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           const blob = new Blob([nextFile.name], { type: 'text/plain' });
           formData.append('file', blob, nextFile.name);
         }
-        if (role) formData.append('targetRole', role);
+        // Only send targetRole if explicitly selected and not the placeholder default
+        if (role && role !== 'data-analyst') formData.append('targetRole', role);
 
         // Stage 2: Entity extraction
         setProgress(60);
@@ -327,7 +328,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           name: s
         }));
 
-        // Resolve the human-readable role title from the selected role ID
+        // Resolve the human-readable role title from the detected currentTitle first, then selected role
         const roleLabels: Record<string, string> = {
           'data-analyst':      'Data Analyst',
           'data-engineer':     'Data Engineer',
@@ -335,11 +336,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           'ml-engineer':       'Machine Learning Engineer',
           'devops':            'DevOps Engineer',
         };
-        const resolvedTitle = data.targetRole || (role ? roleLabels[role] : '') || '';
+        const resolvedTitle = data.currentTitle || data.targetRole || (role && role !== 'data-analyst' ? roleLabels[role] : '') || '';
 
         const finalParsedCv: ParsedCv = {
           fullName: data.fullName || user?.fullName || extractNameFromFilename(nextFile.name) || '',
-          currentTitle: data.currentTitle || resolvedTitle,
+          currentTitle: data.currentTitle || resolvedTitle || 'Professional',
           email: data.email || user?.email || '',
           phone: data.phone || '',
           // Only use location extracted from CV — no hardcoded Cairo fallback
@@ -351,7 +352,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           links: Array.isArray(data.links) ? data.links : [],
           summary: data.summary || '',
           filename: nextFile.name,
-          targetRole: data.targetRole || resolvedTitle,
+          targetRole: resolvedTitle || data.currentTitle || 'Professional',
           experienceYears: data.experienceYears || 0,
           experiences: data.experiences || [],
           experience: {

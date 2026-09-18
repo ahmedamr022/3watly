@@ -90,10 +90,12 @@ export function CVVersionSelector() {
             data.portfolio ? { id: 'link-pf', platform: 'Portfolio', url: data.portfolio } : null,
           ].filter(Boolean);
 
+      const resolvedJobTitle = data.currentTitle || data.targetRole || data.experiences?.[0]?.role || (data.education?.[0]?.degree ? `${data.education[0].degree} Graduate` : '') || (isAr ? 'متخصص تقني' : 'Tech Professional');
+
       const newCvData: CVData = {
         contact: {
           fullName: data.fullName || 'User',
-          jobTitle: data.currentTitle || data.targetRole || 'Data Analyst',
+          jobTitle: resolvedJobTitle,
           phone: data.phone || '',
           email: data.email || '',
           location: data.location || 'Cairo, Egypt',
@@ -131,7 +133,7 @@ export function CVVersionSelector() {
       };
 
       const cleanFileName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ').trim() || 'سيرة ذاتية مرفوعة';
-      const newVer = createVersion(cleanFileName, data.targetRole || data.currentTitle || 'Data Analyst', newCvData);
+      const newVer = createVersion(cleanFileName, resolvedJobTitle, newCvData);
       
       // Immediately set as active & switch editor
       setActiveVersion(newVer.id);
