@@ -396,8 +396,8 @@ export default function CVBuilderPage() {
           )}
 
           {/* ── Right: CV Preview (sticky — stays pinned on screen while page scrolls, single internal scroll) ── */}
-          <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} lg:sticky lg:top-4 self-start`}>
-            <div className="max-h-[calc(100vh-6.5rem)] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent rounded-2xl">
+          <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} lg:sticky lg:top-[5.5rem] self-start`}>
+            <div className="max-h-[calc(100vh-7rem)] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent rounded-2xl">
               <CVPreview />
             </div>
           </div>

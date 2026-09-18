@@ -31,7 +31,7 @@ export function AppShell({ children, title, subtitle, showSearch = true }: AppSh
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-[#F8FAFC] dark:bg-[#040816] text-[#1E293B] dark:text-[#F8FAFC] flex transition-colors duration-300">
+    <div className="relative min-h-screen w-full bg-[#F8FAFC] dark:bg-[#040816] text-[#1E293B] dark:text-[#F8FAFC] flex transition-colors duration-300">
       
       {/* Dynamic Background Graphics */}
       <div 
@@ -48,7 +48,7 @@ export function AppShell({ children, title, subtitle, showSearch = true }: AppSh
       />
 
       {/* Main Content Area */}
-      <div className={`relative z-10 flex-1 flex flex-col h-full min-w-0 ${
+      <div className={`relative z-10 flex-1 flex flex-col min-w-0 ${
         isCollapsed ? 'lg:ltr:pl-20 lg:rtl:pr-20' : 'lg:ltr:pl-64 lg:rtl:pr-64'
       } transition-all duration-300`}>
         {/* Shared Topbar */}
@@ -59,8 +59,8 @@ export function AppShell({ children, title, subtitle, showSearch = true }: AppSh
           showSearch={showSearch}
         />
 
-        {/* Page Inner Content — Single Page Scroll */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-7 lg:p-8 max-w-[1500px] w-full mx-auto">
+        {/* Page Inner Content */}
+        <main className="flex-1 p-4 sm:p-7 lg:p-8 max-w-[1500px] w-full mx-auto">
           {children}
         </main>
       </div>
