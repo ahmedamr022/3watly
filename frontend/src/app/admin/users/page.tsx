@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { CustomDropdown } from '@/components/ui/CustomDropdown';
 
 interface AdminUser {
   id: string;
@@ -140,27 +141,31 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Role filter */}
-        <select
-          value={roleFilter}
-          onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-          className="px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/15 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 cursor-pointer shadow-sm"
-        >
-          <option value="" className="bg-[#0B1120] text-slate-200">{isAr ? 'كل الأدوار' : 'All Roles'}</option>
-          <option value="owner" className="bg-[#0B1120] text-slate-200">{isAr ? '👑 مالك' : '👑 Owner'}</option>
-          <option value="admin" className="bg-[#0B1120] text-slate-200">{isAr ? '🛡️ مسؤول' : '🛡️ Admin'}</option>
-          <option value="user" className="bg-[#0B1120] text-slate-200">{isAr ? '👤 مستخدم' : '👤 User'}</option>
-        </select>
+        <div className="w-full sm:w-48">
+          <CustomDropdown
+            options={[
+              { value: '', label: isAr ? 'كل الأدوار' : 'All Roles' },
+              { value: 'owner', label: isAr ? '👑 المالك' : '👑 Owner' },
+              { value: 'admin', label: isAr ? '🛡️ مسؤول' : '🛡️ Admin' },
+              { value: 'user', label: isAr ? '👤 مستخدم' : '👤 User' },
+            ]}
+            value={roleFilter}
+            onChange={(val) => { setRoleFilter(val); setPage(1); }}
+          />
+        </div>
 
         {/* Status filter */}
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/15 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 cursor-pointer shadow-sm"
-        >
-          <option value="" className="bg-[#0B1120] text-slate-200">{isAr ? 'كل الحالات' : 'All Statuses'}</option>
-          <option value="active" className="bg-[#0B1120] text-slate-200">{isAr ? '🟢 نشط' : '🟢 Active'}</option>
-          <option value="suspended" className="bg-[#0B1120] text-slate-200">{isAr ? '🔴 معلق' : '🔴 Suspended'}</option>
-        </select>
+        <div className="w-full sm:w-48">
+          <CustomDropdown
+            options={[
+              { value: '', label: isAr ? 'كل الحالات' : 'All Statuses' },
+              { value: 'active', label: isAr ? '🟢 نشط' : '🟢 Active' },
+              { value: 'suspended', label: isAr ? '🔴 معلق' : '🔴 Suspended' },
+            ]}
+            value={statusFilter}
+            onChange={(val) => { setStatusFilter(val); setPage(1); }}
+          />
+        </div>
       </div>
 
       {/* Error */}

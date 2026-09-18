@@ -4,9 +4,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen, Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight,
   RefreshCw, AlertTriangle, X, Check, PlayCircle, Code2, ExternalLink,
-  GraduationCap, FileText, Sparkles, Database, Download
+  GraduationCap, FileText, Sparkles, Clock, Globe, Award, Layers,
+  ChevronRight, Tag, Zap
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { CustomDropdown, DropdownOption } from '@/components/ui/CustomDropdown';
+import { PLATFORM_SKILLS, getSkillName } from '@/data/platformSkills';
 
 interface Resource {
   id: string;
@@ -25,37 +28,41 @@ interface Resource {
   created_at: string;
 }
 
-const KIND_OPTIONS = ['video', 'article', 'course', 'repo', 'practice', 'book', 'other'];
-const LANG_OPTIONS = ['en', 'ar', 'both'];
-
-const PROVIDER_ICONS: Record<string, React.ElementType> = {
-  youtube: PlayCircle,
-  github: Code2,
-  coursera: GraduationCap,
-  udemy: GraduationCap,
-  article: FileText,
-  other: ExternalLink,
+const PROVIDER_COLORS: Record<string, { bg: string; text: string; border: string; icon: React.ElementType }> = {
+  youtube: { bg: 'bg-red-500/12', text: 'text-red-400', border: 'border-red-500/25', icon: PlayCircle },
+  coursera: { bg: 'bg-blue-500/12', text: 'text-blue-400', border: 'border-blue-500/25', icon: GraduationCap },
+  github: { bg: 'bg-purple-500/12', text: 'text-purple-400', border: 'border-purple-500/25', icon: Code2 },
+  freecodecamp: { bg: 'bg-emerald-500/12', text: 'text-emerald-400', border: 'border-emerald-500/25', icon: Award },
+  udemy: { bg: 'bg-amber-500/12', text: 'text-amber-400', border: 'border-amber-500/25', icon: GraduationCap },
 };
 
-const KIND_COLORS: Record<string, string> = {
-  video: 'bg-red-500/10 text-red-400 border-red-500/20',
-  course: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-  repo: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-  article: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  practice: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-  book: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  other: 'bg-slate-600/10 text-slate-400 border-slate-600/20',
+function getProviderStyle(provider: string) {
+  const p = (provider || '').toLowerCase().replace(/\s+/g, '');
+  for (const [key, val] of Object.entries(PROVIDER_COLORS)) {
+    if (p.includes(key)) return val;
+  }
+  return { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/20', icon: ExternalLink };
+}
+
+const KIND_NAMES: Record<string, { en: string; ar: string }> = {
+  video: { en: 'Video Tutorial', ar: 'فيديو تعليمي' },
+  course: { en: 'Full Course', ar: 'كورس تدريبي' },
+  repo: { en: 'Project & Code', ar: 'مشروع وتطبيق' },
+  article: { en: 'Documentation', ar: 'توثيق ومقال' },
+  practice: { en: 'Hands-on Practice', ar: 'تمارين تفاعلية' },
+  book: { en: 'E-Book / Guide', ar: 'كتاب ودليل' },
+  other: { en: 'Resource', ar: 'مصدر إثرائي' },
 };
 
 const EMPTY_FORM = {
-  skill_key: '',
+  skill_key: 'python',
   title: '',
   title_ar: '',
-  provider: '',
+  provider: 'YouTube',
   provider_icon: '',
   kind: 'video',
   url: '',
-  duration_hours: '',
+  duration_hours: '4',
   is_free: true,
   language: 'en',
   display_order: 0,
@@ -63,12 +70,6 @@ const EMPTY_FORM = {
 };
 
 type FormState = typeof EMPTY_FORM;
-
-function ProviderIcon({ provider }: { provider: string }) {
-  const key = provider.toLowerCase();
-  const Icon = PROVIDER_ICONS[key] ?? ExternalLink;
-  return <Icon className="w-3.5 h-3.5" />;
-}
 
 interface ResourceModalProps {
   initial?: Partial<Resource> | null;
@@ -82,10 +83,10 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
     ...EMPTY_FORM,
     ...(initial
       ? {
-          skill_key: initial.skill_key ?? '',
+          skill_key: initial.skill_key ?? 'python',
           title: initial.title ?? '',
           title_ar: initial.title_ar ?? '',
-          provider: initial.provider ?? '',
+          provider: initial.provider ?? 'YouTube',
           provider_icon: initial.provider_icon ?? '',
           kind: initial.kind ?? 'video',
           url: initial.url ?? '',
@@ -95,8 +96,14 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
           is_active: initial.is_active ?? true,
         }
       : {}),
-    duration_hours: initial?.duration_hours != null ? String(initial.duration_hours) : '',
+    duration_hours: initial?.duration_hours != null ? String(initial.duration_hours) : '4',
   });
+  const [isCustomSkill, setIsCustomSkill] = useState(
+    initial?.skill_key ? !PLATFORM_SKILLS.some((s) => s.id === initial.skill_key) : false
+  );
+  const [customSkillId, setCustomSkillId] = useState(
+    initial?.skill_key && !PLATFORM_SKILLS.some((s) => s.id === initial.skill_key) ? initial.skill_key : ''
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -105,14 +112,69 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
   const set = (key: keyof FormState, value: unknown) =>
     setForm((f) => ({ ...f, [key]: value }));
 
+  const skillOptions: DropdownOption[] = [
+    ...PLATFORM_SKILLS.map((s) => ({
+      value: s.id,
+      label: `${isAr ? s.nameAr : s.name} (${s.id})`,
+      badge: isAr ? s.categoryAr : s.category,
+      badgeColor: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
+    })),
+    {
+      value: '__custom__',
+      label: isAr ? '✨ مهارة مخصصة جديدة...' : '✨ Custom Skill...',
+      badge: 'New',
+      badgeColor: 'bg-purple-500/20 text-purple-300',
+    },
+  ];
+
+  const providerOptions: DropdownOption[] = [
+    { value: 'YouTube', label: 'YouTube' },
+    { value: 'Coursera', label: 'Coursera' },
+    { value: 'GitHub', label: 'GitHub' },
+    { value: 'freeCodeCamp', label: 'freeCodeCamp' },
+    { value: 'Udemy', label: 'Udemy' },
+    { value: 'Official Docs', label: isAr ? 'التوثيق الرسمي' : 'Official Docs' },
+    { value: 'Other', label: isAr ? 'أخرى' : 'Other' },
+  ];
+
+  const kindOptions: DropdownOption[] = [
+    { value: 'video', label: isAr ? '🎥 فيديو تعليمي (Video)' : '🎥 Video Tutorial' },
+    { value: 'course', label: isAr ? '🎓 كورس تدريبي كامل (Course)' : '🎓 Full Course' },
+    { value: 'repo', label: isAr ? '💻 مشروع وتطبيق عملي (Project/Repo)' : '💻 Project & Repo' },
+    { value: 'article', label: isAr ? '📄 توثيق ومقال (Docs/Article)' : '📄 Documentation & Article' },
+    { value: 'practice', label: isAr ? '⚡ تمارين تفاعلية (Practice)' : '⚡ Hands-on Practice' },
+  ];
+
+  const langOptions: DropdownOption[] = [
+    { value: 'en', label: isAr ? '🇺🇸 الإنجليزية (English)' : '🇺🇸 English' },
+    { value: 'ar', label: isAr ? '🇪🇬 العربية (Arabic)' : '🇪🇬 Arabic' },
+    { value: 'both', label: isAr ? '🌐 كلاهما (Bilingual)' : '🌐 Bilingual' },
+  ];
+
+  const handleSkillSelect = (val: string) => {
+    if (val === '__custom__') {
+      setIsCustomSkill(true);
+    } else {
+      setIsCustomSkill(false);
+      set('skill_key', val);
+    }
+  };
+
+  const activeSkillKey = isCustomSkill ? customSkillId.toLowerCase().trim() : form.skill_key;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!activeSkillKey) {
+      setError(isAr ? 'يرجى اختيار أو كتابة مفتاح المهارة' : 'Please specify a skill');
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
       const payload = {
         ...(isEdit ? { id: initial!.id } : {}),
         ...form,
+        skill_key: activeSkillKey,
         duration_hours: form.duration_hours ? parseFloat(String(form.duration_hours)) : null,
       };
       const res = await fetch('/api/admin/resources', {
@@ -132,14 +194,24 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl bg-[#0B1120] border border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-white/8">
-          <h2 className="text-[15px] font-bold text-white">
-            {isEdit
-              ? (isAr ? 'تعديل المصدر' : 'Edit Resource')
-              : (isAr ? 'إضافة مصدر جديد' : 'Add New Resource')}
-          </h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div className="w-full max-w-xl rounded-2xl bg-[#070C18] border border-white/12 shadow-2xl max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-white/8 bg-white/2">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-purple-500/15 border border-purple-500/25 text-purple-400">
+              <BookOpen className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-[15px] font-bold text-white">
+                {isEdit
+                  ? (isAr ? 'تعديل المصدر التعليمي' : 'Edit Learning Resource')
+                  : (isAr ? 'إضافة كورس أو مصدر جديد' : 'Add New Course / Resource')}
+              </h2>
+              <p className="text-[11px] text-slate-400">
+                {isAr ? 'سيظهر هذا المصدر تلقائياً للطلاب في مسار المهارة' : 'Linked directly to platform Skill Gap matrix'}
+              </p>
+            </div>
+          </div>
           <button type="button" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/8 cursor-pointer">
             <X className="w-4 h-4" />
           </button>
@@ -147,122 +219,113 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               {error}
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
-                {isAr ? 'مفتاح المهارة *' : 'Skill Key *'}
-              </label>
-              <input
-                required
-                value={form.skill_key}
-                onChange={(e) => set('skill_key', e.target.value)}
-                placeholder="e.g. python, sql, react"
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
-              />
-            </div>
+          {/* Skill Selector */}
+          <div className="space-y-1.5">
+            <label className="block text-[11.5px] font-bold text-slate-300">
+              {isAr ? '🎯 المهارة المرتبطة بها الكورس (Skill Selection) *' : '🎯 Linked Skill Target *'}
+            </label>
+            <CustomDropdown
+              options={skillOptions}
+              value={isCustomSkill ? '__custom__' : form.skill_key}
+              onChange={handleSkillSelect}
+              placeholder={isAr ? 'اختر مهارة من القائمة...' : 'Select skill...'}
+            />
+            {isCustomSkill && (
+              <div className="pt-2">
+                <input
+                  required
+                  placeholder={isAr ? 'اكتب معرف المهارة (مثلاً: flutter, kubernetes)' : 'Enter custom skill ID (e.g. flutter, rust)'}
+                  value={customSkillId}
+                  onChange={(e) => setCustomSkillId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-purple-500/40 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+            )}
+            <p className="text-[10.5px] text-slate-500">
+              {isAr 
+                ? `معرف المهارة المعتمد في السيستم: "${activeSkillKey || '—'}" (يضمن ظهور الكورس للطلاب اللي عندهم فجوة في المهارة دي).`
+                : `Canonical Skill Key: "${activeSkillKey || '—'}"`}
+            </p>
+          </div>
 
+          <div className="grid grid-cols-2 gap-3.5 pt-1">
+            {/* Title EN */}
             <div className="col-span-2">
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
-                {isAr ? 'العنوان (إنجليزي) *' : 'Title (English) *'}
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                {isAr ? 'عنوان الكورس أو المصدر (English) *' : 'Course Title (English) *'}
               </label>
               <input
                 required
                 value={form.title}
                 onChange={(e) => set('title', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
+                placeholder="e.g. Python Full Course for Beginners"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
               />
             </div>
 
+            {/* Title AR */}
             <div className="col-span-2">
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
-                {isAr ? 'العنوان (عربي)' : 'Title (Arabic)'}
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                {isAr ? 'العنوان بالعربي (اختياري)' : 'Arabic Title (Optional)'}
               </label>
               <input
                 value={form.title_ar}
                 onChange={(e) => set('title_ar', e.target.value)}
                 dir="rtl"
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
+                placeholder="مثال: دورة بايثون الشاملة من الصفر للاحتراف"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
               />
             </div>
 
+            {/* Provider */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
-                {isAr ? 'المزود *' : 'Provider *'}
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                {isAr ? 'المنصة / المزود *' : 'Provider *'}
               </label>
-              <input
-                required
+              <CustomDropdown
+                options={providerOptions}
                 value={form.provider}
-                onChange={(e) => set('provider', e.target.value)}
-                placeholder="YouTube, Coursera, GitHub..."
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
+                onChange={(val) => set('provider', val)}
               />
             </div>
 
+            {/* Kind */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
-                {isAr ? 'أيقونة المزود' : 'Provider Icon'}
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                {isAr ? 'نوع المحتوى *' : 'Content Kind *'}
               </label>
-              <input
-                value={form.provider_icon}
-                onChange={(e) => set('provider_icon', e.target.value)}
-                placeholder="URL or icon name"
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
-                {isAr ? 'النوع' : 'Kind'}
-              </label>
-              <select
+              <CustomDropdown
+                options={kindOptions}
                 value={form.kind}
-                onChange={(e) => set('kind', e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/15 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 cursor-pointer shadow-sm"
-              >
-                {KIND_OPTIONS.map((k) => (
-                  <option key={k} value={k} className="bg-[#0B1120] text-slate-200">{k}</option>
-                ))}
-              </select>
+                onChange={(val) => set('kind', val)}
+              />
             </div>
 
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
-                {isAr ? 'اللغة' : 'Language'}
-              </label>
-              <select
-                value={form.language}
-                onChange={(e) => set('language', e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/15 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 cursor-pointer shadow-sm"
-              >
-                {LANG_OPTIONS.map((l) => (
-                  <option key={l} value={l} className="bg-[#0B1120] text-slate-200">{l}</option>
-                ))}
-              </select>
-            </div>
-
+            {/* URL */}
             <div className="col-span-2">
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
-                {isAr ? 'الرابط *' : 'URL *'}
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                {isAr ? 'رابط الكورس المباشر *' : 'Direct URL *'}
               </label>
               <input
                 required
                 type="url"
                 value={form.url}
                 onChange={(e) => set('url', e.target.value)}
-                placeholder="https://..."
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
+                placeholder="https://www.youtube.com/watch?v=..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
               />
             </div>
 
+            {/* Duration */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
-                {isAr ? 'المدة (بالساعات)' : 'Duration (hours)'}
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                {isAr ? 'المدة التقديرية (ساعات)' : 'Estimated Duration (Hours)'}
               </label>
               <input
                 type="number"
@@ -270,51 +333,54 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
                 step="0.5"
                 value={form.duration_hours}
                 onChange={(e) => set('duration_hours', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-500/50"
               />
             </div>
 
+            {/* Language */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
-                {isAr ? 'ترتيب العرض' : 'Display Order'}
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                {isAr ? 'لغة المحتوى' : 'Language'}
               </label>
-              <input
-                type="number"
-                min="0"
-                value={form.display_order}
-                onChange={(e) => set('display_order', parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
+              <CustomDropdown
+                options={langOptions}
+                value={form.language}
+                onChange={(val) => set('language', val)}
               />
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Free Toggle */}
+            <div className="p-3 rounded-xl bg-white/3 border border-white/8 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-white">{isAr ? 'مجاني 100%' : 'Free Resource'}</p>
+                <p className="text-[10px] text-slate-400">{form.is_free ? (isAr ? 'بدون رسوم' : 'No cost') : (isAr ? 'كورس مدفوع' : 'Paid')}</p>
+              </div>
               <button
                 type="button"
                 onClick={() => set('is_free', !form.is_free)}
-                className={`relative w-10 h-5.5 rounded-full transition-colors cursor-pointer border ${form.is_free ? 'bg-emerald-500/30 border-emerald-500/40' : 'bg-white/8 border-white/15'}`}
+                className={`p-1 rounded-lg transition-colors cursor-pointer ${form.is_free ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-500 bg-white/5'}`}
               >
-                <span className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${form.is_free ? 'start-5 bg-emerald-400' : 'start-0.5 bg-slate-500'}`} />
+                {form.is_free ? <ToggleRight className="w-6 h-6" /> : <ToggleLeft className="w-6 h-6" />}
               </button>
-              <span className="text-[12px] text-slate-300">
-                {isAr ? (form.is_free ? 'مجاني' : 'مدفوع') : (form.is_free ? 'Free' : 'Paid')}
-              </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Active Toggle */}
+            <div className="p-3 rounded-xl bg-white/3 border border-white/8 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-white">{isAr ? 'حالة النشر' : 'Published'}</p>
+                <p className="text-[10px] text-slate-400">{form.is_active ? (isAr ? 'متاح للطلاب' : 'Visible to users') : (isAr ? 'معطل مؤقتاً' : 'Hidden')}</p>
+              </div>
               <button
                 type="button"
                 onClick={() => set('is_active', !form.is_active)}
-                className={`relative w-10 h-5.5 rounded-full transition-colors cursor-pointer border ${form.is_active ? 'bg-cyan-500/30 border-cyan-500/40' : 'bg-white/8 border-white/15'}`}
+                className={`p-1 rounded-lg transition-colors cursor-pointer ${form.is_active ? 'text-cyan-400 bg-cyan-500/10' : 'text-slate-500 bg-white/5'}`}
               >
-                <span className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${form.is_active ? 'start-5 bg-cyan-400' : 'start-0.5 bg-slate-500'}`} />
+                {form.is_active ? <ToggleRight className="w-6 h-6" /> : <ToggleLeft className="w-6 h-6" />}
               </button>
-              <span className="text-[12px] text-slate-300">
-                {isAr ? (form.is_active ? 'نشط' : 'معطل') : (form.is_active ? 'Active' : 'Inactive')}
-              </span>
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-3 border-t border-white/8">
             <button
               type="button"
               onClick={onClose}
@@ -325,14 +391,10 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 text-sm font-bold text-white hover:opacity-90 disabled:opacity-50 cursor-pointer transition-opacity flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 text-sm font-bold text-white hover:opacity-90 disabled:opacity-50 cursor-pointer transition-opacity flex items-center justify-center gap-2 shadow-md shadow-cyan-600/20"
             >
-              {saving ? (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Check className="w-3.5 h-3.5" />
-              )}
-              {isAr ? (isEdit ? 'حفظ التعديلات' : 'إضافة') : (isEdit ? 'Save Changes' : 'Add Resource')}
+              {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              {isAr ? (isEdit ? 'حفظ التعديلات' : 'إضافة الكورس') : (isEdit ? 'Save Changes' : 'Add Course')}
             </button>
           </div>
         </form>
@@ -346,7 +408,8 @@ export default function AdminResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
-  const [kindFilter, setKindFilter] = useState('');
+  const [selectedSkill, setSelectedSkill] = useState<string>('all');
+  const [kindFilter, setKindFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -360,7 +423,8 @@ export default function AdminResourcesPage() {
     try {
       const params = new URLSearchParams({
         ...(search ? { search } : {}),
-        ...(kindFilter ? { kind: kindFilter } : {}),
+        ...(selectedSkill !== 'all' ? { skill_key: selectedSkill } : {}),
+        ...(kindFilter !== 'all' ? { kind: kindFilter } : {}),
       });
       const res = await fetch(`/api/admin/resources?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -372,12 +436,12 @@ export default function AdminResourcesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, kindFilter]);
+  }, [search, selectedSkill, kindFilter]);
 
   useEffect(() => { fetchResources(); }, [fetchResources]);
 
   const handleSeedCatalog = async () => {
-    if (!confirm(isAr ? 'هل تريد استيراد كافة المصادر والكورسات المعتمدة لجميع المهارات (Python, SQL, React, Next.js, Git, Cloud, etc.) وحفظها في قاعدة البيانات؟' : 'Do you want to import all curated skill courses & resources into the database?')) return;
+    if (!confirm(isAr ? 'هل تريد استيراد وتحديث كافة المصادر والكورسات المعتمدة لجميع المهارات وحفظها في قاعدة البيانات؟' : 'Import all skill courses from catalog?')) return;
     setSeeding(true);
     setError(null);
     try {
@@ -405,7 +469,7 @@ export default function AdminResourcesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(isAr ? 'هل تريد حذف هذا المصدر؟' : 'Delete this resource?')) return;
+    if (!confirm(isAr ? 'هل أنت متأكد من حذف هذا المصدر نهائياً؟' : 'Permanently delete this resource?')) return;
     setDeletingId(id);
     try {
       await fetch(`/api/admin/resources?id=${id}`, { method: 'DELETE' });
@@ -414,73 +478,131 @@ export default function AdminResourcesPage() {
     setDeletingId(null);
   };
 
+  // Group unique skills from resources
+  const uniqueSkills = Array.from(new Set(resources.map((r) => r.skill_key))).filter(Boolean);
+
+  const kindDropdownOptions: DropdownOption[] = [
+    { value: 'all', label: isAr ? 'كل أنواع المحتوى' : 'All Kinds' },
+    { value: 'video', label: isAr ? '🎥 فيديو' : '🎥 Video' },
+    { value: 'course', label: isAr ? '🎓 كورس' : '🎓 Course' },
+    { value: 'repo', label: isAr ? '💻 مشروع/كود' : '💻 Project' },
+    { value: 'article', label: isAr ? '📄 مقال/توثيق' : '📄 Article' },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header Banner */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-purple-950/40 via-[#070C18] to-cyan-950/30 border border-white/10 shadow-lg">
         <div>
-          <h1 className="text-xl font-black text-white flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-purple-400" />
-            {isAr ? 'المصادر التعليمية والكورسات' : 'Learning Resources & Courses'}
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+              {isAr ? 'مكتبة المهارات الذكية' : 'Skill Intelligence Library'}
+            </span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
+            <BookOpen className="w-6 h-6 text-cyan-400" />
+            {isAr ? 'إدارة المصادر والكورسات التعليمية' : 'Learning Resources & Course Manager'}
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
-            {isAr ? `${total.toLocaleString()} مصدر متاح في قاعدة البيانات` : `${total.toLocaleString()} resources in database`}
+          <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
+            {isAr
+              ? 'كل كورس هنا مربوط بمعرف المهارة (Skill Key) ويظهر تلقائياً للمستخدمين عند تحليل فجوة المهارات في الـ Skill Gap Matrix.'
+              : 'Every course is bound to a skill key and auto-recommends to users with matching skill gaps.'}
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap self-start">
+
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           <button
             type="button"
             onClick={fetchResources}
             disabled={loading}
-            title={isAr ? 'تحديث' : 'Refresh'}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
+            title={isAr ? 'تحديث البيانات' : 'Refresh'}
+            className="p-2.5 rounded-xl border border-white/10 text-slate-300 hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           
           <button
             type="button"
             onClick={handleSeedCatalog}
             disabled={seeding}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 text-sm font-bold hover:bg-purple-500/25 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs sm:text-sm font-bold hover:bg-purple-500/25 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
           >
             {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-purple-400" />}
-            {isAr ? 'استيراد مصادر المهارات' : 'Import Skill Catalog'}
+            {isAr ? 'مزامنة الكتالوج المعتمد' : 'Sync Skill Catalog'}
           </button>
 
           <button
             type="button"
             onClick={() => { setEditResource(null); setModalOpen(true); }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 text-sm font-bold text-white hover:opacity-90 transition-opacity cursor-pointer shadow-md shadow-cyan-600/20"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-xs sm:text-sm font-bold text-white hover:opacity-90 transition-opacity cursor-pointer shadow-md shadow-cyan-500/25"
           >
             <Plus className="w-4 h-4" />
-            {isAr ? 'إضافة مصدر جديد' : 'Add New Resource'}
+            {isAr ? 'إضافة كورس جديد' : 'Add New Course'}
           </button>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Skill Filter Carousel Pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <button
+          type="button"
+          onClick={() => setSelectedSkill('all')}
+          className={`
+            px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer border
+            ${selectedSkill === 'all'
+              ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm'
+              : 'bg-[#0B1120] text-slate-400 border-white/10 hover:text-white hover:border-white/20'
+            }
+          `}
+        >
+          {isAr ? '✨ كل المهارات' : '✨ All Skills'} ({total})
+        </button>
+
+        {uniqueSkills.map((sk) => {
+          const count = resources.filter((r) => r.skill_key === sk).length;
+          const isSelected = selectedSkill === sk;
+          const label = getSkillName(sk, isAr);
+          return (
+            <button
+              key={sk}
+              type="button"
+              onClick={() => setSelectedSkill(sk)}
+              className={`
+                flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer border
+                ${isSelected
+                  ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm'
+                  : 'bg-[#0B1120] text-slate-400 border-white/10 hover:text-white hover:border-white/20'
+                }
+              `}
+            >
+              <span>{label}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-bold ${isSelected ? 'bg-purple-500/30 text-purple-200' : 'bg-white/5 text-slate-500'}`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
-            placeholder={isAr ? 'بحث في المصادر بالاسم أو المهارة...' : 'Search resources by title or skill...'}
+            placeholder={isAr ? 'بحث في المصادر بالاسم أو الرابط...' : 'Search resources by title or URL...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full ps-9 pe-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
+            className="w-full ps-10 pe-4 py-2.5 rounded-xl bg-[#0B1120] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
           />
         </div>
-        <select
-          value={kindFilter}
-          onChange={(e) => setKindFilter(e.target.value)}
-          className="px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/15 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 cursor-pointer shadow-sm"
-        >
-          <option value="" className="bg-[#0B1120] text-slate-200">{isAr ? 'كل الأنواع' : 'All Kinds'}</option>
-          {KIND_OPTIONS.map((k) => (
-            <option key={k} value={k} className="bg-[#0B1120] text-slate-200">{k}</option>
-          ))}
-        </select>
+        <div className="w-full sm:w-56">
+          <CustomDropdown
+            options={kindDropdownOptions}
+            value={kindFilter}
+            onChange={(val) => setKindFilter(val)}
+          />
+        </div>
       </div>
 
       {/* Error */}
@@ -490,114 +612,159 @@ export default function AdminResourcesPage() {
         </div>
       )}
 
-      {/* Resources Grid */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Resources Cards Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-36 rounded-2xl bg-white/5 animate-pulse border border-white/8" />
+              <div key={i} className="h-44 rounded-2xl bg-white/3 animate-pulse border border-white/8" />
             ))
           : resources.length === 0
           ? (
-            <div className="col-span-full py-16 px-6 text-center rounded-2xl bg-white/2 border border-white/5 flex flex-col items-center">
+            <div className="col-span-full py-16 px-6 text-center rounded-2xl bg-[#070C18] border border-white/8 flex flex-col items-center">
               <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 mb-3 text-purple-400">
                 <BookOpen className="w-8 h-8 opacity-80" />
               </div>
               <h3 className="text-base font-bold text-white mb-1">
-                {isAr ? 'لا توجد مصادر في قاعدة البيانات حتى الآن' : 'No resources in database yet'}
+                {isAr ? 'لم يتم العثور على مصادر مطابقة' : 'No matching resources found'}
               </h3>
               <p className="text-xs text-slate-400 max-w-md mb-5">
-                {isAr 
-                  ? 'يمكنك استيراد مصادر وكورسات المهارات المعتمدة (Python, SQL, React, Git, Cloud) بضغطة زر واحدة لتظهر وتُربط فوراً بالمنصة.'
-                  : 'You can import all curated skills courses & resources with a single click.'}
+                {isAr
+                  ? 'اضغط على استيراد الكتالوج لمزامنة 70+ كورس ومصدر معتمد، أو أضف كورس جديد يدوياً.'
+                  : 'Import the skill catalog to populate 70+ curated courses.'}
               </p>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleSeedCatalog}
-                  disabled={seeding}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-sm font-bold text-white hover:opacity-90 transition-opacity cursor-pointer shadow-lg shadow-purple-600/25"
-                >
-                  {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  {isAr ? '📥 استيراد مصادر المهارات الآن' : '📥 Import Skill Catalog Now'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setEditResource(null); setModalOpen(true); }}
-                  className="px-4 py-2.5 rounded-xl border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 cursor-pointer transition-colors"
-                >
-                  {isAr ? '+ إضافة يدوية' : '+ Add Manually'}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleSeedCatalog}
+                disabled={seeding}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-sm font-bold text-white hover:opacity-90 cursor-pointer shadow-lg shadow-purple-600/25"
+              >
+                {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                {isAr ? '📥 استيراد الكتالوج الآن' : '📥 Import Catalog Now'}
+              </button>
             </div>
           )
-          : resources.map((r) => (
-            <div
-              key={r.id}
-              className={`relative flex flex-col gap-3 p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.01] ${r.is_active ? 'bg-white/3 border-white/8' : 'bg-white/1 border-white/5 opacity-60'}`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="p-1.5 rounded-lg bg-white/5 border border-white/8 text-slate-400 shrink-0">
-                    <ProviderIcon provider={r.provider} />
+          : resources.map((r) => {
+              const provStyle = getProviderStyle(r.provider);
+              const ProvIcon = provStyle.icon;
+              const kindLabel = KIND_NAMES[r.kind] ? (isAr ? KIND_NAMES[r.kind].ar : KIND_NAMES[r.kind].en) : r.kind;
+              const skillDisplay = getSkillName(r.skill_key, isAr);
+
+              return (
+                <div
+                  key={r.id}
+                  className={`
+                    group relative flex flex-col justify-between p-4.5 rounded-2xl border transition-all duration-200
+                    hover:border-cyan-500/30 hover:shadow-xl hover:shadow-cyan-950/20
+                    ${r.is_active
+                      ? 'bg-gradient-to-b from-[#0B1120] to-[#070C18] border-white/10'
+                      : 'bg-[#060913] border-white/5 opacity-55'
+                    }
+                  `}
+                >
+                  {/* Card Top Row: Skill Badge + Provider Badge + Free Pill */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      {/* Skill Badge */}
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-black bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 uppercase tracking-wide">
+                        <Zap className="w-3 h-3 text-cyan-400" />
+                        {skillDisplay}
+                      </span>
+
+                      {/* Free / Paid Badge */}
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                        r.is_free
+                          ? 'bg-emerald-500/12 text-emerald-400 border-emerald-500/25'
+                          : 'bg-amber-500/12 text-amber-400 border-amber-500/25'
+                      }`}>
+                        {r.is_free ? (isAr ? 'مجاني' : 'Free') : (isAr ? 'مدفوع' : 'Paid')}
+                      </span>
+                    </div>
+
+                    {/* Course Title */}
+                    <div>
+                      <h3 className="text-[13.5px] font-bold text-white leading-snug line-clamp-2 group-hover:text-cyan-300 transition-colors">
+                        {r.title}
+                      </h3>
+                      {r.title_ar && (
+                        <p className="text-[11.5px] text-slate-400 mt-1 line-clamp-1" dir="rtl">
+                          {r.title_ar}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Meta details: Provider + Hours + Kind */}
+                    <div className="flex items-center gap-2 flex-wrap pt-1 text-[11px] text-slate-400">
+                      {/* Provider pill */}
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-semibold border ${provStyle.bg} ${provStyle.text} ${provStyle.border}`}>
+                        <ProvIcon className="w-3 h-3" />
+                        {r.provider}
+                      </span>
+
+                      {/* Kind pill */}
+                      <span className="px-2 py-0.5 rounded-md bg-white/4 border border-white/8 text-slate-300">
+                        {kindLabel}
+                      </span>
+
+                      {/* Duration */}
+                      {r.duration_hours && (
+                        <span className="inline-flex items-center gap-1 text-slate-400">
+                          <Clock className="w-3 h-3 text-slate-500" />
+                          {r.duration_hours} {isAr ? 'ساعة' : 'hrs'}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-white truncate">{r.title}</p>
-                    <p className="text-[11px] text-slate-500">{r.provider}</p>
+
+                  {/* Card Bottom: URL visit + Actions */}
+                  <div className="flex items-center justify-between gap-2 pt-4 mt-3 border-t border-white/6">
+                    <a
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>{isAr ? 'زيارة الكورس' : 'Open Link'}</span>
+                    </a>
+
+                    <div className="flex items-center gap-1">
+                      {/* Active Toggle */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleActive(r)}
+                        title={r.is_active ? (isAr ? 'تعطيل' : 'Deactivate') : (isAr ? 'تفعيل' : 'Activate')}
+                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                          r.is_active ? 'text-cyan-400 hover:bg-cyan-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-white/5'
+                        }`}
+                      >
+                        {r.is_active ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                      </button>
+
+                      {/* Edit */}
+                      <button
+                        type="button"
+                        onClick={() => { setEditResource(r); setModalOpen(true); }}
+                        title={isAr ? 'تعديل' : 'Edit'}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/8 transition-colors cursor-pointer"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Delete */}
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(r.id)}
+                        disabled={deletingId === r.id}
+                        title={isAr ? 'حذف' : 'Delete'}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-950/30 transition-colors cursor-pointer disabled:opacity-40"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleActive(r)}
-                    title={r.is_active ? 'Deactivate' : 'Activate'}
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/8 cursor-pointer transition-colors"
-                  >
-                    {r.is_active ? <ToggleRight className="w-4 h-4 text-cyan-400" /> : <ToggleLeft className="w-4 h-4" />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setEditResource(r); setModalOpen(true); }}
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/8 cursor-pointer transition-colors"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(r.id)}
-                    disabled={deletingId === r.id}
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-950/20 cursor-pointer transition-colors disabled:opacity-40"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] px-2 py-0.5 rounded-full border font-semibold bg-slate-700/30 text-slate-400 border-slate-600/30">
-                  {r.skill_key}
-                </span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${KIND_COLORS[r.kind] ?? KIND_COLORS.other}`}>
-                  {r.kind}
-                </span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${r.is_free ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
-                  {r.is_free ? 'Free' : 'Paid'}
-                </span>
-                {r.duration_hours && (
-                  <span className="text-[10px] text-slate-500">{r.duration_hours}h</span>
-                )}
-              </div>
-
-              <a
-                href={r.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] text-cyan-500 hover:text-cyan-400 truncate flex items-center gap-1 mt-auto"
-              >
-                <ExternalLink className="w-3 h-3 shrink-0" />
-                <span className="truncate">{r.url}</span>
-              </a>
-            </div>
-          ))}
+              );
+            })}
       </div>
 
       {/* Modal */}
