@@ -94,10 +94,10 @@ const STYLES: Record<TemplateId, StyleConfig> = {
   'two-column': {
     page: 'p-5 sm:p-8',
     name: 'text-[24px] sm:text-[28px] font-extrabold tracking-tight text-slate-900 dark:text-white text-center',
-    role: 'mt-0.5 text-[13px] sm:text-[14px] font-semibold text-blue-600 dark:text-blue-400 text-center',
+    role: 'mt-0.5 text-[13px] sm:text-[14px] font-semibold text-slate-700 dark:text-slate-300 text-center',
     contact: 'mt-1.5 text-[11px] text-slate-600 dark:text-slate-300 text-center',
     heading: 'text-[11.5px] sm:text-[12px] font-extrabold uppercase tracking-wider text-slate-900 dark:text-white',
-    headingRule: 'mt-1 border-b-2 border-blue-600/70 dark:border-blue-400/60',
+    headingRule: 'mt-1 border-b-2 border-slate-800/60 dark:border-white/25',
     body: 'text-[11px] sm:text-[11.5px] leading-[1.5] text-slate-900 dark:text-slate-100',
     itemTitle: 'text-[12px] sm:text-[12.5px] font-bold text-slate-900 dark:text-white',
     itemSub: 'text-[11.5px] italic text-slate-700 dark:text-slate-300',

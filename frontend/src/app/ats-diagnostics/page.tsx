@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Download, UploadCloud, ArrowRight, ArrowLeft, FileText, Loader2 } from "lucide-react";
+import { Download, UploadCloud, ArrowRight, ArrowLeft, FileText, Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useCV } from "@/contexts/CVContext";
 import type { CVData } from "@/types/cv";
@@ -210,8 +210,8 @@ export default function ATSDiagnosticsPage() {
         {isCvEmpty && (
           <div className="rounded-2xl border border-amber-500/30 bg-amber-50/80 dark:bg-amber-950/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
             <div className="flex items-start sm:items-center gap-3.5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white font-bold text-base shadow-sm">
-                ⚠️
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm">
+                <AlertTriangle className="h-5 w-5" />
               </div>
               <div>
                 <h4 className="text-[14.5px] font-bold text-slate-900 dark:text-white">
