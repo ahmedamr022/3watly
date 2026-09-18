@@ -92,11 +92,17 @@ function JobsPageContent() {
   const { isAr } = useLanguage();
   const { profile } = useOnboarding();
   const { user } = useAuth();
+  const [mounted, setMounted] = useState(false);
   const [parsedCv, setParsedCv] = useState<any>(null);
   const [savedRole, setSavedRole] = useState<string>('');
   const [keyword, setKeyword] = useState(queryParam);
   const [locationQuery, setLocationQuery] = useState('');
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
+
+  // Mount flag to safely guard client-only localStorage & prevent SSR hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Read saved jobs and parsed CV from localStorage on mount (prevents SSR hydration mismatch)
   useEffect(() => {
@@ -134,8 +140,10 @@ function JobsPageContent() {
 
   const { cv, activeVersion, analysis } = useCV();
 
-  // User real skills & target role for personalized feed matching
+  // User real skills & target role for personalized feed matching (hydration-safe)
   const userSkills = useMemo(() => {
+    if (!mounted) return [];
+
     const fromActive = (activeVersion?.cvData?.skills || []).flatMap((g: any) =>
       Array.isArray(g.skills) ? g.skills : (typeof g === 'string' ? [g] : [g?.name || ''])
     ).filter(Boolean);
@@ -155,9 +163,11 @@ function JobsPageContent() {
 
     const combined = Array.from(new Set([...fromActive, ...fromCv, ...fromParsed, ...fromStorage]));
     return combined;
-  }, [activeVersion, cv?.skills, parsedCv]);
+  }, [mounted, activeVersion, cv?.skills, parsedCv]);
 
   const targetRole = useMemo(() => {
+    if (!mounted) return isAr ? 'محلل بيانات' : 'Data Analyst';
+
     return (
       activeVersion?.targetRole?.trim() ||
       activeVersion?.cvData?.contact?.jobTitle?.trim() ||
@@ -169,7 +179,7 @@ function JobsPageContent() {
       profile?.targetRoles?.[0]?.title?.trim() ||
       (isAr ? 'محلل بيانات' : 'Data Analyst')
     );
-  }, [activeVersion, cv?.contact?.jobTitle, savedRole, user?.targetRole, parsedCv, profile, isAr]);
+  }, [mounted, activeVersion, cv?.contact?.jobTitle, savedRole, user?.targetRole, parsedCv, profile, isAr]);
 
   const primaryTargetRole = useMemo(() => {
     if (!targetRole) return isAr ? 'محلل بيانات' : 'Data Analyst';
@@ -517,7 +527,7 @@ function JobsPageContent() {
         
         {/* Active CV Badge for Jobs Match */}
         <div className="shrink-0 flex items-center justify-between">
-          <ActiveCVBadge pageName={isAr ? "مطابقة الوظائف" : "Job Match"} />
+          {mounted && <ActiveCVBadge pageName={isAr ? "مطابقة الوظائف" : "Job Match"} />}
         </div>
 
         {/* ========================================================================= */}
@@ -1248,177 +1258,211 @@ function JobsPageContent() {
 
           {/* Right Sidebar Column (Span 4) — Real Career Match Radar Card */}
           <div className="lg:col-span-4 shrink-0">
-            <div className="rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-sm p-5 sm:p-6 space-y-5 transition-all">
-
-              {/* ── 1. HEADER: Clean Modern Title & Dynamic Verified Match Score ── */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20">
-                    <Sparkles className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-[16.5px] font-black text-slate-900 dark:text-white leading-tight truncate">
-                      {isAr ? "رادار التوافق المهني" : "Career Match Radar"}
-                    </h3>
-                    <p className="text-[12.5px] font-bold text-[#1B57E0] dark:text-blue-400 truncate mt-0.5">
-                      {primaryTargetRole}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Real Dynamic Match Score Pill */}
-                {matchPercentage > 0 ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 shrink-0 shadow-2xs">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[14px] font-black leading-none">
-                      {matchPercentage}%
-                    </span>
-                    <span className="text-[11px] font-bold">
-                      {isAr ? "توافق" : "Match"}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 shrink-0">
-                    <span className="text-[11px] font-bold">
-                      {isAr ? "غير محدد" : "N/A"}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Subtitle description */}
-              <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-                {isAr
-                  ? `تحليل ذكي ومطابقة فورية لسيرتك الذاتية مع الوظائف الشاغرة لمسار «${primaryTargetRole}».`
-                  : `Real-time AI alignment analysis of your resume against open roles for "${primaryTargetRole}".`}
-              </p>
-
-              {/* Divider */}
-              <div className="h-px bg-slate-100 dark:bg-white/5" />
-
-              {/* ── 2. THREE REAL STATS ─────────────────────────────────────────── */}
-              <div className="grid grid-cols-3 gap-2 text-center">
-                {/* Demand */}
-                <div className="p-3 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 space-y-1">
-                  <div className="flex justify-center mb-1">
-                    <div className="w-7 h-7 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/40 flex items-center justify-center text-purple-600 dark:text-purple-400">
-                      <TrendingUp className="w-3.5 h-3.5" />
+            {!mounted ? (
+              <div className="rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-sm p-5 sm:p-6 space-y-5 animate-pulse">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800" />
+                    <div className="space-y-1.5">
+                      <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded-md" />
+                      <div className="h-3 w-20 bg-slate-100 dark:bg-slate-700 rounded-md" />
                     </div>
                   </div>
-                  <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
-                    {isAr ? "الطلب بالسوق" : "Demand"}
-                  </span>
-                  <span className="text-[13.5px] font-black text-slate-900 dark:text-white block leading-tight">
-                    {marketDemandInfo.level}
-                  </span>
-                  <span className="text-[9.5px] font-bold text-purple-600 dark:text-purple-400 block truncate">
-                    {marketDemandInfo.sub}
-                  </span>
+                  <div className="h-7 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800" />
                 </div>
-
-                {/* Avg Salary */}
-                <div className="p-3 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 space-y-1">
-                  <div className="flex justify-center mb-1">
-                    <div className="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                      <DollarSign className="w-3.5 h-3.5" />
+                <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-md" />
+                <div className="h-px bg-slate-100 dark:bg-white/5" />
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="p-3 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] space-y-2 text-center">
+                      <div className="h-7 w-7 mx-auto rounded-xl bg-slate-200 dark:bg-slate-800" />
+                      <div className="h-2.5 w-12 mx-auto bg-slate-100 dark:bg-slate-700 rounded-md" />
+                      <div className="h-3.5 w-14 mx-auto bg-slate-200 dark:bg-slate-800 rounded-md" />
                     </div>
-                  </div>
-                  <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
-                    {isAr ? "متوسط الراتب" : "Avg Salary"}
-                  </span>
-                  <span className="text-[13.5px] font-black text-slate-900 dark:text-white block leading-tight">
-                    {realAvgSalary}
-                  </span>
-                  <span className="text-[9.5px] font-bold text-emerald-600 dark:text-emerald-400 block">
-                    {isAr ? "شهرياً" : "/mo"}
-                  </span>
-                </div>
-
-                {/* Matching Jobs Count */}
-                <div className="p-3 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 space-y-1">
-                  <div className="flex justify-center mb-1">
-                    <div className="w-7 h-7 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                      <Briefcase className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-                  <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
-                    {isAr ? "وظائف مطابقة" : "Matching"}
-                  </span>
-                  <span className="text-[15px] font-black text-slate-900 dark:text-white block leading-tight">
-                    {matchingJobsCount}
-                  </span>
-                  <span className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 block">
-                    {isAr ? "متاحة للتقديم" : "Available"}
-                  </span>
-                </div>
-              </div>
-
-              {/* ── 3. SKILLS SECTION: Real Matched & In-Demand Skills ────────── */}
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between text-[12px]">
-                  <div className="flex items-center gap-1.5">
-                    <Target className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span className="font-bold text-slate-800 dark:text-slate-200">
-                      {isAr ? "مهاراتك المتطابقة في السوق:" : "Your Matched Skills:"}
-                    </span>
-                  </div>
-                  <Link href="/skills" className="text-[11.5px] font-bold text-[#1B57E0] dark:text-blue-400 hover:underline">
-                    {isAr ? "عرض الكل" : "View all"}
-                  </Link>
-                </div>
-
-                <div className="flex flex-wrap gap-1.5">
-                  {/* Real User Verified Skills from their CV */}
-                  {userSkills.length > 0 ? (
-                    userSkills.slice(0, 5).map((skill: string) => (
-                      <span
-                        key={skill}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11.5px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>{skill}</span>
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-[11.5px] text-slate-400 italic">
-                      {isAr ? "أضف مهاراتك في السيرة الذاتية لحساب نسبة التوافق بدقة." : "Add skills to your CV to compute match score."}
-                    </p>
-                  )}
-
-                  {/* Top Market In-Demand Skills for this role */}
-                  {inDemandJobSkills.filter((s: string) => !userSkills.includes(s)).slice(0, 3).map((skill: string) => (
-                    <span
-                      key={skill}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-white/10"
-                    >
-                      <span className="text-[9px] text-blue-500 font-bold">+</span>
-                      <span>{skill}</span>
-                    </span>
                   ))}
                 </div>
+                <div className="space-y-2">
+                  <div className="h-3 w-28 bg-slate-200 dark:bg-slate-800 rounded-md" />
+                  <div className="flex gap-2">
+                    <div className="h-6 w-20 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+                    <div className="h-6 w-24 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+                  </div>
+                </div>
+                <div className="h-11 w-full rounded-2xl bg-slate-200 dark:bg-slate-800" />
               </div>
+            ) : (
+              <div className="rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-sm p-5 sm:p-6 space-y-5 transition-all">
 
-              {/* ── 4. SMART TIP: Real Actionable Market Advice ───────────────── */}
-              <div className="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/30 flex items-start gap-2.5">
-                <span className="text-[16px] shrink-0">💡</span>
-                <p className="text-[11.5px] font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
-                  {isAr 
-                    ? `إضافة مهارات تحليلية معتمدة وربط المشاريع العملية يرفع نسبة قبولك بنسبة +15% في وظائف «${primaryTargetRole}».`
-                    : `Adding verified portfolio projects boosts your interview callback rate by +15% for "${primaryTargetRole}".`}
+                {/* ── 1. HEADER: Clean Modern Title & Dynamic Verified Match Score ── */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-[16.5px] font-black text-slate-900 dark:text-white leading-tight truncate">
+                        {isAr ? "رادار التوافق المهني" : "Career Match Radar"}
+                      </h3>
+                      <p className="text-[12.5px] font-bold text-[#1B57E0] dark:text-blue-400 truncate mt-0.5">
+                        {primaryTargetRole}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Real Dynamic Match Score Pill */}
+                  {matchPercentage > 0 ? (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 shrink-0 shadow-2xs">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[14px] font-black leading-none">
+                        {matchPercentage}%
+                      </span>
+                      <span className="text-[11px] font-bold">
+                        {isAr ? "توافق" : "Match"}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 shrink-0">
+                      <span className="text-[11px] font-bold">
+                        {isAr ? "غير محدد" : "N/A"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Subtitle description */}
+                <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+                  {isAr
+                    ? `تحليل ذكي ومطابقة فورية لسيرتك الذاتية مع الوظائف الشاغرة لمسار «${primaryTargetRole}».`
+                    : `Real-time AI alignment analysis of your resume against open roles for "${primaryTargetRole}".`}
                 </p>
+
+                {/* Divider */}
+                <div className="h-px bg-slate-100 dark:bg-white/5" />
+
+                {/* ── 2. THREE REAL STATS ─────────────────────────────────────────── */}
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  {/* Demand */}
+                  <div className="p-3 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 space-y-1">
+                    <div className="flex justify-center mb-1">
+                      <div className="w-7 h-7 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/40 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
+                      {isAr ? "الطلب بالسوق" : "Demand"}
+                    </span>
+                    <span className="text-[13.5px] font-black text-slate-900 dark:text-white block leading-tight">
+                      {marketDemandInfo.level}
+                    </span>
+                    <span className="text-[9.5px] font-bold text-purple-600 dark:text-purple-400 block truncate">
+                      {marketDemandInfo.sub}
+                    </span>
+                  </div>
+
+                  {/* Avg Salary */}
+                  <div className="p-3 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 space-y-1">
+                    <div className="flex justify-center mb-1">
+                      <div className="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                        <DollarSign className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
+                      {isAr ? "متوسط الراتب" : "Avg Salary"}
+                    </span>
+                    <span className="text-[13.5px] font-black text-slate-900 dark:text-white block leading-tight">
+                      {realAvgSalary}
+                    </span>
+                    <span className="text-[9.5px] font-bold text-emerald-600 dark:text-emerald-400 block">
+                      {isAr ? "شهرياً" : "/mo"}
+                    </span>
+                  </div>
+
+                  {/* Matching Jobs Count */}
+                  <div className="p-3 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 space-y-1">
+                    <div className="flex justify-center mb-1">
+                      <div className="w-7 h-7 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                        <Briefcase className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
+                      {isAr ? "وظائف مطابقة" : "Matching"}
+                    </span>
+                    <span className="text-[15px] font-black text-slate-900 dark:text-white block leading-tight">
+                      {matchingJobsCount}
+                    </span>
+                    <span className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 block">
+                      {isAr ? "متاحة للتقديم" : "Available"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* ── 3. SKILLS SECTION: Real Matched & In-Demand Skills ────────── */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between text-[12px]">
+                    <div className="flex items-center gap-1.5">
+                      <Target className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <span className="font-bold text-slate-800 dark:text-slate-200">
+                        {isAr ? "مهاراتك المتطابقة في السوق:" : "Your Matched Skills:"}
+                      </span>
+                    </div>
+                    <Link href="/skills" className="text-[11.5px] font-bold text-[#1B57E0] dark:text-blue-400 hover:underline">
+                      {isAr ? "عرض الكل" : "View all"}
+                    </Link>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {/* Real User Verified Skills from their CV */}
+                    {userSkills.length > 0 ? (
+                      userSkills.slice(0, 5).map((skill: string) => (
+                        <span
+                          key={skill}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11.5px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          <span>{skill}</span>
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-[11.5px] text-slate-400 italic">
+                        {isAr ? "أضف مهاراتك في السيرة الذاتية لحساب نسبة التوافق بدقة." : "Add skills to your CV to compute match score."}
+                      </p>
+                    )}
+
+                    {/* Top Market In-Demand Skills for this role */}
+                    {inDemandJobSkills.filter((s: string) => !userSkills.includes(s)).slice(0, 3).map((skill: string) => (
+                      <span
+                        key={skill}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-white/10"
+                      >
+                        <span className="text-[9px] text-blue-500 font-bold">+</span>
+                        <span>{skill}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── 4. SMART TIP: Real Actionable Market Advice ───────────────── */}
+                <div className="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/30 flex items-start gap-2.5">
+                  <span className="text-[16px] shrink-0">💡</span>
+                  <p className="text-[11.5px] font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+                    {isAr 
+                      ? `إضافة مهارات تحليلية معتمدة وربط المشاريع العملية يرفع نسبة قبولك بنسبة +15% في وظائف «${primaryTargetRole}».`
+                      : `Adding verified portfolio projects boosts your interview callback rate by +15% for "${primaryTargetRole}".`}
+                  </p>
+                </div>
+
+                {/* ── 5. ACTION BUTTON ─────────────────────────────────────────────── */}
+                <Link
+                  href="/cv-builder"
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#1B57E0] hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-[13px] transition-all shadow-md shadow-blue-600/20 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>{isAr ? "تحسين السيرة الذاتية لزيادة التوافق" : "Optimize CV to Boost Match"}</span>
+                  <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
+                </Link>
+
               </div>
-
-              {/* ── 5. ACTION BUTTON ─────────────────────────────────────────────── */}
-              <Link
-                href="/cv-builder"
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#1B57E0] hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-[13px] transition-all shadow-md shadow-blue-600/20 cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>{isAr ? "تحسين السيرة الذاتية لزيادة التوافق" : "Optimize CV to Boost Match"}</span>
-                <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
-              </Link>
-
-            </div>
+            )}
           </div>
 
         </div>
