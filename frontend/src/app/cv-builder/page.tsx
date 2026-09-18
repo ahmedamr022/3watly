@@ -376,7 +376,7 @@ export default function CVBuilderPage() {
 
         {/* ── Split-Scroll Builder Grid ───────────────────────────────────── */}
         {/* min-h-0 is critical: allows flex children to shrink below content size */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4">
 
           {/* ── Left: Editor Panel — scrolls independently ─────────────────── */}
           {!previewMode && (
@@ -402,11 +402,9 @@ export default function CVBuilderPage() {
             </div>
           )}
 
-          {/* ── Right: CV Preview — scrolls independently ──────────────────── */}
-          <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent pb-8 rounded-2xl`}>
-            <div className="p-2 sm:p-4">
-              <CVPreview />
-            </div>
+          {/* ── Right: CV Preview — scrolls independently, no extra padding wrapper ── */}
+          <div className={`builder-cv-pane ${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} min-h-0 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent pb-8`}>
+            <CVPreview />
           </div>
 
         </div>

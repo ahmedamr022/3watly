@@ -279,9 +279,9 @@ export function CVPreview() {
   };
 
   return (
-    <div className="print-region">
-      {/* Scrollable viewport with neutral backdrop */}
-      <div className="cv-scroll-viewport no-print-wrapper overflow-y-auto overflow-x-hidden py-4 sm:py-6 cv-preview-scroller">
+    <div className="print-region w-full">
+      {/* Scrollable viewport — scroll is managed by the parent split-pane */}
+      <div className="cv-scroll-viewport no-print-wrapper">
         <article
           id="cv-paper-root"
           dir="ltr"

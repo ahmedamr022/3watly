@@ -401,6 +401,15 @@ html.dark .cv-scroll-viewport::-webkit-scrollbar-thumb:hover {
   border-color: rgba(96, 165, 250, 0.5);
 }
 
+/* Override: when CV is inside the split-scroll builder pane, the parent
+   grid column handles scrolling — reset the viewport constraints */
+.builder-cv-pane .cv-scroll-viewport {
+  max-height: none !important;
+  overflow-y: visible !important;
+  overflow-x: visible !important;
+  border-radius: 0;
+}
+
 /* ========================================================================= */
 /* TECH MARQUEE FLOATING ANIMATIONS                                          */
 /* ========================================================================= */
