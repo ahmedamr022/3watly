@@ -215,10 +215,14 @@ export default function CVBuilderPage() {
           : "Interactive ATS-optimized resume builder with AI assistance."
       }
       showSearch={false}
+      fullHeight
     >
-      <div className="space-y-6 max-w-[1500px] mx-auto pb-12">
-        {/* Top Actions & Toolbar */}
-        <div className="no-print flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+      {/* ── Full-height split-scroll shell ─────────────────────────────── */}
+      {/* This div fills all remaining height inside AppShell's <main>      */}
+      <div className="flex flex-col flex-1 min-h-0 gap-4 max-w-[1500px] mx-auto w-full">
+
+        {/* ── Sticky Toolbar (never scrolls) ─────────────────────────────── */}
+        <div className="no-print flex-shrink-0 flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
           
           {/* Multi-CV Version Selector & Status badge & Direct Upload */}
           <div className="flex flex-wrap items-center gap-3">
@@ -340,7 +344,7 @@ export default function CVBuilderPage() {
 
         {/* Empty CV / New User Onboarding Banner */}
         {(!cv.contact.fullName && cv.experience.length === 0 && cv.education.length === 0) && (
-          <div className="no-print rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+          <div className="no-print flex-shrink-0 rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white font-black shadow-md text-lg">
                 ✨
@@ -370,35 +374,41 @@ export default function CVBuilderPage() {
           </div>
         )}
 
-        {/* Builder Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
-          {/* Editor Panel */}
+        {/* ── Split-Scroll Builder Grid ───────────────────────────────────── */}
+        {/* min-h-0 is critical: allows flex children to shrink below content size */}
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* ── Left: Editor Panel — scrolls independently ─────────────────── */}
           {!previewMode && (
-            <div className="no-print lg:col-span-5 space-y-4">
-              <EditorPanel />
-              <div className="p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] text-xs text-slate-500 dark:text-slate-400 shadow-xs">
-                <span className="font-bold text-slate-800 dark:text-slate-200">
-                  {isAr ? "توافق الـ ATS الحالي:" : "Current ATS compatibility:"}{" "}
-                </span>
-                <span className="font-black text-emerald-600 dark:text-emerald-400">{analysis.score}/100</span> ·{" "}
-                <span className="font-semibold text-slate-600 dark:text-slate-300">
-                  {isAr ? analysis.bandLabelAr : analysis.bandLabel}
-                </span> ·{" "}
-                <Link
-                  href="/ats-diagnostics"
-                  className="font-bold text-[#1B57E0] dark:text-[#60A5FA] hover:underline"
-                >
-                  {isAr ? "فتح تقرير الـ ATS" : "Open diagnostics"}
-                </Link>
+            <div className="no-print lg:col-span-5 flex flex-col min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent pb-8">
+              <div className="space-y-4">
+                <EditorPanel />
+                <div className="p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] text-xs text-slate-500 dark:text-slate-400 shadow-xs">
+                  <span className="font-bold text-slate-800 dark:text-slate-200">
+                    {isAr ? "توافق الـ ATS الحالي:" : "Current ATS compatibility:"}{" "}
+                  </span>
+                  <span className="font-black text-emerald-600 dark:text-emerald-400">{analysis.score}/100</span> ·{" "}
+                  <span className="font-semibold text-slate-600 dark:text-slate-300">
+                    {isAr ? analysis.bandLabelAr : analysis.bandLabel}
+                  </span> ·{" "}
+                  <Link
+                    href="/ats-diagnostics"
+                    className="font-bold text-[#1B57E0] dark:text-[#60A5FA] hover:underline"
+                  >
+                    {isAr ? "فتح تقرير الـ ATS" : "Open diagnostics"}
+                  </Link>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Live Preview Paper */}
-          <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} rounded-2xl p-2 sm:p-4 transition-all`}>
-            <CVPreview />
+          {/* ── Right: CV Preview — scrolls independently ──────────────────── */}
+          <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent pb-8 rounded-2xl`}>
+            <div className="p-2 sm:p-4">
+              <CVPreview />
+            </div>
           </div>
+
         </div>
       </div>
     </AppShell>

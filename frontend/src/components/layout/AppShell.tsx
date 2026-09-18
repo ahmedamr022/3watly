@@ -9,9 +9,13 @@ interface AppShellProps {
   title?: string;
   subtitle?: string;
   showSearch?: boolean;
+  /** When true, the main area fills the viewport height without scrolling —
+   *  children are responsible for their own independent scroll panes.
+   *  Use this only for the CV Builder split-scroll layout. */
+  fullHeight?: boolean;
 }
 
-export function AppShell({ children, title, subtitle, showSearch = true }: AppShellProps) {
+export function AppShell({ children, title, subtitle, showSearch = true, fullHeight = false }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -31,7 +35,7 @@ export function AppShell({ children, title, subtitle, showSearch = true }: AppSh
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#F8FAFC] dark:bg-[#040816] text-[#1E293B] dark:text-[#F8FAFC] flex transition-colors duration-300">
+    <div className="relative h-screen w-full overflow-hidden bg-[#F8FAFC] dark:bg-[#040816] text-[#1E293B] dark:text-[#F8FAFC] flex transition-colors duration-300">
       
       {/* Dynamic Background Graphics */}
       <div 
@@ -48,7 +52,7 @@ export function AppShell({ children, title, subtitle, showSearch = true }: AppSh
       />
 
       {/* Main Content Area */}
-      <div className={`relative z-10 flex-1 flex flex-col min-w-0 ${
+      <div className={`relative z-10 flex-1 flex flex-col h-full min-w-0 ${
         isCollapsed ? 'lg:ltr:pl-20 lg:rtl:pr-20' : 'lg:ltr:pl-64 lg:rtl:pr-64'
       } transition-all duration-300`}>
         {/* Shared Topbar */}
@@ -60,9 +64,17 @@ export function AppShell({ children, title, subtitle, showSearch = true }: AppSh
         />
 
         {/* Page Inner Content */}
-        <main className="flex-1 p-4 sm:p-7 lg:p-8 max-w-[1500px] w-full mx-auto">
-          {children}
-        </main>
+        {fullHeight ? (
+          // Split-scroll mode: main fills remaining height, children manage their own scroll
+          <main className="flex-1 min-h-0 overflow-hidden p-4 sm:p-7 lg:p-8 w-full flex flex-col">
+            {children}
+          </main>
+        ) : (
+          // Normal mode: full-page scroll
+          <main className="flex-1 overflow-y-auto p-4 sm:p-7 lg:p-8 max-w-[1500px] w-full mx-auto">
+            {children}
+          </main>
+        )}
       </div>
     </div>
   );
