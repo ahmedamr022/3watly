@@ -216,9 +216,9 @@ export default function CVBuilderPage() {
       }
       showSearch={false}
     >
-      <div className="space-y-6 max-w-[1500px] mx-auto pb-16">
-        {/* Top Actions & Toolbar — Sticky directly below AppTopbar */}
-        <div className="no-print sticky top-[72px] z-20 flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-xl shadow-md">
+      <div className="-mt-4 sm:-mt-7 lg:-mt-8 max-w-[1500px] mx-auto pb-16">
+        {/* Top Actions & Toolbar — Sticky directly below AppTopbar, starting at 72px from frame 0 */}
+        <div className="no-print sticky top-[72px] z-30 flex flex-wrap items-center justify-between gap-4 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-xl shadow-sm will-change-transform [transform:translateZ(0)]">
           
           {/* Multi-CV Version Selector & Status badge & Direct Upload */}
           <div className="flex flex-wrap items-center gap-3">
@@ -371,11 +371,11 @@ export default function CVBuilderPage() {
         )}
 
         {/* ── Builder Main Grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
           {/* ── Left: Editor Panel (scrolls naturally with the page — NO internal scrollbar) ── */}
           {!previewMode && (
-            <div className="no-print lg:col-span-5 space-y-4">
+            <div className="no-print lg:col-span-5 space-y-4 pb-72">
               <EditorPanel />
               <div className="p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] text-xs text-slate-500 dark:text-slate-400 shadow-xs">
                 <span className="font-bold text-slate-800 dark:text-slate-200">
@@ -396,8 +396,8 @@ export default function CVBuilderPage() {
           )}
 
           {/* ── Right: CV Preview (sticky — stays pinned on screen while page scrolls, single internal scroll) ── */}
-          <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} lg:sticky lg:top-[168px] self-start`}>
-            <div className="max-h-[calc(100vh-185px)] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent rounded-2xl">
+          <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} lg:sticky lg:top-[154px] self-start will-change-transform [transform:translateZ(0)] z-10`}>
+            <div className="max-h-[calc(100vh-172px)] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent rounded-2xl">
               <CVPreview />
             </div>
           </div>
