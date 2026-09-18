@@ -338,26 +338,49 @@ function JobsPageContent() {
     return () => { observer.disconnect(); window.removeEventListener('resize', updateSpacer); };
   }, [filteredJobs, currentPage]);
 
-  // 2. Bidirectional scroll sync: window.scrollY ↔ container.scrollTop
+  // 2. High-performance scroll sync with timestamp locks & non-blocking RAF (buttery smooth 60/120fps)
   useEffect(() => {
     const container = jobsScrollRef.current;
     if (!container) return;
-    let rafId: number;
+
+    let windowRaf: number;
+    let feedRaf: number;
+    let lastSource: 'window' | 'feed' | null = null;
+    let lastTime = 0;
+
     const onWindowScroll = () => {
-      if (isSyncingRef.current === 'feed') return;
-      isSyncingRef.current = 'window';
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => { container.scrollTop = window.scrollY; isSyncingRef.current = null; });
+      // If user recently scrolled the feed directly, avoid feedback echo
+      if (lastSource === 'feed' && Date.now() - lastTime < 120) return;
+      lastSource = 'window';
+      lastTime = Date.now();
+
+      cancelAnimationFrame(windowRaf);
+      windowRaf = requestAnimationFrame(() => {
+        container.scrollTop = window.scrollY;
+      });
     };
+
     const onFeedScroll = () => {
-      if (isSyncingRef.current === 'window') return;
-      isSyncingRef.current = 'feed';
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => { window.scrollTo({ top: container.scrollTop, behavior: 'instant' as ScrollBehavior }); isSyncingRef.current = null; });
+      // If user recently scrolled the window directly, avoid feedback echo
+      if (lastSource === 'window' && Date.now() - lastTime < 120) return;
+      lastSource = 'feed';
+      lastTime = Date.now();
+
+      cancelAnimationFrame(feedRaf);
+      feedRaf = requestAnimationFrame(() => {
+        window.scrollTo({ top: container.scrollTop, behavior: 'instant' as ScrollBehavior });
+      });
     };
+
     window.addEventListener('scroll', onWindowScroll, { passive: true });
     container.addEventListener('scroll', onFeedScroll, { passive: true });
-    return () => { cancelAnimationFrame(rafId); window.removeEventListener('scroll', onWindowScroll); container.removeEventListener('scroll', onFeedScroll); };
+
+    return () => {
+      cancelAnimationFrame(windowRaf);
+      cancelAnimationFrame(feedRaf);
+      window.removeEventListener('scroll', onWindowScroll);
+      container.removeEventListener('scroll', onFeedScroll);
+    };
   }, []);
 
   // 3. Global wheel: if user scrolls over frozen areas (sidebar, header, etc.) → forward to feed
@@ -369,7 +392,10 @@ function JobsPageContent() {
         target?.closest('[role="dialog"]') ||
         target?.closest('[data-dropdown]')
       ) return;
-      if (jobsScrollRef.current) jobsScrollRef.current.scrollTop += e.deltaY;
+
+      if (jobsScrollRef.current) {
+        jobsScrollRef.current.scrollTop += e.deltaY;
+      }
     };
     window.addEventListener('wheel', handleWheel, { passive: true });
     return () => window.removeEventListener('wheel', handleWheel);
@@ -644,16 +670,11 @@ function JobsPageContent() {
         {/* ========================================================================= */}
         <div className="flex-1 min-h-0 grid grid-cols-1 gap-6 lg:grid-cols-12 items-stretch">
           
-          {/* Main Feed Column (Span 8) — Only this scrolls */}
-          <div className="lg:col-span-8 h-full min-h-0 flex flex-col">
-            <div
-              ref={jobsScrollRef}
-              className="jobs-feed-scroll no-scrollbar flex-1 min-h-0 overflow-y-auto space-y-4 pb-10 pr-1"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
+          {/* Main Feed Column (Span 8) */}
+          <div className="lg:col-span-8 h-full min-h-0 flex flex-col space-y-3">
             
-            {/* Feed Navigation Bar: All Jobs vs Saved Jobs Tabs + Sorting */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1 py-1">
+            {/* Feed Navigation Bar: All Jobs vs Saved Jobs Tabs + Sorting — FROZEN, NEVER SCROLLS */}
+            <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1 py-1">
               {/* Premium Segmented Control */}
               <div className="inline-flex items-center p-1 rounded-2xl bg-slate-100/90 dark:bg-[#0F172A] border border-slate-200/80 dark:border-white/5 shadow-inner">
                 <button
@@ -762,6 +783,17 @@ function JobsPageContent() {
               </div>
             </div>
 
+            {/* ONLY Job Cards Feed Scrolls — Ultra smooth hardware-accelerated */}
+            <div
+              ref={jobsScrollRef}
+              className="jobs-feed-scroll no-scrollbar flex-1 min-h-0 overflow-y-auto space-y-4 pb-10 pr-1 overscroll-contain"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                transform: 'translateZ(0)',
+                willChange: 'scroll-position'
+              }}
+            >
             {/* Loading Skeleton */}
             {loadingLive && jobs.length === 0 && (
               <div className="space-y-4">
@@ -839,7 +871,7 @@ function JobsPageContent() {
               return (
                 <div
                   key={job.id}
-                  className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-white/20 transition-all space-y-4"
+                  className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-white/20 transition-shadow transition-colors duration-150 space-y-4"
                 >
                   {/* Top Row: Company Logo + Title + Match Ring + Menu */}
                   <div className="flex items-start justify-between gap-4">

@@ -31,6 +31,17 @@ export function AppShell({
     }
   }, []);
 
+  // When fixedLayout is used, disable smooth scroll on html to prevent animation feedback loops and jitter
+  useEffect(() => {
+    if (fixedLayout) {
+      const prev = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = 'auto';
+      return () => {
+        document.documentElement.style.scrollBehavior = prev;
+      };
+    }
+  }, [fixedLayout]);
+
   const toggleCollapse = () => {
     setIsCollapsed((prev) => {
       const next = !prev;
