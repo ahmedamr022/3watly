@@ -331,7 +331,16 @@ export async function GET(request: NextRequest) {
           query = query.ilike('location', `%${locationQuery}%`);
         }
         if (seniority !== 'all') {
-          query = query.ilike('seniority', `%${seniority}%`);
+          const s = seniority.toLowerCase();
+          if (s === 'junior' || s === 'fresh') {
+            query = query.in('seniority', ['Fresh', 'Junior']);
+          } else if (s === 'mid') {
+            query = query.eq('seniority', 'Mid');
+          } else if (s === 'senior') {
+            query = query.eq('seniority', 'Senior');
+          } else {
+            query = query.ilike('seniority', `%${seniority}%`);
+          }
         }
         if (workType === 'remote') {
           query = query.eq('is_remote', true);

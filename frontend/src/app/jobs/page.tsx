@@ -127,7 +127,15 @@ function JobsPageContent() {
     }
     // Seniority
     if (seniorityFilter !== 'all') {
-      result = result.filter(j => j.seniority?.toLowerCase() === seniorityFilter.toLowerCase());
+      const sf = seniorityFilter.toLowerCase();
+      if (sf === 'junior' || sf === 'fresh') {
+        result = result.filter(j => {
+          const s = (j.seniority || '').toLowerCase();
+          return s === 'junior' || s === 'fresh';
+        });
+      } else {
+        result = result.filter(j => (j.seniority || '').toLowerCase() === sf);
+      }
     }
     // Work type
     if (workTypeFilter !== 'all') {
@@ -413,21 +421,21 @@ function JobsPageContent() {
                   {seniorityFilter === 'all' 
                     ? (isAr ? "المستوى: جميع المستويات" : "Seniority: All Levels")
                     : seniorityFilter === 'junior'
-                    ? (isAr ? "المستوى: مبتدئ / خريج جديد" : "Seniority: Junior / Fresh")
+                    ? (isAr ? "المستوى: مبتدئ / خريج جديد (0 - 2 سنة)" : "Seniority: Junior / Fresh (0 - 2 yrs)")
                     : seniorityFilter === 'mid'
-                    ? (isAr ? "المستوى: متوسط الخبرة (Mid)" : "Seniority: Mid-Level")
-                    : (isAr ? "المستوى: خبير أول (Senior)" : "Seniority: Senior Level")}
+                    ? (isAr ? "المستوى: متوسط الخبرة (3 - 5 سنوات)" : "Seniority: Mid-Level (3 - 5 yrs)")
+                    : (isAr ? "المستوى: خبير أول (+5 سنوات)" : "Seniority: Senior (+5 yrs)")}
                 </span>
                 <ChevronDown className="w-3.5 h-3.5 opacity-70" />
               </button>
 
               {seniorityMenuOpen && (
-                <div className="absolute top-full ltr:left-0 rtl:right-0 mt-1.5 w-52 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0E1726] p-1.5 shadow-2xl z-40 space-y-1 backdrop-blur-md">
+                <div className="absolute top-full ltr:left-0 rtl:right-0 mt-1.5 w-56 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0E1726] p-1.5 shadow-2xl z-40 space-y-1 backdrop-blur-md">
                   {[
                     { id: 'all', label: isAr ? 'جميع المستويات (الكل)' : 'All Seniorities' },
-                    { id: 'junior', label: isAr ? 'مبتدئ / خريج جديد' : 'Junior / Fresh' },
-                    { id: 'mid', label: isAr ? 'متوسط الخبرة (Mid)' : 'Mid-Level' },
-                    { id: 'senior', label: isAr ? 'خبير أول (Senior)' : 'Senior Level' }
+                    { id: 'junior', label: isAr ? 'مبتدئ / خريج جديد (0 - 2 سنة)' : 'Junior / Fresh (0 - 2 yrs)' },
+                    { id: 'mid', label: isAr ? 'متوسط الخبرة (3 - 5 سنوات)' : 'Mid-Level (3 - 5 yrs)' },
+                    { id: 'senior', label: isAr ? 'خبير أول / قيادي (+5 سنوات)' : 'Senior / Lead (5+ yrs)' }
                   ].map((item) => (
                     <button
                       key={item.id}

@@ -123,18 +123,18 @@ const ROLE_SKILL_PROFILES = {
 };
 
 const UNRELATED_TITLE_PATTERNS = [
-  /\b(accountant|accounting|finance|financial|treasury|auditor)\b/i,
-  /\b(sales|retail|customer service|call center|telemarketing)\b/i,
+  /\b(accountant|accounting|finance|financial|treasury|auditor|audit)\b/i,
+  /\b(sales|retail|customer service|call center|telemarketing|account executive)\b/i,
   /\b(hr|human resources|talent acquisition|recruiter|payroll|personnel)\b/i,
   /\b(marketing|brand|seo|social media manager|content creator|graphic design)\b/i,
   /\b(supply chain|logistics|procurement|warehouse|inventory|purchasing|import|export)\b/i,
   /\b(legal|lawyer|attorney|compliance officer)\b/i,
   /\b(teacher|instructor|trainer|professor|lecturer)\b/i,
-  /\b(doctor|nurse|pharmacist|medical|clinical|dental)\b/i,
+  /\b(doctor|nurse|pharmacist|medical|clinical|dental|patient care|biomedical)\b/i,
   /\b(chef|cook|food|hospitality|hotel|tourism|restaurant)\b/i,
   /\b(driver|delivery|courier|transport|fleet)\b/i,
-  /\b(secretary|receptionist|office manager|administrative assistant)\b/i,
-  /\b(factory|manufacturing|quality control inspector|production)\b/i,
+  /\b(secretary|receptionist|office manager|administrative assistant|data entry)\b/i,
+  /\b(factory|manufacturing|quality control inspector|production|petroleum)\b/i,
   /\b(civil engineer|structural|architectural|mechanical engineer|electrical engineer)\b/i,
   /\b(real estate|property|construction manager)\b/i,
 ];
@@ -184,14 +184,52 @@ function inferSkillsFromTitle(title) {
   return [];
 }
 
-function parseSeniority(careerLevel, title) {
+function parseSeniority(careerLevel, title, fullText = '') {
+  const t = (title || '').toLowerCase().trim();
+  const text = `${title || ''} ${fullText || ''}`.toLowerCase();
+
+  // 1. STRICT TITLE CHECK (Absolute Sovereign Priority)
+  // Senior titles can NEVER be Fresh or Junior
+  if (/\b(senior|sr\.|lead|principal|architect|director|head of|manager|chief|pmo|lead engineer)\b/i.test(t) && 
+      !/\b(junior|assistant to|trainee|intern)\b/i.test(t)) {
+    return 'Senior';
+  }
+
+  // Explicit Fresh / Intern / Trainee titles
+  if (/\b(fresh|graduate|intern|trainee|student|entry[- ]level)\b/i.test(t)) {
+    return 'Fresh';
+  }
+
+  // Explicit Junior titles
+  if (/\b(junior|jr\.|associate)\b/i.test(t)) {
+    return 'Junior';
+  }
+
+  // 2. YEARS OF EXPERIENCE EXTRACTED FROM REQUIREMENTS / TEXT
+  const expMatch = text.match(/(?:experience needed|experience|years of experience|خبرة لا تقل عن|خبرة)\s*:\s*(\d+)\s*(?:[-–—~]|to|إلى|الي)\s*(\d+)\s*(?:years?|yrs?|سنوات|سنة)/i) ||
+                   text.match(/(\d+)\s*(?:[-–—~]|to|إلى|الي)\s*(\d+)\s*(?:years?|yrs?|سنوات|سنة)\s*(?:of\s+)?experience/i) ||
+                   text.match(/(?:at least|minimum|min\.?|\+)\s*(\d+)\s*(?:years?|yrs?|سنوات|سنة)\s*(?:of\s+)?experience/i) ||
+                   text.match(/(\d+)\s*\+\s*(?:years?|yrs?|سنوات|سنة)/i);
+
+  if (expMatch) {
+    const min = parseInt(expMatch[1], 10);
+    const max = expMatch[2] ? parseInt(expMatch[2], 10) : min;
+    if (min >= 5 || max >= 7) return 'Senior';
+    if (min >= 3) return 'Mid';
+    if (min === 0 || max <= 1) return 'Fresh';
+    if (min <= 2 && max <= 3) return 'Junior';
+  }
+
+  // 3. WUZZUF CAREER LEVEL FALLBACK (Only when title & text are neutral)
   const levelStr = typeof careerLevel === 'object'
     ? (careerLevel?.name || careerLevel?.hint || '')
     : (careerLevel || '');
-  const s = ((levelStr || '') + ' ' + (title || '')).toLowerCase();
-  if (/entry|fresh|graduate|intern|student|trainee/i.test(s)) return 'Fresh';
-  if (/senior|lead|principal|sr\.|manager|5\+|7\+/i.test(s)) return 'Senior';
-  if (/junior/i.test(s)) return 'Junior';
+  const lvl = levelStr.toLowerCase();
+  if (/student|entry level|graduate/i.test(lvl)) return 'Fresh';
+  if (/junior/i.test(lvl)) return 'Junior';
+  if (/senior|management|manager|director/i.test(lvl)) return 'Senior';
+  if (/experienced/i.test(lvl)) return 'Mid';
+
   return 'Mid';
 }
 
@@ -318,11 +356,12 @@ function buildJob(item, companiesById) {
 
   const location = cityName || countryName || "Cairo, Egypt";
   const {workType, isRemote} = parseWorkType(a.workplaceArrangement);
-  const seniority = parseSeniority(a.careerLevel?.name, title);
   const postedAt = parsePostedAt(a.postedAt);
 
-  const keywordSkills = (a.keywords || []).map(k => k.name).filter(Boolean);
   const descText = (a.description || "") + " " + (a.requirements || "");
+  const seniority = parseSeniority(a.careerLevel?.name, title, descText);
+
+  const keywordSkills = (a.keywords || []).map(k => k.name).filter(Boolean);
   const descSkills = extractSkillsFromText(descText);
   const titleSkills = extractSkillsFromText(title);
 
