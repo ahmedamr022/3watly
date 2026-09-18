@@ -8,23 +8,19 @@
 -- 1. PROFILES — add email, role & account_status + auto-sync trigger
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.profiles (
-  id                  UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email               TEXT,
-  full_name           TEXT,
-  avatar_url          TEXT,
-  onboarding_completed BOOLEAN    DEFAULT FALSE,
-  role                TEXT        NOT NULL DEFAULT 'user' CHECK (role IN ('owner', 'admin', 'user')),
-  account_status      TEXT        NOT NULL DEFAULT 'active' CHECK (account_status IN ('active', 'suspended')),
-  created_at          TIMESTAMPTZ DEFAULT NOW(),
-  updated_at          TIMESTAMPTZ DEFAULT NOW()
+  id                  UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE
 );
 
+-- Ensure all columns exist safely
 ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS email          TEXT,
-  ADD COLUMN IF NOT EXISTS role           TEXT NOT NULL DEFAULT 'user'
-    CHECK (role IN ('owner', 'admin', 'user')),
-  ADD COLUMN IF NOT EXISTS account_status TEXT NOT NULL DEFAULT 'active'
-    CHECK (account_status IN ('active', 'suspended'));
+  ADD COLUMN IF NOT EXISTS email                TEXT,
+  ADD COLUMN IF NOT EXISTS full_name            TEXT,
+  ADD COLUMN IF NOT EXISTS avatar_url           TEXT,
+  ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS role                 TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('owner', 'admin', 'user')),
+  ADD COLUMN IF NOT EXISTS account_status       TEXT NOT NULL DEFAULT 'active' CHECK (account_status IN ('active', 'suspended')),
+  ADD COLUMN IF NOT EXISTS created_at           TIMESTAMPTZ DEFAULT NOW(),
+  ADD COLUMN IF NOT EXISTS updated_at           TIMESTAMPTZ DEFAULT NOW();
 
 -- Automatic trigger: whenever a user is created in auth.users, sync to public.profiles
 CREATE OR REPLACE FUNCTION public.handle_new_user()
