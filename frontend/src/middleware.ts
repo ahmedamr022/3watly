@@ -2,7 +2,6 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 /** Routes that require an authenticated session */
-/** Routes that require an authenticated session */
 const PROTECTED_PREFIXES = [
   '/dashboard',
   '/copilot',
@@ -14,6 +13,8 @@ const PROTECTED_PREFIXES = [
   '/onboarding',
   '/api/user',
   '/api/copilot',
+  '/admin',
+  '/api/admin',
 ];
 
 /** Routes where logged-in users are redirected to dashboard (disabled so users can always access signup) */

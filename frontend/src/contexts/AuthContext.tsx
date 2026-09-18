@@ -6,6 +6,9 @@ import { resolveDisplayName } from '@/utils/formatName';
 
 
 
+export type UserRole = 'owner' | 'admin' | 'user';
+export type AccountStatus = 'active' | 'suspended';
+
 export interface User {
   id?: string;
   email: string;
@@ -18,11 +21,15 @@ export interface User {
   token?: string;
   hasUploadedCv?: boolean;
   onboardingCompleted?: boolean;
+  role?: UserRole;
+  accountStatus?: AccountStatus;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
+  isOwner: boolean;
   login: (email: string, password: string, remember?: boolean) => Promise<{ success: boolean; error?: string; onboardingCompleted?: boolean }>;
   signup: (fullName: string, email: string, password: string) => Promise<{ success: boolean; error?: string; onboardingCompleted?: boolean }>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
@@ -82,11 +89,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             let onboardingCompleted = metadata.onboarding_completed ?? false;
             let avatarUrl = metadata.avatar_url || metadata.picture || null;
             let fullName = resolvedName;
+            let role: UserRole = 'user';
+            let accountStatus: AccountStatus = 'active';
 
             try {
               const { data: profile } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('full_name, onboarding_completed, avatar_url, role, account_status')
                 .eq('id', session.user.id)
                 .maybeSingle();
 
@@ -99,6 +108,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
                 if (profile.avatar_url) {
                   avatarUrl = profile.avatar_url;
+                }
+                if (profile.role) {
+                  role = profile.role as UserRole;
+                }
+                if (profile.account_status) {
+                  accountStatus = profile.account_status as AccountStatus;
                 }
               }
             } catch (e) {
@@ -114,7 +129,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               createdAt: session.user.created_at,
               token: session.access_token,
               onboardingCompleted,
-              hasUploadedCv: metadata.has_uploaded_cv ?? false
+              hasUploadedCv: metadata.has_uploaded_cv ?? false,
+              role,
+              accountStatus,
             };
 
             saveUserState(parsedUser);
@@ -157,11 +174,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           let onboardingCompleted = metadata.onboarding_completed ?? false;
           let avatarUrl = metadata.avatar_url || metadata.picture || null;
           let fullName = resolvedName;
+          let role: UserRole = 'user';
+          let accountStatus: AccountStatus = 'active';
 
           try {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('*')
+              .select('full_name, onboarding_completed, avatar_url, role, account_status')
               .eq('id', session.user.id)
               .maybeSingle();
 
@@ -174,6 +193,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
               if (profile.avatar_url) {
                 avatarUrl = profile.avatar_url;
+              }
+              if (profile.role) {
+                role = profile.role as UserRole;
+              }
+              if (profile.account_status) {
+                accountStatus = profile.account_status as AccountStatus;
               }
             }
           } catch (e) {
@@ -188,7 +213,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             targetRole: metadata.target_role,
             token: session.access_token,
             onboardingCompleted,
-            hasUploadedCv: metadata.has_uploaded_cv ?? false
+            hasUploadedCv: metadata.has_uploaded_cv ?? false,
+            role,
+            accountStatus,
           };
 
           saveUserState(authenticatedUser);
@@ -633,11 +660,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const isOwner = user?.role === 'owner';
+  const isAdmin = user?.role === 'admin' || isOwner;
+
   return (
     <AuthContext.Provider
       value={{
         user,
         loading,
+        isAdmin,
+        isOwner,
         login,
         signup,
         resetPassword,

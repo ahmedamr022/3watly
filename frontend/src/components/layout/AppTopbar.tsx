@@ -14,7 +14,8 @@ import {
   User,
   ChevronDown,
   Camera,
-  RotateCcw
+  RotateCcw,
+  Shield,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
@@ -40,7 +41,7 @@ export function AppTopbar({
 }: AppTopbarProps) {
   const router = useRouter();
   const { isAr } = useLanguage();
-  const { user, logout, updateAvatar } = useAuth();
+  const { user, logout, updateAvatar, isAdmin } = useAuth();
   const { reset: resetOnboarding } = useOnboarding();
   
   const [notifOpen, setNotifOpen] = useState(false);
@@ -303,6 +304,18 @@ export function AppTopbar({
                     <Settings className="w-4 h-4 text-slate-400" />
                     <span>{isAr ? "الإعدادات" : "Settings"}</span>
                   </Link>
+
+                  {/* Admin Studio — admin/owner only */}
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 transition-colors"
+                    >
+                      <Shield className="w-4 h-4 text-cyan-500" />
+                      <span>{isAr ? "استوديو الإدارة" : "Admin Studio"}</span>
+                    </Link>
+                  )}
                 </div>
 
                 {/* Logout Action */}
