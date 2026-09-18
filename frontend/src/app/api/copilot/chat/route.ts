@@ -87,22 +87,50 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 5. Generate AI Response via Gemini
+    // 5. Build multi-turn chat contents for Gemini
+    const geminiContents: { role: 'user' | 'model'; parts: { text: string }[] }[] = [];
+    if (Array.isArray(rawBody.recentMessages) && rawBody.recentMessages.length > 0) {
+      const recent = rawBody.recentMessages.slice(-6);
+      for (const m of recent) {
+        const role = m.role === 'user' ? 'user' : 'model';
+        const msgText = typeof m.content === 'string' ? m.content : typeof m.text === 'string' ? m.text : '';
+        if (msgText && msgText.trim()) {
+          geminiContents.push({
+            role,
+            parts: [{ text: msgText.trim() }],
+          });
+        }
+      }
+    }
+    // Append current user message
+    geminiContents.push({
+      role: 'user',
+      parts: [{ text: effectiveUserMessage }],
+    });
+
+    // 6. Generate AI Response via Gemini Fast Models
     const apiKey = process.env.GEMINI_API_KEY;
     let rawOutputText = '';
 
     if (apiKey) {
-      const candidateModels = ['gemini-3.6-flash', 'gemini-3.7-flash'];
+      const candidateModels = [
+        'models/gemini-3.5-flash-lite',
+        'models/gemini-3.6-flash',
+        'models/gemini-3.7-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-3.6-flash',
+      ];
       const ai = new GoogleGenAI({ apiKey });
 
       for (const model of candidateModels) {
         try {
           const response = await ai.models.generateContent({
             model,
-            contents: [{ role: 'user', parts: [{ text: effectiveUserMessage }] }],
+            contents: geminiContents,
             config: {
               systemInstruction,
-              temperature: 0.6,
+              temperature: 0.5,
+              responseMimeType: 'application/json',
             },
           });
           if (response.text) {
@@ -116,7 +144,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 6. If no API key or call failed, use intelligent contextual response
+    // 7. If API call failed, provide contextual fallback
     if (!rawOutputText) {
       const topJob = context.topRankedJobs[0];
       const hasJobAdvice = topJob
@@ -124,24 +152,27 @@ export async function POST(request: NextRequest) {
         : '';
 
       if (context.attachedDocumentText) {
-        rawOutputText =
-          `أهلاً بك يا ${userName}! قمت بمراجعة وقراءة الملف المرفق **«${context.attachmentName || 'السيرة الذاتية'}»** بنجاح 📄.\n\n` +
-          (context.userSkills.length > 0 
-            ? `✅ **المهارات والتقنيات المرصودة في ملفك:** ${context.userSkills.slice(0, 8).join('، ')}.\n\n` 
-            : '') +
-          `📊 **أهم توصيات الـ ATS لسوق العمل:**\n` +
-          `1. **هيكل السيرة الذاتية (ATS Structure):** تأكد من استخدام نسق العمود الواحد (Single-Column) وتبويب واضح للأقسام (Summary, Experience, Projects, Skills, Education).\n` +
-          `2. **قياس الأثر الكمي (Quantified Impact):** احرص على أن تبدأ كل نقطة بفعل قيادي قوي يتبعه رقم محدد، مثل: "Built an automated ETL pipeline processing 50K+ daily records".\n` +
-          `3. **الربط مع سوق العمل:** ملفك يظهر مهارات واعدة تؤهلك لمسار **${context.targetRole}**، مع فرص جيدة في الشركات التقنية.` +
-          hasJobAdvice;
+        rawOutputText = JSON.stringify({
+          message: `قمت بمراجعة وقراءة الملف المرفق **«${context.attachmentName || 'السيرة الذاتية'}»** 📄.\n\n` +
+            `📊 **توصيات التحسين لسوق العمل المصري:**\n` +
+            `1. **هيكل السيرة الذاتية (ATS Structure):** تأكد من استخدام نسق العمود الواحد وتنسيق واضح للأقسام.\n` +
+            `2. **قياس الأثر الكمي (Quantified Impact):** احرص على صياغة الإنجازات بأرقام ونسب مئوية دقيقة.\n` +
+            `3. **الربط مع الوظائف:** ركز على المهارات الأكثر طلباً في السوق.` +
+            hasJobAdvice,
+          navigation: [{ path: '/jobs', label: 'استعراض الوظائف المطابقة', priority: 'primary' }],
+          followUps: ['كيف أرفع الـ Match Score للوظائف؟', 'ما هي أكثر المهارات طلباً في القاهرة؟']
+        });
       } else {
-        rawOutputText =
-          `أهلاً بك يا ${userName}! يسعدني مساعدتك في تطوير مسارك المهني كـ **${context.targetRole}** في السوق المصري.\n\n` +
-          `💡 **أبرز التوصيات العملية:**\n` +
-          `1. **تطوير المهارات المطلوبة:** ركز على المهارات العملية والمشاريع الواقعية المرفوعة على GitHub.\n` +
-          `2. **تحسين السيرة الذاتية (ATS):** تأكد من صياغة الإنجازات بنسب مئوية وأرقام محددة (Quantifiable Impact).\n` +
-          `3. **التقديم المباشر:** تابع باستمرار الشواغر الجديدة في الشركات التقنية الرائدة في القاهرة والإسكندرية.` +
-          hasJobAdvice;
+        rawOutputText = JSON.stringify({
+          message: `أهلاً بك يا ${userName}! يسعدني مساعدتك في تطوير مسارك المهني كـ **${context.targetRole}** في السوق المصري.\n\n` +
+            `💡 **أبرز التوصيات العملية:**\n` +
+            `1. **تطوير المهارات المطلوبة:** ركز على المهارات العملية والمشاريع الواقعية.\n` +
+            `2. **تحسين السيرة الذاتية (ATS):** صياغة الإنجازات بأرقام محددة.\n` +
+            `3. **التقديم المباشر:** استكشاف الشواغر الجديدة في الشركات التقنية.` +
+            hasJobAdvice,
+          navigation: [{ path: '/jobs', label: 'استعراض الوظائف المطابقة', priority: 'primary' }],
+          followUps: ['ما هي خطة تطوير المهارات المناسبة لي؟', 'كيف أجهز نفسي لمقابلات العمل؟']
+        });
       }
     }
 
