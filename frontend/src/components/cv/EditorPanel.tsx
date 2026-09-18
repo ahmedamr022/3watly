@@ -73,7 +73,7 @@ export function EditorPanel() {
           complete={Boolean(cv.contact.fullName.trim() && cv.contact.email.trim())}
           badge={
             <span className="rounded-md bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:text-blue-400">
-              {isAr ? 'الترويسة' : 'Header'}
+              {isAr ? 'البيانات الأساسية' : 'Primary Info'}
             </span>
           }
         >
