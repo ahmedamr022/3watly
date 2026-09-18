@@ -9,13 +9,9 @@ interface AppShellProps {
   title?: string;
   subtitle?: string;
   showSearch?: boolean;
-  /** When true, the main area fills the viewport height without scrolling —
-   *  children are responsible for their own independent scroll panes.
-   *  Use this only for the CV Builder split-scroll layout. */
-  fullHeight?: boolean;
 }
 
-export function AppShell({ children, title, subtitle, showSearch = true, fullHeight = false }: AppShellProps) {
+export function AppShell({ children, title, subtitle, showSearch = true }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -63,18 +59,10 @@ export function AppShell({ children, title, subtitle, showSearch = true, fullHei
           showSearch={showSearch}
         />
 
-        {/* Page Inner Content */}
-        {fullHeight ? (
-          // Split-scroll mode: main fills remaining height, children manage their own scroll
-          <main className="flex-1 min-h-0 overflow-hidden p-4 sm:p-7 lg:p-8 w-full flex flex-col">
-            {children}
-          </main>
-        ) : (
-          // Normal mode: full-page scroll
-          <main className="flex-1 overflow-y-auto p-4 sm:p-7 lg:p-8 max-w-[1500px] w-full mx-auto">
-            {children}
-          </main>
-        )}
+        {/* Page Inner Content — Single Page Scroll */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-7 lg:p-8 max-w-[1500px] w-full mx-auto">
+          {children}
+        </main>
       </div>
     </div>
   );

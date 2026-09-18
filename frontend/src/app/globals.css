@@ -356,60 +356,6 @@ html.dark .scroll-slim {
   On print this element is set to overflow:visible / max-height:none
   so the article always prints in full.
 */
-.cv-scroll-viewport {
-  max-height: 82vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  /* Transparent track – scrollbar floats on the document */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(37, 99, 235, 0.35) transparent;
-  /* Smooth inner scroll */
-  scroll-behavior: smooth;
-  /* Give it a subtle inset shadow so content feels contained */
-  border-radius: 1rem;
-}
-
-/* Light-mode webkit scrollbar */
-.cv-scroll-viewport::-webkit-scrollbar {
-  width: 5px;
-}
-.cv-scroll-viewport::-webkit-scrollbar-track {
-  background: transparent;
-}
-.cv-scroll-viewport::-webkit-scrollbar-thumb {
-  background: rgba(37, 99, 235, 0.35);
-  border-radius: 9999px;
-}
-.cv-scroll-viewport::-webkit-scrollbar-thumb:hover {
-  background: rgba(29, 78, 216, 0.7);
-}
-.cv-scroll-viewport::-webkit-scrollbar-button {
-  display: none !important;
-  height: 0 !important;
-}
-
-/* Dark-mode overrides */
-html.dark .cv-scroll-viewport {
-  scrollbar-color: rgba(30, 58, 138, 0.8) transparent;
-}
-html.dark .cv-scroll-viewport::-webkit-scrollbar-thumb {
-  background: rgba(30, 58, 138, 0.8);
-  border: 1px solid rgba(59, 130, 246, 0.25);
-}
-html.dark .cv-scroll-viewport::-webkit-scrollbar-thumb:hover {
-  background: rgba(37, 99, 235, 0.85);
-  border-color: rgba(96, 165, 250, 0.5);
-}
-
-/* Override: when CV is inside the split-scroll builder pane, the parent
-   grid column handles scrolling — reset the viewport constraints */
-.builder-cv-pane .cv-scroll-viewport {
-  max-height: none !important;
-  overflow-y: visible !important;
-  overflow-x: visible !important;
-  border-radius: 0;
-}
-
 /* ========================================================================= */
 /* TECH MARQUEE FLOATING ANIMATIONS                                          */
 /* ========================================================================= */

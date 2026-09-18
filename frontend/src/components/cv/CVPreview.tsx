@@ -280,10 +280,8 @@ export function CVPreview() {
 
   return (
     <div className="print-region w-full">
-      {/* Scrollable viewport — scroll is managed by the parent split-pane */}
-      <div className="cv-scroll-viewport no-print-wrapper">
-        <article
-          id="cv-paper-root"
+      <article
+        id="cv-paper-root"
           dir="ltr"
           className={`print-page cv-paper-root relative w-full max-w-[820px] min-h-[1080px] mx-auto bg-white dark:bg-[#0E1626] text-slate-900 dark:text-slate-100 shadow-2xl border border-slate-200 dark:border-white/10 rounded-sm transition-all duration-300 text-left ${style.page}`}
           style={{ fontFamily: style.fontFamily }}
@@ -423,7 +421,6 @@ export function CVPreview() {
             </div>
           )}
         </article>
-      </div>
     </div>
   );
 }
