@@ -13,6 +13,9 @@ export type AdminSession = {
  * with role = 'admin' OR 'owner'. Use in API route handlers.
  * Throws a NextResponse (403/401/503) on failure; returns AdminSession on success.
  */
+// In-memory role cache to eliminate redundant database round-trips (30s TTL)
+const roleCache = new Map<string, { role: AdminSession['role']; email: string; exp: number }>();
+
 export async function requireAdmin(): Promise<AdminSession> {
   const supabase = await createClient();
 
@@ -29,6 +32,20 @@ export async function requireAdmin(): Promise<AdminSession> {
     throw NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Check cache first
+  const now = Date.now();
+  const cached = roleCache.get(user.id);
+  if (cached && cached.exp > now) {
+    if (cached.role !== 'admin' && cached.role !== 'owner') {
+      throw NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    return {
+      userId: user.id,
+      email: cached.email || user.email || '',
+      role: cached.role,
+    };
+  }
+
   const adminClient = createAdminClient();
   if (!adminClient) {
     throw NextResponse.json({ error: 'Admin service unavailable' }, { status: 503 });
@@ -40,7 +57,10 @@ export async function requireAdmin(): Promise<AdminSession> {
     .eq('id', user.id)
     .maybeSingle();
 
-  const role = profile?.role ?? 'user';
+  const role = (profile?.role ?? 'user') as AdminSession['role'];
+
+  // Save in cache for 30 seconds
+  roleCache.set(user.id, { role, email: user.email ?? '', exp: now + 30_000 });
 
   if (role !== 'admin' && role !== 'owner') {
     throw NextResponse.json({ error: 'Forbidden' }, { status: 403 });

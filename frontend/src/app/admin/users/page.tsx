@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Users, Search, Filter, ChevronLeft, ChevronRight,
-  Shield, UserX, UserCheck, MoreHorizontal, RefreshCw, AlertTriangle
+  Shield, UserX, UserCheck, MoreHorizontal, RefreshCw, AlertTriangle, Crown
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -143,23 +143,23 @@ export default function AdminUsersPage() {
         <select
           value={roleFilter}
           onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-300 focus:outline-none focus:border-cyan-500/50 cursor-pointer"
+          className="px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/15 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 cursor-pointer shadow-sm"
         >
-          <option value="">{isAr ? 'كل الأدوار' : 'All Roles'}</option>
-          <option value="owner">{isAr ? 'مالك' : 'Owner'}</option>
-          <option value="admin">{isAr ? 'مسؤول' : 'Admin'}</option>
-          <option value="user">{isAr ? 'مستخدم' : 'User'}</option>
+          <option value="" className="bg-[#0B1120] text-slate-200">{isAr ? 'كل الأدوار' : 'All Roles'}</option>
+          <option value="owner" className="bg-[#0B1120] text-slate-200">{isAr ? '👑 مالك' : '👑 Owner'}</option>
+          <option value="admin" className="bg-[#0B1120] text-slate-200">{isAr ? '🛡️ مسؤول' : '🛡️ Admin'}</option>
+          <option value="user" className="bg-[#0B1120] text-slate-200">{isAr ? '👤 مستخدم' : '👤 User'}</option>
         </select>
 
         {/* Status filter */}
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-300 focus:outline-none focus:border-cyan-500/50 cursor-pointer"
+          className="px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/15 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 cursor-pointer shadow-sm"
         >
-          <option value="">{isAr ? 'كل الحالات' : 'All Statuses'}</option>
-          <option value="active">{isAr ? 'نشط' : 'Active'}</option>
-          <option value="suspended">{isAr ? 'معلق' : 'Suspended'}</option>
+          <option value="" className="bg-[#0B1120] text-slate-200">{isAr ? 'كل الحالات' : 'All Statuses'}</option>
+          <option value="active" className="bg-[#0B1120] text-slate-200">{isAr ? '🟢 نشط' : '🟢 Active'}</option>
+          <option value="suspended" className="bg-[#0B1120] text-slate-200">{isAr ? '🔴 معلق' : '🔴 Suspended'}</option>
         </select>
       </div>
 
@@ -282,9 +282,23 @@ export default function AdminUsersPage() {
                             )}
 
                             {/* Role changes — owner only */}
-                            {isOwner && u.role !== 'owner' && (
+                            {isOwner && (
                               <>
                                 <div className="border-t border-white/8 my-1" />
+                                {u.role !== 'owner' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (confirm(isAr ? `هل أنت متأكد من ترقية "${u.full_name || u.email}" إلى مالك للمنصة (Owner)؟ سيكون له كامل الصلاحيات.` : `Are you sure you want to promote "${u.full_name || u.email}" to Platform Owner?`)) {
+                                        handleAction(u.id, { role: 'owner' });
+                                      }
+                                    }}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] text-amber-400 hover:bg-amber-950/40 transition-colors cursor-pointer text-start font-bold"
+                                  >
+                                    <Crown className="w-3.5 h-3.5 text-amber-400" />
+                                    {isAr ? '👑 ترقية لمالك (Owner)' : '👑 Make Owner'}
+                                  </button>
+                                )}
                                 {u.role !== 'admin' && (
                                   <button
                                     type="button"
@@ -292,7 +306,7 @@ export default function AdminUsersPage() {
                                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] text-cyan-400 hover:bg-cyan-950/40 transition-colors cursor-pointer text-start"
                                   >
                                     <Shield className="w-3.5 h-3.5" />
-                                    {isAr ? 'ترقية لمسؤول' : 'Make Admin'}
+                                    {isAr ? '🛡️ ترقية لمسؤول (Admin)' : '🛡️ Make Admin'}
                                   </button>
                                 )}
                                 {u.role !== 'user' && (
@@ -302,7 +316,7 @@ export default function AdminUsersPage() {
                                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] text-slate-400 hover:bg-white/5 transition-colors cursor-pointer text-start"
                                   >
                                     <UserX className="w-3.5 h-3.5" />
-                                    {isAr ? 'إزالة صلاحيات الإدارة' : 'Remove Admin'}
+                                    {isAr ? '👤 تحويل لمستخدم عادي' : '👤 Make Regular User'}
                                   </button>
                                 )}
                               </>

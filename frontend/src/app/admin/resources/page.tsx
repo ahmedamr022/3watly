@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen, Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight,
   RefreshCw, AlertTriangle, X, Check, PlayCircle, Code2, ExternalLink,
-  GraduationCap, FileText,
+  GraduationCap, FileText, Sparkles, Database, Download
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -223,10 +223,10 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
               <select
                 value={form.kind}
                 onChange={(e) => set('kind', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-300 focus:outline-none focus:border-cyan-500/50 cursor-pointer"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/15 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 cursor-pointer shadow-sm"
               >
                 {KIND_OPTIONS.map((k) => (
-                  <option key={k} value={k}>{k}</option>
+                  <option key={k} value={k} className="bg-[#0B1120] text-slate-200">{k}</option>
                 ))}
               </select>
             </div>
@@ -238,10 +238,10 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
               <select
                 value={form.language}
                 onChange={(e) => set('language', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-300 focus:outline-none focus:border-cyan-500/50 cursor-pointer"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/15 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 cursor-pointer shadow-sm"
               >
                 {LANG_OPTIONS.map((l) => (
-                  <option key={l} value={l}>{l}</option>
+                  <option key={l} value={l} className="bg-[#0B1120] text-slate-200">{l}</option>
                 ))}
               </select>
             </div>
@@ -348,6 +348,7 @@ export default function AdminResourcesPage() {
   const [search, setSearch] = useState('');
   const [kindFilter, setKindFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editResource, setEditResource] = useState<Resource | null>(null);
@@ -374,6 +375,23 @@ export default function AdminResourcesPage() {
   }, [search, kindFilter]);
 
   useEffect(() => { fetchResources(); }, [fetchResources]);
+
+  const handleSeedCatalog = async () => {
+    if (!confirm(isAr ? 'هل تريد استيراد كافة المصادر والكورسات المعتمدة لجميع المهارات (Python, SQL, React, Next.js, Git, Cloud, etc.) وحفظها في قاعدة البيانات؟' : 'Do you want to import all curated skill courses & resources into the database?')) return;
+    setSeeding(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/resources/seed', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to seed');
+      alert(isAr ? `✅ تم استيراد وتخزين ${data.count} مصدر وكورس بنجاح في قاعدة البيانات!` : `✅ Successfully imported ${data.count} resources!`);
+      await fetchResources();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const handleToggleActive = async (resource: Resource) => {
     try {
@@ -403,28 +421,40 @@ export default function AdminResourcesPage() {
         <div>
           <h1 className="text-xl font-black text-white flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-purple-400" />
-            {isAr ? 'المصادر التعليمية' : 'Learning Resources'}
+            {isAr ? 'المصادر التعليمية والكورسات' : 'Learning Resources & Courses'}
           </h1>
           <p className="text-sm text-slate-400 mt-0.5">
-            {isAr ? `${total.toLocaleString()} مصدر` : `${total.toLocaleString()} resources`}
+            {isAr ? `${total.toLocaleString()} مصدر متاح في قاعدة البيانات` : `${total.toLocaleString()} resources in database`}
           </p>
         </div>
-        <div className="flex items-center gap-2 self-start">
+        <div className="flex items-center gap-2 flex-wrap self-start">
           <button
             type="button"
             onClick={fetchResources}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
+            title={isAr ? 'تحديث' : 'Refresh'}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
+          
+          <button
+            type="button"
+            onClick={handleSeedCatalog}
+            disabled={seeding}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 text-sm font-bold hover:bg-purple-500/25 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+          >
+            {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-purple-400" />}
+            {isAr ? 'استيراد مصادر المهارات' : 'Import Skill Catalog'}
+          </button>
+
           <button
             type="button"
             onClick={() => { setEditResource(null); setModalOpen(true); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 text-sm font-bold text-white hover:opacity-90 transition-opacity cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 text-sm font-bold text-white hover:opacity-90 transition-opacity cursor-pointer shadow-md shadow-cyan-600/20"
           >
             <Plus className="w-4 h-4" />
-            {isAr ? 'إضافة مصدر' : 'Add Resource'}
+            {isAr ? 'إضافة مصدر جديد' : 'Add New Resource'}
           </button>
         </div>
       </div>
@@ -435,7 +465,7 @@ export default function AdminResourcesPage() {
           <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
-            placeholder={isAr ? 'بحث في المصادر...' : 'Search resources...'}
+            placeholder={isAr ? 'بحث في المصادر بالاسم أو المهارة...' : 'Search resources by title or skill...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full ps-9 pe-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
@@ -444,10 +474,12 @@ export default function AdminResourcesPage() {
         <select
           value={kindFilter}
           onChange={(e) => setKindFilter(e.target.value)}
-          className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-300 focus:outline-none focus:border-cyan-500/50 cursor-pointer"
+          className="px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/15 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 cursor-pointer shadow-sm"
         >
-          <option value="">{isAr ? 'كل الأنواع' : 'All Kinds'}</option>
-          {KIND_OPTIONS.map((k) => <option key={k} value={k}>{k}</option>)}
+          <option value="" className="bg-[#0B1120] text-slate-200">{isAr ? 'كل الأنواع' : 'All Kinds'}</option>
+          {KIND_OPTIONS.map((k) => (
+            <option key={k} value={k} className="bg-[#0B1120] text-slate-200">{k}</option>
+          ))}
         </select>
       </div>
 
@@ -466,16 +498,36 @@ export default function AdminResourcesPage() {
             ))
           : resources.length === 0
           ? (
-            <div className="col-span-full py-16 text-center text-slate-500">
-              <BookOpen className="w-8 h-8 mx-auto mb-3 opacity-40" />
-              <p className="text-sm">{isAr ? 'لا توجد مصادر حتى الآن.' : 'No resources yet.'}</p>
-              <button
-                type="button"
-                onClick={() => { setEditResource(null); setModalOpen(true); }}
-                className="mt-4 text-cyan-400 text-sm hover:underline cursor-pointer"
-              >
-                {isAr ? '+ أضف أول مصدر' : '+ Add first resource'}
-              </button>
+            <div className="col-span-full py-16 px-6 text-center rounded-2xl bg-white/2 border border-white/5 flex flex-col items-center">
+              <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 mb-3 text-purple-400">
+                <BookOpen className="w-8 h-8 opacity-80" />
+              </div>
+              <h3 className="text-base font-bold text-white mb-1">
+                {isAr ? 'لا توجد مصادر في قاعدة البيانات حتى الآن' : 'No resources in database yet'}
+              </h3>
+              <p className="text-xs text-slate-400 max-w-md mb-5">
+                {isAr 
+                  ? 'يمكنك استيراد مصادر وكورسات المهارات المعتمدة (Python, SQL, React, Git, Cloud) بضغطة زر واحدة لتظهر وتُربط فوراً بالمنصة.'
+                  : 'You can import all curated skills courses & resources with a single click.'}
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSeedCatalog}
+                  disabled={seeding}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-sm font-bold text-white hover:opacity-90 transition-opacity cursor-pointer shadow-lg shadow-purple-600/25"
+                >
+                  {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  {isAr ? '📥 استيراد مصادر المهارات الآن' : '📥 Import Skill Catalog Now'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setEditResource(null); setModalOpen(true); }}
+                  className="px-4 py-2.5 rounded-xl border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 cursor-pointer transition-colors"
+                >
+                  {isAr ? '+ إضافة يدوية' : '+ Add Manually'}
+                </button>
+              </div>
             </div>
           )
           : resources.map((r) => (

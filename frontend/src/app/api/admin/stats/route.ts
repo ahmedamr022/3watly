@@ -2,11 +2,19 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin/authorization';
 import { createAdminClient } from '@/lib/supabase/admin';
 
+let cachedStats: { data: any; exp: number } | null = null;
+
 export async function GET() {
   try {
     await requireAdmin();
   } catch (errorResponse) {
     return errorResponse as NextResponse;
+  }
+
+  // Return cached stats if fresh (< 15s)
+  const now = Date.now();
+  if (cachedStats && cachedStats.exp > now) {
+    return NextResponse.json(cachedStats.data);
   }
 
   try {
@@ -48,7 +56,7 @@ export async function GET() {
     const resourcesRes = safe(resourcesResult, { count: 0 } as any);
     const recentUsersRes = safe(recentUsersResult, { data: [] } as any);
 
-    return NextResponse.json({
+    const responseData = {
       stats: {
         totalUsers: usersRes.count ?? 0,
         adminUsers: adminRes.count ?? 0,
@@ -58,7 +66,11 @@ export async function GET() {
         activeResources: resourcesRes.count ?? 0,
       },
       recentUsers: recentUsersRes.data ?? [],
-    });
+    };
+
+    cachedStats = { data: responseData, exp: now + 15_000 };
+
+    return NextResponse.json(responseData);
   } catch (e) {
     console.error('[/api/admin/stats] Error:', e);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
