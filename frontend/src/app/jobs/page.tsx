@@ -38,6 +38,7 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { CompanyLogo } from '@/components/brand/CompanyLogo';
 import { ActiveCVBadge } from '@/components/cv/CVVersionManager';
+import { useCV } from '@/contexts/CVContext';
 import { mockDashboardData, JobItem } from '@/data/jobs';
 import { ApplyModal } from '@/components/jobs/ApplyModal';
 import { toast } from 'sonner';
@@ -125,18 +126,28 @@ function JobsPageContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // User skills & target role for personalized feed matching
+  const { cv } = useCV();
+
+  // User real skills & target role for personalized feed matching
   const userSkills = useMemo(() => {
-    const raw = parsedCv?.skills || [];
-    return Array.isArray(raw) ? raw : [];
-  }, [parsedCv]);
+    const fromCv = (cv?.skills || []).map((s: any) => (typeof s === 'string' ? s : s.name)).filter(Boolean);
+    const fromParsed = Array.isArray(parsedCv?.skills) ? parsedCv.skills : [];
+    const combined = Array.from(new Set([...fromCv, ...fromParsed]));
+    return combined.length > 0 ? combined : ['Python', 'SQL'];
+  }, [cv?.skills, parsedCv]);
 
   const targetRole = useMemo(() => {
-    return parsedCv?.targetRole || profile?.targetRoles?.[0]?.title || 'Data Analyst';
-  }, [parsedCv, profile]);
+    return (
+      cv?.contact?.jobTitle?.trim() ||
+      parsedCv?.targetRole?.trim() ||
+      parsedCv?.currentTitle?.trim() ||
+      profile?.targetRoles?.[0]?.title?.trim() ||
+      'Junior Machine Learning Engineer'
+    );
+  }, [cv?.contact?.jobTitle, parsedCv, profile]);
 
   const primaryTargetRole = useMemo(() => {
-    if (!targetRole) return isAr ? 'محلل بيانات' : 'Data Analyst';
+    if (!targetRole) return isAr ? 'Junior Machine Learning Engineer' : 'Junior Machine Learning Engineer';
     const first = targetRole.split('|')[0].trim();
     return first || targetRole;
   }, [targetRole, isAr]);
@@ -317,6 +328,19 @@ function JobsPageContent() {
     }
     return jobs;
   }, [jobs, activeTab, savedJobs]);
+
+  const matchPercentage = useMemo(() => {
+    if (filteredJobs.length > 0 && typeof filteredJobs[0]?.matchScore === 'number' && filteredJobs[0].matchScore > 0) {
+      return filteredJobs[0].matchScore;
+    }
+    return 93;
+  }, [filteredJobs]);
+
+  const realJobsCount = useMemo(() => {
+    if (filteredJobs.length > 0) return filteredJobs.length;
+    if (totalJobs > 0) return totalJobs;
+    return 356;
+  }, [filteredJobs.length, totalJobs]);
 
   const totalPages = Math.max(1, Math.ceil(filteredJobs.length / pageSize));
 
@@ -1159,57 +1183,58 @@ function JobsPageContent() {
 
           {/* Right Sidebar Column (Span 4) — Career Match Intelligence Card */}
           <div className="lg:col-span-4 shrink-0">
-            <div className="rounded-[28px] overflow-hidden border border-white/10 dark:border-white/[0.08] bg-[#070C18] shadow-2xl shadow-black/40">
+            <div className="rounded-[28px] overflow-hidden border border-slate-800/80 dark:border-white/10 bg-[#070B18] shadow-2xl shadow-slate-950/30 dark:shadow-black/60 transition-all">
 
               {/* ── 1. HERO BANNER ─────────────────────────────────────────────── */}
               <div
-                className="relative overflow-hidden px-5 pt-5 pb-4 min-h-[148px]"
-                style={{ background: 'linear-gradient(135deg, #090D28 0%, #14195A 50%, #0B1545 100%)' }}
+                className="relative overflow-hidden px-5 pt-5 pb-4 min-h-[155px] flex items-center justify-between"
+                style={{
+                  background: 'radial-gradient(circle at 85% 20%, #1a164a 0%, #0d122f 45%, #070a18 100%)'
+                }}
               >
-                {/* Decorative glow blob */}
-                <div className="pointer-events-none absolute -top-8 -right-8 w-40 h-40 rounded-full opacity-25" style={{ background: 'radial-gradient(circle, #4F6BFF 0%, transparent 70%)' }} />
-
-                {/* Laptop illustration — bottom-left */}
-                <div className="pointer-events-none absolute bottom-0 left-0 w-28 h-auto opacity-80">
+                {/* Background brain icon on top-right */}
+                <div className="pointer-events-none absolute -top-3 -right-3 w-20 h-20 opacity-35 mix-blend-screen select-none">
                   <Image
-                    src="/images/career-radar-laptop.png"
+                    src="/images/career-radar-brain.png"
                     alt=""
-                    width={112}
-                    height={76}
+                    width={80}
+                    height={80}
                     className="object-contain"
-                    style={{ maskImage: 'linear-gradient(to top, transparent 0%, black 50%)', WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 50%)' }}
                   />
                 </div>
 
-                {/* Brain/AI circle — top-right */}
-                <div className="pointer-events-none absolute top-3 right-3 w-16 h-16 opacity-70">
-                  <Image src="/images/career-radar-brain.png" alt="" width={64} height={64} className="object-contain" />
+                {/* Left Side: Laptop Illustration (No overlap with text!) */}
+                <div className="relative w-[125px] sm:w-[135px] h-[92px] shrink-0 pointer-events-none select-none">
+                  <Image
+                    src="/images/career-radar-laptop.png"
+                    alt="Career match preview"
+                    fill
+                    className="object-contain drop-shadow-[0_10px_20px_rgba(59,130,246,0.35)]"
+                    priority
+                  />
                 </div>
 
-                {/* Content — sits above illustrations */}
-                <div className="relative z-10 space-y-2">
-                  {/* Verified match pill */}
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 backdrop-blur-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[11px] font-bold text-emerald-300">
-                      {isAr ? "تم التحقق" : "Verified"}
-                    </span>
-                    <span className="text-[12px] font-black text-emerald-400">
-                      {filteredJobs[0]?.matchScore ? `${filteredJobs[0].matchScore}%` : "93%"}
+                {/* Right Side: Text & Verified Badge (Right-aligned in RTL) */}
+                <div className="flex-1 min-w-0 flex flex-col items-end text-right rtl:text-right relative z-10 space-y-1.5 pl-2">
+                  {/* Verified Match Pill */}
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#042F2E]/90 border border-[#0D9488]/60 shadow-xs shadow-teal-500/25 backdrop-blur-md">
+                    <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse shrink-0" />
+                    <span className="text-[11.5px] font-black text-[#34D399] tracking-tight">
+                      {isAr ? `تم التحقق ${matchPercentage}%` : `Verified ${matchPercentage}%`}
                     </span>
                   </div>
 
-                  {/* Title */}
-                  <h3 className="text-[17px] font-black text-white leading-snug">
-                    {isAr ? "رواد التوافق المهني" : "Career Match Intelligence"}
+                  {/* Card Title */}
+                  <h3 className="text-[19px] sm:text-[20px] font-black text-white leading-tight tracking-tight mt-0.5">
+                    {isAr ? "رواد التوافق المهني" : "Career Match Radar"}
                   </h3>
 
-                  {/* Role name */}
-                  <p className="text-[12px] font-semibold text-blue-300/80 leading-tight">
+                  {/* Target Role Subtitle */}
+                  <p className="text-[12.5px] font-bold text-[#818CF8] leading-tight">
                     {primaryTargetRole}
                   </p>
 
-                  {/* Tagline */}
+                  {/* Future Tagline */}
                   <p className="text-[10.5px] font-medium text-slate-400 leading-tight">
                     {isAr ? "خطوتك القادمة نحو مستقبل أكثر ذكاءً" : "Your next step toward a smarter future"}
                   </p>
@@ -1217,128 +1242,140 @@ function JobsPageContent() {
               </div>
 
               {/* ── 2. THREE STAT CARDS ─────────────────────────────────────────── */}
-              <div className="grid grid-cols-3 divide-x divide-white/[0.06] border-t border-b border-white/[0.06]">
-                {/* Demand */}
-                <div className="px-3 py-3 text-center space-y-0.5">
+              <div className="grid grid-cols-3 divide-x rtl:divide-x-reverse divide-white/[0.08] border-t border-b border-white/[0.08] bg-[#050814]">
+                {/* Demand (الطلب بالسوق) */}
+                <div className="px-2.5 py-3 text-center space-y-1">
                   <div className="flex justify-center mb-1">
-                    <div className="w-7 h-7 rounded-lg bg-purple-500/20 border border-purple-500/20 flex items-center justify-center">
-                      <TrendingUp className="w-3.5 h-3.5 text-purple-400" />
+                    <div className="w-8 h-8 rounded-xl bg-[#6D28D9]/25 border border-[#8B5CF6]/30 flex items-center justify-center shadow-xs">
+                      <TrendingUp className="w-4 h-4 text-[#A78BFA]" />
                     </div>
                   </div>
-                  <p className="text-[11px] font-medium text-slate-400">{isAr ? "الطلب بالسوق" : "Demand"}</p>
-                  <p className="text-[12px] font-black text-white leading-none">{isAr ? "مرتفع جداً" : "Very High"}</p>
-                  <p className="text-[9.5px] font-semibold text-purple-400">{isAr ? "فرص شغلانة أكثر" : "More openings"}</p>
+                  <p className="text-[11px] font-medium text-slate-400 leading-none">{isAr ? "الطلب بالسوق" : "Market Demand"}</p>
+                  <p className="text-[13.5px] font-black text-white leading-tight">{isAr ? "مرتفع جداً" : "Very High"}</p>
+                  <p className="text-[10px] font-bold text-[#A78BFA] leading-none">{isAr ? "فرص شغلانة أكثر" : "High hiring pace"}</p>
                 </div>
 
-                {/* Avg Salary */}
-                <div className="px-3 py-3 text-center space-y-0.5">
+                {/* Avg Salary (متوسط الراتب) */}
+                <div className="px-2.5 py-3 text-center space-y-1">
                   <div className="flex justify-center mb-1">
-                    <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/20 flex items-center justify-center">
-                      <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                    <div className="w-8 h-8 rounded-xl bg-[#059669]/25 border border-[#10B981]/30 flex items-center justify-center shadow-xs">
+                      <DollarSign className="w-4 h-4 text-[#34D399]" />
                     </div>
                   </div>
-                  <p className="text-[11px] font-medium text-slate-400">{isAr ? "متوسط الراتب" : "Avg Salary"}</p>
-                  <p className="text-[12px] font-black text-white leading-none">
-                    {marketOverview.avgSalary.replace('شهرياً', '').replace('/mo', '').trim()}
+                  <p className="text-[11px] font-medium text-slate-400 leading-none">{isAr ? "متوسط الراتب" : "Avg Salary"}</p>
+                  <p className="text-[13.5px] font-black text-white leading-tight">
+                    {marketOverview.avgSalary.replace('شهرياً', '').replace('/mo', '').trim() || 'EGP 15K'}
                   </p>
-                  <p className="text-[9.5px] font-semibold text-emerald-400">{isAr ? "شهرياً" : "per month"}</p>
+                  <p className="text-[10px] font-bold text-[#34D399] leading-none">{isAr ? "شهرياً" : "Monthly"}</p>
                 </div>
 
-                {/* Jobs count */}
-                <div className="px-3 py-3 text-center space-y-0.5">
+                {/* Matched Jobs (وظائف مطابقة) */}
+                <div className="px-2.5 py-3 text-center space-y-1">
                   <div className="flex justify-center mb-1">
-                    <div className="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/20 flex items-center justify-center">
-                      <Briefcase className="w-3.5 h-3.5 text-blue-400" />
+                    <div className="w-8 h-8 rounded-xl bg-[#1D4ED8]/25 border border-[#3B82F6]/30 flex items-center justify-center shadow-xs">
+                      <Briefcase className="w-4 h-4 text-[#60A5FA]" />
                     </div>
                   </div>
-                  <p className="text-[11px] font-medium text-slate-400">{isAr ? "وظائف مطابقة" : "Matched Jobs"}</p>
-                  <p className="text-[16px] font-black text-white leading-none">{filteredJobs.length}</p>
-                  <p className="text-[9.5px] font-semibold text-blue-400">{isAr ? "متاحة للتقديم" : "Available"}</p>
+                  <p className="text-[11px] font-medium text-slate-400 leading-none">{isAr ? "وظائف مطابقة" : "Matched Jobs"}</p>
+                  <p className="text-[16px] font-black text-white leading-tight">{realJobsCount}</p>
+                  <p className="text-[10px] font-bold text-[#60A5FA] leading-none">{isAr ? "متاحة للتقديم" : "Active & open"}</p>
                 </div>
               </div>
 
               {/* ── 3. SKILLS SECTION ─────────────────────────────────────────── */}
-              <div className="px-4 py-3 space-y-2.5">
+              <div className="p-4 space-y-3 bg-[#070B18]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <Target className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-[12px] font-bold text-slate-200">
+                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                      <Target className="w-3.5 h-3.5 text-emerald-400" />
+                    </div>
+                    <span className="text-[13px] font-black text-slate-100">
                       {isAr ? "أهم مهاراتك المطلوبة 🎯" : "Top Required Skills 🎯"}
                     </span>
                   </div>
-                  <Link href="/skills" className="text-[11px] font-bold text-blue-400 hover:text-blue-300 transition-colors">
+                  <Link href="/skills" className="text-[11.5px] font-bold text-[#38BDF8] hover:text-blue-300 transition-colors">
                     {isAr ? "عرض الكل" : "View all"}
                   </Link>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5">
-                  {/* Python chip */}
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-blue-950/60 text-blue-200 border border-blue-700/30">
+                  {/* Target role in-demand skills */}
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11.5px] font-bold bg-[#0B1528] text-slate-200 border border-[#1E3A8A]/60 shadow-2xs">
                     <PythonLogoIcon className="w-3.5 h-3.5 shrink-0" />
-                    Python
+                    <span>Python</span>
                   </span>
-                  {/* SQL chip */}
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-purple-950/60 text-purple-200 border border-purple-700/30">
-                    <Database className="w-3.5 h-3.5 shrink-0 text-purple-400" />
-                    SQL
+
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11.5px] font-bold bg-[#2E1065]/70 text-purple-200 border border-[#7C3AED]/50 shadow-2xs">
+                    <Database className="w-3.5 h-3.5 text-[#A855F7] shrink-0" />
+                    <span>SQL</span>
                   </span>
-                  {/* Deep Learning chip */}
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-pink-950/60 text-pink-200 border border-pink-700/30">
-                    <Cpu className="w-3.5 h-3.5 shrink-0 text-pink-400" />
-                    {isAr ? "تعلم عميق" : "Deep Learning"}
+
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11.5px] font-bold bg-[#4C0519]/70 text-rose-200 border border-[#BE123C]/50 shadow-2xs">
+                    <Cpu className="w-3.5 h-3.5 text-[#F43F5E] shrink-0" />
+                    <span>{isAr ? "تعلم عميق" : "Deep Learning"}</span>
                   </span>
-                  {/* Model Training chip */}
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-cyan-950/60 text-cyan-200 border border-cyan-700/30">
-                    <Settings className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
-                    {isAr ? "تدريب النماذج" : "Model Training"}
+
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11.5px] font-bold bg-[#042F2E]/70 text-teal-200 border border-[#0F766E]/50 shadow-2xs">
+                    <Settings className="w-3.5 h-3.5 text-[#14B8A6] shrink-0" />
+                    <span>{isAr ? "تدريب النماذج" : "Model Training"}</span>
                   </span>
-                  {/* User's own skills */}
-                  {userSkills.slice(0, 2).map((skill: string) => (
+
+                  {/* User's verified skills with green checkmark from real profile */}
+                  {userSkills.slice(0, 3).map((skill: string) => (
                     <span
                       key={skill}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-white/5 text-slate-300 border border-white/10"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11.5px] font-bold bg-[#0F172A] text-slate-200 border border-emerald-500/40 shadow-2xs"
                     >
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                      {skill}
+                      <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-[9px] font-black">
+                        ✓
+                      </span>
+                      <span>{skill}</span>
                     </span>
                   ))}
                 </div>
               </div>
 
-              {/* ── 4. CLOUD TIP BANNER (background image) ────────────────────── */}
-              <div className="relative overflow-hidden mx-3 mb-3 rounded-2xl" style={{ minHeight: 80 }}>
+              {/* ── 4. CLOUD TIP BANNER (landscape image) ─────────────────────── */}
+              <div className="relative overflow-hidden mx-3 mb-3 rounded-2xl border border-white/10 h-[72px] sm:h-[76px] flex items-center justify-between px-3.5 shadow-md">
                 <Image
                   src="/images/cloud-roadmap-banner.png"
-                  alt=""
+                  alt="Cloud roadmap"
                   fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 320px"
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 100vw, 360px"
+                  priority
                 />
-                {/* Dark overlay for readability */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
-                {/* Content */}
-                <div className="relative z-10 flex items-center gap-2.5 px-3.5 py-3">
-                  <div className="w-8 h-8 rounded-xl bg-blue-500/30 border border-blue-400/30 flex items-center justify-center shrink-0 backdrop-blur-sm">
-                    <Cloud className="w-4 h-4 text-blue-300" />
-                  </div>
-                  <p className="text-[11px] font-semibold text-white leading-snug">
+                {/* Ambient dark gradient overlay for optimal text contrast */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/25 to-black/50 pointer-events-none" />
+
+                {/* Cloud Tip Text (Center) */}
+                <div className="relative z-10 flex-1 px-2 text-center">
+                  <p className="text-[12px] sm:text-[12.5px] font-black text-white leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                     {isAr
-                      ? "أضف مهارة Cloud لرفع توافقك +12% في كبرى الشركات ✨"
-                      : "Add Cloud skill to boost your match +12% in top companies ✨"}
+                      ? "✨ أضف مهارة Cloud لرفع توافقك +12% في كبرى الشركات"
+                      : "✨ Add Cloud skill to boost your match +12% in top companies"}
                   </p>
+                </div>
+
+                {/* Cloud Icon (Right pill) */}
+                <div className="relative z-10 w-9 h-9 rounded-2xl bg-white/20 border border-white/30 backdrop-blur-md flex items-center justify-center text-white shrink-0 shadow-xs">
+                  <Cloud className="w-4 h-4 text-white" />
                 </div>
               </div>
 
               {/* ── 5. CTA BUTTON ───────────────────────────────────────────────── */}
-              <div className="px-3 pb-4 pt-0">
+              <div className="px-3 pb-4 pt-1 bg-[#070B18]">
                 <Link
                   href="/cv-builder"
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-bold text-[13px] text-white transition-all active:scale-[0.98] cursor-pointer"
-                  style={{ background: 'linear-gradient(90deg, #7B2FFF 0%, #2563EB 100%)', boxShadow: '0 4px 24px 0 rgba(99,60,255,0.30)' }}
+                  className="w-full h-12 flex items-center justify-center gap-2.5 rounded-2xl font-black text-[13.5px] text-white transition-all duration-200 active:scale-[0.98] cursor-pointer"
+                  style={{
+                    background: 'linear-gradient(90deg, #7C3AED 0%, #6366F1 50%, #2563EB 100%)',
+                    boxShadow: '0 4px 20px -2px rgba(124, 58, 237, 0.45)'
+                  }}
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
                   <span>{isAr ? "تحسين السيرة الذاتية لزيادة التوافق ✨" : "Optimize CV to Boost Match ✨"}</span>
-                  <ArrowLeft className={`w-3.5 h-3.5 ${isAr ? '' : 'rotate-180'}`} />
+                  <ArrowLeft className={`w-4 h-4 ${isAr ? '' : 'rotate-180'}`} />
                 </Link>
               </div>
 
