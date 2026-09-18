@@ -108,7 +108,8 @@ export function TechCard({ item, duplicate = false }: TechCardProps) {
           </span>
           <span
             className="tech-card-subtitle mt-0.5 whitespace-nowrap text-[11px] sm:text-[11.5px] font-semibold leading-tight tracking-wide"
-            style={{ color: `rgb(${a} / 0.95)` }}
+            dir={isAr ? "rtl" : "ltr"}
+            style={{ color: `rgb(${a} / 0.95)`, textAlign: isAr ? 'right' : 'left' }}
           >
             {isAr ? item.subtitleAr : item.subtitleEn}
           </span>

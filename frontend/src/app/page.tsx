@@ -310,15 +310,13 @@ export default function LandingPage() {
 
               {/* CTA Buttons Row */}
               <div className="flex flex-col sm:flex-row items-center lg:items-start gap-3 pt-1 w-full sm:w-auto">
-                {/* Primary Button */}
+                {/* Primary Button — Always navigates to sign up */}
                 <Link
-                  href={user ? "/dashboard" : "/signup"}
+                  href="/signup"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3 sm:py-3.5 rounded-[16px] sm:rounded-[18px] bg-gradient-to-r from-[#0062FF] to-[#0052E0] hover:from-[#0052E0] hover:to-[#0040C0] text-white font-bold text-[14px] sm:text-[15px] shadow-[0_10px_25px_-5px_rgba(0,102,255,0.5),0_0_15px_rgba(0,102,255,0.25)] hover:shadow-[0_14px_30px_-5px_rgba(0,102,255,0.65)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer"
                 >
                   <span>
-                    {user
-                      ? (isAr ? "الانتقال إلي لوحة التحكم" : "Go to Dashboard")
-                      : (isAr ? "ابدأ الآن — مجاناً" : "Get Started — Free")}
+                    {isAr ? "ابدأ الآن — مجاناً" : "Get Started — Free"}
                   </span>
                   <ArrowRight className={`w-4 h-4 text-white transition-transform ${isAr ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`} />
                 </Link>
