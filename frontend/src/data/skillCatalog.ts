@@ -18,8 +18,8 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: [],
     salaryUplift: 3,
     resources: [
-      { title: 'SQL for Data Analysis (full playlist)', provider: 'YouTube', kind: 'video', hours: 6, free: true, url: 'https://www.youtube.com/watch?v=HXV3zeRR3h4' },
-      { title: 'Modern SQL Deep Dive', provider: 'Coursera', kind: 'course', hours: 12, free: false, url: 'https://www.coursera.org/learn/sql-for-data-science' },
+      { title: 'SQL for Data Analysis (full playlist)', provider: 'YouTube', kind: 'video', hours: 6, free: true, url: 'https://www.youtube.com/watch?v=mXW7JHJM34k' },
+      { title: 'Modern SQL Deep Dive', provider: 'Coursera', kind: 'course', hours: 12, free: true, url: 'https://www.freecodecamp.org/learn/relational-database/' },
       { title: 'Window functions reference', provider: 'Official Docs', kind: 'docs', hours: 2, free: true, url: 'https://mode.com/sql-tutorial/sql-window-functions' }
     ]
   },
@@ -40,9 +40,9 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: [],
     salaryUplift: 4,
     resources: [
-      { title: 'Python for Data Engineering', provider: 'YouTube', kind: 'video', hours: 8, free: true, url: 'https://www.youtube.com/watch?v=mD_S-wO7W5c' },
-      { title: 'Data Analysis with Python', provider: 'Coursera', kind: 'course', hours: 16, free: false, url: 'https://www.coursera.org/learn/data-analysis-with-python' },
-      { title: 'Automate a weekly report', provider: 'Hands-on Project', kind: 'project', hours: 6, free: true, url: 'https://github.com/practical-tutorials/project-based-learning#python' }
+      { title: 'Python for Data Engineering', provider: 'YouTube', kind: 'video', hours: 8, free: true, url: 'https://www.youtube.com/watch?v=8DvywoWv6fI' },
+      { title: 'Data Analysis with Python', provider: 'Coursera', kind: 'course', hours: 16, free: true, url: 'https://www.freecodecamp.org/learn/data-analysis-with-python/' },
+      { title: 'Automate a weekly report', provider: 'Hands-on Project', kind: 'project', hours: 6, free: true, url: 'https://github.com/DataTalksClub/data-engineering-zoomcamp' }
     ]
   },
   git: {
@@ -84,9 +84,9 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['sql', 'python'],
     salaryUplift: 6,
     resources: [
-      { title: 'Building your first data pipeline', provider: 'YouTube', kind: 'video', hours: 5, free: true, url: 'https://www.youtube.com/watch?v=PHsC_t0j1OU' },
-      { title: 'Data Engineering Foundations', provider: 'Coursera', kind: 'course', hours: 18, free: false, url: 'https://www.coursera.org/specializations/data-engineering-foundations' },
-      { title: 'Ingest an open API into a warehouse', provider: 'Hands-on Project', kind: 'project', hours: 8, free: true, url: 'https://github.com/datastacktv/data-engineer-roadmap' }
+      { title: 'Building your first data pipeline', provider: 'YouTube', kind: 'video', hours: 5, free: true, url: 'https://www.youtube.com/@DarshilParmar' },
+      { title: 'Data Engineering Foundations', provider: 'Coursera', kind: 'course', hours: 18, free: true, url: 'https://github.com/DataTalksClub/data-engineering-zoomcamp' },
+      { title: 'Ingest an open API into a warehouse', provider: 'Hands-on Project', kind: 'project', hours: 8, free: true, url: 'https://dlthub.com/docs/getting-started' }
     ]
   },
   docker: {
@@ -107,7 +107,7 @@ export const SKILLS: Record<string, SkillDefinition> = {
     salaryUplift: 5,
     resources: [
       { title: 'Docker for data teams', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=fqMOX6JJhGo' },
-      { title: 'Containers & Orchestration', provider: 'Coursera', kind: 'course', hours: 14, free: false, url: 'https://www.coursera.org/learn/ibm-containers-docker-kubernetes-openshift' },
+      { title: 'Containers & Orchestration', provider: 'Coursera', kind: 'course', hours: 14, free: true, url: 'https://www.youtube.com/watch?v=3c-iBn73dDE' },
       { title: 'Docker getting started guide', provider: 'Official Docs', kind: 'docs', hours: 3, free: true, url: 'https://docs.docker.com/get-started/' }
     ]
   },
@@ -129,7 +129,7 @@ export const SKILLS: Record<string, SkillDefinition> = {
     salaryUplift: 6,
     resources: [
       { title: 'Airflow from zero to DAGs', provider: 'YouTube', kind: 'video', hours: 6, free: true, url: 'https://www.youtube.com/watch?v=K9AnJ9_ZAXE' },
-      { title: 'Orchestrating Data Pipelines', provider: 'Coursera', kind: 'course', hours: 20, free: false, url: 'https://www.coursera.org/learn/data-engineering-pipelines' },
+      { title: 'Orchestrating Data Pipelines', provider: 'Coursera', kind: 'course', hours: 20, free: true, url: 'https://www.astronomer.io/tutorials/' },
       { title: 'Airflow concepts documentation', provider: 'Official Docs', kind: 'docs', hours: 4, free: true, url: 'https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/index.html' }
     ]
 
@@ -151,8 +151,8 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['sql'],
     salaryUplift: 4,
     resources: [
-      { title: 'Dimensional modeling explained', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=f0U_Rz3Y4J0' },
-      { title: 'Data Warehouse Design', provider: 'Coursera', kind: 'course', hours: 12, free: false, url: 'https://www.coursera.org/learn/data-warehouse-design' },
+      { title: 'Dimensional modeling explained', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=aEGan35iBbE' },
+      { title: 'Data Warehouse Design', provider: 'Coursera', kind: 'course', hours: 12, free: true, url: 'https://www.youtube.com/watch?v=GTvRjJlJ_b4' },
       { title: 'Model a retail sales mart', provider: 'Hands-on Project', kind: 'project', hours: 6, free: true, url: 'https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/' }
     ]
   },
@@ -173,8 +173,8 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['sql'],
     salaryUplift: 3,
     resources: [
-      { title: 'PostgreSQL performance basics', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=qw--VYLpxG4' },
-      { title: 'Relational Databases in Practice', provider: 'Coursera', kind: 'course', hours: 10, free: false, url: 'https://www.coursera.org/learn/relational-database-basics' },
+      { title: 'PostgreSQL performance basics', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=85pG_pDkITY' },
+      { title: 'Relational Databases in Practice', provider: 'Coursera', kind: 'course', hours: 10, free: true, url: 'https://www.freecodecamp.org/learn/relational-database/' },
       { title: 'PostgreSQL manual', provider: 'Official Docs', kind: 'docs', hours: 4, free: true, url: 'https://www.postgresql.org/docs/' }
     ]
   },
@@ -195,8 +195,8 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['python', 'etl'],
     salaryUplift: 5,
     resources: [
-      { title: 'PySpark in one evening', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=_C8kWso4dU4' },
-      { title: 'Big Data Processing', provider: 'Coursera', kind: 'course', hours: 16, free: false, url: 'https://www.coursera.org/learn/big-data-processing-spark' },
+      { title: 'PySpark in one evening', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=y8L6m2e987c' },
+      { title: 'Big Data Processing', provider: 'Coursera', kind: 'course', hours: 16, free: true, url: 'https://community.cloud.databricks.com/' },
       { title: 'Spark SQL guide', provider: 'Official Docs', kind: 'docs', hours: 3, free: true, url: 'https://spark.apache.org/docs/latest/sql-programming-guide.html' }
     ]
   },
@@ -217,8 +217,8 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['python', 'docker'],
     salaryUplift: 7,
     resources: [
-      { title: 'Kafka fundamentals', provider: 'YouTube', kind: 'video', hours: 5, free: true, url: 'https://www.youtube.com/watch?v=Ch5VhJzaoaI' },
-      { title: 'Streaming Systems', provider: 'Coursera', kind: 'course', hours: 22, free: false, url: 'https://www.coursera.org/learn/distributed-programming-in-java' },
+      { title: 'Kafka fundamentals', provider: 'YouTube', kind: 'video', hours: 5, free: true, url: 'https://www.youtube.com/watch?v=uvb00oaa3k8' },
+      { title: 'Streaming Systems', provider: 'Coursera', kind: 'course', hours: 22, free: true, url: 'https://developer.confluent.io/tutorials/' },
       { title: 'Kafka documentation', provider: 'Official Docs', kind: 'docs', hours: 5, free: true, url: 'https://kafka.apache.org/documentation/' }
     ]
   },
@@ -240,7 +240,7 @@ export const SKILLS: Record<string, SkillDefinition> = {
     salaryUplift: 4,
     resources: [
       { title: 'dbt in 60 minutes', provider: 'YouTube', kind: 'video', hours: 2, free: true, url: 'https://www.youtube.com/watch?v=4eGJ4b0L724' },
-      { title: 'Analytics Engineering with dbt', provider: 'Coursera', kind: 'course', hours: 10, free: false, url: 'https://courses.getdbt.com/courses/fundamentals' },
+      { title: 'Analytics Engineering with dbt', provider: 'Coursera', kind: 'course', hours: 10, free: true, url: 'https://courses.getdbt.com/courses/fundamentals' },
       { title: 'dbt developer hub', provider: 'Official Docs', kind: 'docs', hours: 3, free: true, url: 'https://docs.getdbt.com/' }
     ]
   },
@@ -261,8 +261,8 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['sql', 'data-modeling'],
     salaryUplift: 5,
     resources: [
-      { title: 'Snowflake architecture explained', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=vY3u3WvLg_k' },
-      { title: 'Cloud Data Warehousing', provider: 'Coursera', kind: 'course', hours: 12, free: false, url: 'https://www.coursera.org/learn/data-warehouse-concepts' },
+      { title: 'Snowflake architecture explained', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=nW0RM7zs8oY' },
+      { title: 'Cloud Data Warehousing', provider: 'Coursera', kind: 'course', hours: 12, free: true, url: 'https://quickstarts.snowflake.com/' },
       { title: 'Snowflake quickstarts', provider: 'Official Docs', kind: 'docs', hours: 4, free: true, url: 'https://quickstarts.snowflake.com/' }
     ]
   },
@@ -284,7 +284,7 @@ export const SKILLS: Record<string, SkillDefinition> = {
     salaryUplift: 3,
     resources: [
       { title: 'Power BI end-to-end project', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=TmhQCQr_8CA' },
-      { title: 'Business Intelligence with Power BI', provider: 'Coursera', kind: 'course', hours: 14, free: false, url: 'https://www.coursera.org/learn/microsoft-power-bi-data-analyst' },
+      { title: 'Business Intelligence with Power BI', provider: 'Coursera', kind: 'course', hours: 14, free: true, url: 'https://learn.microsoft.com/en-us/training/powerplatform/power-bi' },
       { title: 'Power BI learning path', provider: 'Official Docs', kind: 'docs', hours: 5, free: true, url: 'https://learn.microsoft.com/en-us/training/powerplatform/power-bi' }
     ]
   },
@@ -305,8 +305,8 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['powerbi'],
     salaryUplift: 2,
     resources: [
-      { title: 'DAX filter context masterclass', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=482vW4-X72o' },
-      { title: 'Advanced DAX Patterns', provider: 'Coursera', kind: 'course', hours: 9, free: false, url: 'https://www.daxpatterns.com/' },
+      { title: 'DAX filter context masterclass', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=MNMmE8OPpbY' },
+      { title: 'Advanced DAX Patterns', provider: 'Coursera', kind: 'course', hours: 9, free: true, url: 'https://www.daxpatterns.com/' },
       { title: 'DAX function reference', provider: 'Official Docs', kind: 'docs', hours: 3, free: true, url: 'https://learn.microsoft.com/en-us/dax/' }
     ]
   },
@@ -327,8 +327,8 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: [],
     salaryUplift: 1,
     resources: [
-      { title: 'Power Query for analysts', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=yYmCqY1H_6Q' },
-      { title: 'Excel Skills for Business', provider: 'Coursera', kind: 'course', hours: 10, free: false, url: 'https://www.coursera.org/specializations/excel' },
+      { title: 'Power Query for analysts', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=PSNXoAs2FtQ' },
+      { title: 'Excel Skills for Business', provider: 'Coursera', kind: 'course', hours: 10, free: true, url: 'https://exceljet.net/formulas' },
       { title: 'Clean a messy workbook', provider: 'Hands-on Project', kind: 'project', hours: 4, free: true, url: 'https://support.microsoft.com/en-us/office/power-query-overview-and-learning' }
     ]
   },
@@ -350,7 +350,7 @@ export const SKILLS: Record<string, SkillDefinition> = {
     salaryUplift: 2,
     resources: [
       { title: 'Tableau desktop essentials', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=f_sm7j3d5pY' },
-      { title: 'Data Visualization with Tableau', provider: 'Coursera', kind: 'course', hours: 12, free: false, url: 'https://www.coursera.org/specializations/data-visualization' },
+      { title: 'Data Visualization with Tableau', provider: 'Coursera', kind: 'course', hours: 12, free: true, url: 'https://www.tableau.com/learn/training' },
       { title: 'Tableau Public gallery', provider: 'Hands-on Project', kind: 'project', hours: 5, free: true, url: 'https://public.tableau.com/app/discover' }
     ]
   },
@@ -371,8 +371,8 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: [],
     salaryUplift: 3,
     resources: [
-      { title: 'Practical statistics for analysts', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=xxpc-HPKN28' },
-      { title: 'Inferential Statistics', provider: 'Coursera', kind: 'course', hours: 14, free: false, url: 'https://www.coursera.org/learn/inferential-statistics-intro' },
+      { title: 'Practical statistics for analysts', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=Xn7KWR9EO40' },
+      { title: 'Inferential Statistics', provider: 'Coursera', kind: 'course', hours: 14, free: true, url: 'https://www.freecodecamp.org/learn/data-analysis-with-python/' },
       { title: 'Design an A/B test readout', provider: 'Hands-on Project', kind: 'project', hours: 5, free: true, url: 'https://online.stat.psu.edu/stat500/' }
     ]
   },
@@ -394,7 +394,7 @@ export const SKILLS: Record<string, SkillDefinition> = {
     salaryUplift: 2,
     resources: [
       { title: 'Storytelling with data', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=8EMW7io4rSI' },
-      { title: 'Data Visualization Principles', provider: 'Coursera', kind: 'course', hours: 8, free: false, url: 'https://www.coursera.org/learn/visual-analytics' },
+      { title: 'Data Visualization Principles', provider: 'Coursera', kind: 'course', hours: 8, free: true, url: 'https://datavizcatalogue.com/' },
       { title: 'Redesign a public dashboard', provider: 'Hands-on Project', kind: 'project', hours: 5, free: true, url: 'https://www.storytellingwithdata.com/' }
     ]
   }
