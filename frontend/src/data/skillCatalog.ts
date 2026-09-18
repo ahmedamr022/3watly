@@ -18,9 +18,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: [],
     salaryUplift: 3,
     resources: [
-      { title: 'SQL for Data Analysis (full playlist)', provider: 'YouTube', kind: 'video', hours: 6, free: true, url: 'https://www.youtube.com/watch?v=mXW7JHJM34k' },
-      { title: 'Modern SQL Deep Dive', provider: 'Coursera', kind: 'course', hours: 12, free: true, url: 'https://www.freecodecamp.org/learn/relational-database/' },
-      { title: 'Window functions reference', provider: 'Official Docs', kind: 'docs', hours: 2, free: true, url: 'https://mode.com/sql-tutorial/sql-window-functions' }
+      { title: "SQL Full Database Course for Beginners", provider: "freeCodeCamp", kind: "video", hours: 4, free: true, url: "https://www.youtube.com/watch?v=HXV3zeQKqGY" },
+      { title: "SQL for Data Science", provider: "Coursera", kind: "course", hours: 14, free: false, url: "https://www.coursera.org/learn/sql-for-data-science" },
+      { title: "SQL & Window Functions Interactive Reference", provider: "Mode Analytics", kind: "docs", hours: 3, free: true, url: "https://mode.com/sql-tutorial/sql-window-functions" },
+      { title: "SQL Data Cleaning & Analysis Portfolio Project", provider: "GitHub", kind: "project", hours: 6, free: true, url: "https://github.com/AlexTheAnalyst/PortfolioProjects/blob/main/Data%20Cleaning%20Portfolio%20Project%20Queries.sql" }
     ]
   },
   python: {
@@ -40,9 +41,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: [],
     salaryUplift: 4,
     resources: [
-      { title: 'Python for Data Engineering', provider: 'YouTube', kind: 'video', hours: 8, free: true, url: 'https://www.youtube.com/watch?v=8DvywoWv6fI' },
-      { title: 'Data Analysis with Python', provider: 'Coursera', kind: 'course', hours: 16, free: true, url: 'https://www.freecodecamp.org/learn/data-analysis-with-python/' },
-      { title: 'Automate a weekly report', provider: 'Hands-on Project', kind: 'project', hours: 6, free: true, url: 'https://github.com/DataTalksClub/data-engineering-zoomcamp' }
+      { title: "Python for Beginners — Full 14-Hour Course", provider: "freeCodeCamp", kind: "video", hours: 14, free: true, url: "https://www.youtube.com/watch?v=8DvywoWv6fI" },
+      { title: "Python for Everybody Specialization", provider: "Coursera", kind: "course", hours: 24, free: false, url: "https://www.coursera.org/specializations/python" },
+      { title: "Python 3 Official Tutorial & Documentation", provider: "Python Docs", kind: "docs", hours: 4, free: true, url: "https://docs.python.org/3/tutorial/" },
+      { title: "Data Cleaning & Web Scraping Portfolio Project", provider: "GitHub", kind: "project", hours: 6, free: true, url: "https://github.com/AlexTheAnalyst/PortfolioProjects/blob/main/Amazon%20Web%20Scraper%20Project.ipynb" }
     ]
   },
   git: {
@@ -62,9 +64,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: [],
     salaryUplift: 1,
     resources: [
-      { title: 'Git & GitHub crash course', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=RGOj5yH7evk' },
-      { title: 'Version Control Fundamentals', provider: 'Coursera', kind: 'course', hours: 6, free: false, url: 'https://www.coursera.org/learn/version-control-with-git' },
-      { title: 'Pro Git handbook', provider: 'Official Docs', kind: 'docs', hours: 4, free: true, url: 'https://git-scm.com/book/en/v2' }
+      { title: "Git & GitHub Crash Course for Beginners", provider: "freeCodeCamp", kind: "video", hours: 3, free: true, url: "https://www.youtube.com/watch?v=RGOj5yH7evk" },
+      { title: "Version Control with Git", provider: "Coursera", kind: "course", hours: 8, free: false, url: "https://www.coursera.org/learn/version-control-with-git" },
+      { title: "Pro Git Official Guide & Reference", provider: "Git-SCM", kind: "docs", hours: 4, free: true, url: "https://git-scm.com/book/en/v2" },
+      { title: "Learn Git Branching (Interactive Visual Sandbox)", provider: "LearnGitBranching", kind: "project", hours: 3, free: true, url: "https://learngitbranching.js.org/" }
     ]
   },
   etl: {
@@ -84,9 +87,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['sql', 'python'],
     salaryUplift: 6,
     resources: [
-      { title: 'Building your first data pipeline', provider: 'YouTube', kind: 'video', hours: 5, free: true, url: 'https://www.youtube.com/@DarshilParmar' },
-      { title: 'Data Engineering Foundations', provider: 'Coursera', kind: 'course', hours: 18, free: true, url: 'https://github.com/DataTalksClub/data-engineering-zoomcamp' },
-      { title: 'Ingest an open API into a warehouse', provider: 'Hands-on Project', kind: 'project', hours: 8, free: true, url: 'https://dlthub.com/docs/getting-started' }
+      { title: "Building an End-to-End Data Pipeline from Scratch", provider: "YouTube", kind: "video", hours: 5, free: true, url: "https://www.youtube.com/watch?v=qWru-b6m030" },
+      { title: "Data Engineering Foundations Specialization", provider: "Coursera", kind: "course", hours: 20, free: false, url: "https://www.coursera.org/specializations/data-engineering-foundations" },
+      { title: "Data Engineering Zoomcamp (Full Free Curriculum)", provider: "DataTalks.Club", kind: "docs", hours: 8, free: true, url: "https://github.com/DataTalksClub/data-engineering-zoomcamp" },
+      { title: "End-to-End Data Engineering Tutorial Series & Code", provider: "GitHub", kind: "project", hours: 8, free: true, url: "https://github.com/darshilparmar/Data-Engineer-Tutorial-Series" }
     ]
   },
   docker: {
@@ -106,9 +110,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['python'],
     salaryUplift: 5,
     resources: [
-      { title: 'Docker for data teams', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=fqMOX6JJhGo' },
-      { title: 'Containers & Orchestration', provider: 'Coursera', kind: 'course', hours: 14, free: true, url: 'https://www.youtube.com/watch?v=3c-iBn73dDE' },
-      { title: 'Docker getting started guide', provider: 'Official Docs', kind: 'docs', hours: 3, free: true, url: 'https://docs.docker.com/get-started/' }
+      { title: "Docker Full Course for Beginners", provider: "freeCodeCamp", kind: "video", hours: 4, free: true, url: "https://www.youtube.com/watch?v=fqMOX6JJhGo" },
+      { title: "Introduction to Containers with Docker & Kubernetes", provider: "Coursera", kind: "course", hours: 12, free: false, url: "https://www.coursera.org/learn/ibm-containers-docker-kubernetes-openshift" },
+      { title: "Docker Getting Started Guide", provider: "Docker Docs", kind: "docs", hours: 3, free: true, url: "https://docs.docker.com/get-started/" },
+      { title: "Docker Compose Containerized Data Pipeline", provider: "GitHub", kind: "project", hours: 6, free: true, url: "https://github.com/DataTalksClub/data-engineering-zoomcamp/tree/main/01-docker-terraform" }
     ]
   },
   airflow: {
@@ -128,9 +133,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['python', 'etl'],
     salaryUplift: 6,
     resources: [
-      { title: 'Airflow from zero to DAGs', provider: 'YouTube', kind: 'video', hours: 6, free: true, url: 'https://www.youtube.com/watch?v=K9AnJ9_ZAXE' },
-      { title: 'Orchestrating Data Pipelines', provider: 'Coursera', kind: 'course', hours: 20, free: true, url: 'https://www.astronomer.io/tutorials/' },
-      { title: 'Airflow concepts documentation', provider: 'Official Docs', kind: 'docs', hours: 4, free: true, url: 'https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/index.html' }
+      { title: "Apache Airflow Complete Course for Beginners", provider: "YouTube", kind: "video", hours: 5, free: true, url: "https://www.youtube.com/watch?v=K9AnJ9_ZAXE" },
+      { title: "ETL and Data Pipelines with Shell, Airflow & Kafka", provider: "Coursera", kind: "course", hours: 14, free: false, url: "https://www.coursera.org/learn/etl-and-data-pipelines-shell-airflow-kafka" },
+      { title: "Airflow Core Concepts & TaskFlow API Docs", provider: "Apache Airflow Docs", kind: "docs", hours: 4, free: true, url: "https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/index.html" },
+      { title: "End-to-End Real-Time Data Pipeline with Airflow", provider: "GitHub", kind: "project", hours: 8, free: true, url: "https://github.com/airscholar/e2e-data-engineering" }
     ]
 
   },
@@ -173,9 +179,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['sql'],
     salaryUplift: 3,
     resources: [
-      { title: 'PostgreSQL performance basics', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=85pG_pDkITY' },
-      { title: 'Relational Databases in Practice', provider: 'Coursera', kind: 'course', hours: 10, free: true, url: 'https://www.freecodecamp.org/learn/relational-database/' },
-      { title: 'PostgreSQL manual', provider: 'Official Docs', kind: 'docs', hours: 4, free: true, url: 'https://www.postgresql.org/docs/' }
+      { title: "PostgreSQL Full Course for Beginners", provider: "freeCodeCamp", kind: "video", hours: 4, free: true, url: "https://www.youtube.com/watch?v=qw--VYLpxG4" },
+      { title: "PostgreSQL for Everybody Specialization", provider: "Coursera", kind: "course", hours: 16, free: false, url: "https://www.coursera.org/specializations/postgresql-for-everybody" },
+      { title: "Official PostgreSQL Manual & Reference", provider: "PostgreSQL Docs", kind: "docs", hours: 4, free: true, url: "https://www.postgresql.org/docs/" },
+      { title: "Northwind Database SQL Analytics & Schema", provider: "GitHub", kind: "project", hours: 5, free: true, url: "https://github.com/pthom/northwind_psql" }
     ]
   },
   spark: {
@@ -195,9 +202,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['python', 'etl'],
     salaryUplift: 5,
     resources: [
-      { title: 'PySpark in one evening', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=y8L6m2e987c' },
-      { title: 'Big Data Processing', provider: 'Coursera', kind: 'course', hours: 16, free: true, url: 'https://community.cloud.databricks.com/' },
-      { title: 'Spark SQL guide', provider: 'Official Docs', kind: 'docs', hours: 3, free: true, url: 'https://spark.apache.org/docs/latest/sql-programming-guide.html' }
+      { title: "PySpark Tutorial — Full Course Zero to Pro", provider: "YouTube", kind: "video", hours: 6, free: true, url: "https://www.youtube.com/watch?v=y8L6m2e987c" },
+      { title: "Big Data Specialization with Apache Spark", provider: "Coursera", kind: "course", hours: 24, free: false, url: "https://www.coursera.org/specializations/big-data" },
+      { title: "PySpark SQL Programming Guide", provider: "Apache Spark Docs", kind: "docs", hours: 4, free: true, url: "https://spark.apache.org/docs/latest/sql-programming-guide.html" },
+      { title: "Spark Batch Processing on Real-world Taxi Dataset", provider: "GitHub", kind: "project", hours: 6, free: true, url: "https://github.com/DataTalksClub/data-engineering-zoomcamp/tree/main/05-batch" }
     ]
   },
   kafka: {
@@ -217,9 +225,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['python', 'docker'],
     salaryUplift: 7,
     resources: [
-      { title: 'Kafka fundamentals', provider: 'YouTube', kind: 'video', hours: 5, free: true, url: 'https://www.youtube.com/watch?v=uvb00oaa3k8' },
-      { title: 'Streaming Systems', provider: 'Coursera', kind: 'course', hours: 22, free: true, url: 'https://developer.confluent.io/tutorials/' },
-      { title: 'Kafka documentation', provider: 'Official Docs', kind: 'docs', hours: 5, free: true, url: 'https://kafka.apache.org/documentation/' }
+      { title: "Apache Kafka Crash Course (KRaft Mode & Docker)", provider: "YouTube", kind: "video", hours: 4, free: true, url: "https://www.youtube.com/watch?v=R873BlNVUB4" },
+      { title: "Confluent Kafka Developer Learning Path", provider: "Confluent Developer", kind: "course", hours: 12, free: true, url: "https://developer.confluent.io/courses/" },
+      { title: "Apache Kafka Official Documentation", provider: "Apache Kafka Docs", kind: "docs", hours: 5, free: true, url: "https://kafka.apache.org/documentation/" },
+      { title: "Real-Time Streaming Pipeline with Kafka & Docker", provider: "GitHub", kind: "project", hours: 8, free: true, url: "https://github.com/airscholar/e2e-data-engineering" }
     ]
   },
   dbt: {
@@ -239,9 +248,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['sql', 'data-modeling'],
     salaryUplift: 4,
     resources: [
-      { title: 'dbt in 60 minutes', provider: 'YouTube', kind: 'video', hours: 2, free: true, url: 'https://www.youtube.com/watch?v=4eGJ4b0L724' },
-      { title: 'Analytics Engineering with dbt', provider: 'Coursera', kind: 'course', hours: 10, free: true, url: 'https://courses.getdbt.com/courses/fundamentals' },
-      { title: 'dbt developer hub', provider: 'Official Docs', kind: 'docs', hours: 3, free: true, url: 'https://docs.getdbt.com/' }
+      { title: "dbt (Data Build Tool) Complete Tutorial with CI/CD", provider: "YouTube", kind: "video", hours: 5, free: true, url: "https://www.youtube.com/watch?v=4eGJ4b0L724" },
+      { title: "dbt Fundamentals (Official Free Certification)", provider: "dbt Labs", kind: "course", hours: 5, free: true, url: "https://courses.getdbt.com/courses/fundamentals" },
+      { title: "dbt Official Developer Documentation", provider: "dbt Docs", kind: "docs", hours: 3, free: true, url: "https://docs.getdbt.com/" },
+      { title: "Production dbt Transformations with Jaffle Shop", provider: "GitHub", kind: "project", hours: 6, free: true, url: "https://github.com/dbt-labs/jaffle_shop" }
     ]
   },
   snowflake: {
@@ -261,9 +271,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['sql', 'data-modeling'],
     salaryUplift: 5,
     resources: [
-      { title: 'Snowflake architecture explained', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=nW0RM7zs8oY' },
-      { title: 'Cloud Data Warehousing', provider: 'Coursera', kind: 'course', hours: 12, free: true, url: 'https://quickstarts.snowflake.com/' },
-      { title: 'Snowflake quickstarts', provider: 'Official Docs', kind: 'docs', hours: 4, free: true, url: 'https://quickstarts.snowflake.com/' }
+      { title: "Snowflake Cloud Data Warehouse Full Course", provider: "YouTube", kind: "video", hours: 4, free: true, url: "https://www.youtube.com/watch?v=vY3u3WvLg_k" },
+      { title: "Snowflake Hands-on Essentials & Badges", provider: "Snowflake Learn", kind: "course", hours: 10, free: true, url: "https://learn.snowflake.com/" },
+      { title: "Snowflake Official Documentation", provider: "Snowflake Docs", kind: "docs", hours: 4, free: true, url: "https://docs.snowflake.com/" },
+      { title: "Data Engineering Pipelines with Snowflake Quickstart", provider: "Snowflake Quickstarts", kind: "project", hours: 5, free: true, url: "https://quickstarts.snowflake.com/" }
     ]
   },
   powerbi: {
@@ -283,9 +294,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['sql'],
     salaryUplift: 3,
     resources: [
-      { title: 'Power BI end-to-end project', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=TmhQCQr_8CA' },
-      { title: 'Business Intelligence with Power BI', provider: 'Coursera', kind: 'course', hours: 14, free: true, url: 'https://learn.microsoft.com/en-us/training/powerplatform/power-bi' },
-      { title: 'Power BI learning path', provider: 'Official Docs', kind: 'docs', hours: 5, free: true, url: 'https://learn.microsoft.com/en-us/training/powerplatform/power-bi' }
+      { title: "Power BI Full Course — Beginner to Advanced", provider: "YouTube", kind: "video", hours: 4, free: true, url: "https://www.youtube.com/watch?v=TmhQCQr_8CA" },
+      { title: "Microsoft Power BI Data Analyst Professional Certificate", provider: "Coursera", kind: "course", hours: 24, free: false, url: "https://www.coursera.org/professional-certificates/microsoft-power-bi-data-analyst" },
+      { title: "Microsoft Power BI Official Learning Path", provider: "Microsoft Learn", kind: "docs", hours: 6, free: true, url: "https://learn.microsoft.com/en-us/training/powerplatform/power-bi" },
+      { title: "End-to-End Power BI Portfolio Dashboard Project", provider: "GitHub", kind: "project", hours: 6, free: true, url: "https://github.com/AlexTheAnalyst/PortfolioProjects/blob/main/Power%20BI%20Project.pbix" }
     ]
   },
   dax: {
@@ -305,9 +317,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['powerbi'],
     salaryUplift: 2,
     resources: [
-      { title: 'DAX filter context masterclass', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=MNMmE8OPpbY' },
-      { title: 'Advanced DAX Patterns', provider: 'Coursera', kind: 'course', hours: 9, free: true, url: 'https://www.daxpatterns.com/' },
-      { title: 'DAX function reference', provider: 'Official Docs', kind: 'docs', hours: 3, free: true, url: 'https://learn.microsoft.com/en-us/dax/' }
+      { title: "DAX Filter Context Masterclass (SQLBI)", provider: "YouTube", kind: "video", hours: 3, free: true, url: "https://www.youtube.com/watch?v=482vW4-X72o" },
+      { title: "Introducing DAX Video Course", provider: "SQLBI", kind: "course", hours: 6, free: true, url: "https://www.sqlbi.com/p/introducing-dax-video-course/" },
+      { title: "DAX Functions Reference Guide", provider: "DAX Guide", kind: "docs", hours: 3, free: true, url: "https://dax.guide/" },
+      { title: "DAX Calculation Patterns & Financial Models", provider: "DAX Patterns", kind: "project", hours: 5, free: true, url: "https://www.daxpatterns.com/" }
     ]
   },
   excel: {
@@ -327,9 +340,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: [],
     salaryUplift: 1,
     resources: [
-      { title: 'Power Query for analysts', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=PSNXoAs2FtQ' },
-      { title: 'Excel Skills for Business', provider: 'Coursera', kind: 'course', hours: 10, free: true, url: 'https://exceljet.net/formulas' },
-      { title: 'Clean a messy workbook', provider: 'Hands-on Project', kind: 'project', hours: 4, free: true, url: 'https://support.microsoft.com/en-us/office/power-query-overview-and-learning' }
+      { title: "Excel for Data Analysts — Full 5-Hour Course", provider: "freeCodeCamp", kind: "video", hours: 5, free: true, url: "https://www.youtube.com/watch?v=PSNXoAs2FtQ" },
+      { title: "Excel Skills for Business Specialization", provider: "Coursera", kind: "course", hours: 18, free: false, url: "https://www.coursera.org/specializations/excel" },
+      { title: "Excel Functions & Formulas Reference", provider: "ExcelJet", kind: "docs", hours: 2, free: true, url: "https://exceljet.net/formulas" },
+      { title: "Excel Sales & Customer Dashboard Project Dataset", provider: "GitHub", kind: "project", hours: 5, free: true, url: "https://github.com/AlexTheAnalyst/PortfolioProjects/blob/main/Excel%20Project%20Dataset.xlsx" }
     ]
   },
   tableau: {
@@ -349,9 +363,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: ['data-viz'],
     salaryUplift: 2,
     resources: [
-      { title: 'Tableau desktop essentials', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=f_sm7j3d5pY' },
-      { title: 'Data Visualization with Tableau', provider: 'Coursera', kind: 'course', hours: 12, free: true, url: 'https://www.tableau.com/learn/training' },
-      { title: 'Tableau Public gallery', provider: 'Hands-on Project', kind: 'project', hours: 5, free: true, url: 'https://public.tableau.com/app/discover' }
+      { title: "Tableau Desktop Full Course for Beginners", provider: "freeCodeCamp", kind: "video", hours: 4, free: true, url: "https://www.youtube.com/watch?v=f_sm7j3d5pY" },
+      { title: "Data Visualization with Tableau Specialization", provider: "Coursera", kind: "course", hours: 16, free: false, url: "https://www.coursera.org/specializations/data-visualization" },
+      { title: "Tableau Official Video Training & Guides", provider: "Tableau", kind: "docs", hours: 6, free: true, url: "https://www.tableau.com/learn/training" },
+      { title: "Tableau Public Interactive Portfolio Gallery", provider: "Tableau Public", kind: "project", hours: 5, free: true, url: "https://public.tableau.com/app/discover" }
     ]
   },
   statistics: {
@@ -371,9 +386,10 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: [],
     salaryUplift: 3,
     resources: [
-      { title: 'Practical statistics for analysts', provider: 'YouTube', kind: 'video', hours: 4, free: true, url: 'https://www.youtube.com/watch?v=Xn7KWR9EO40' },
-      { title: 'Inferential Statistics', provider: 'Coursera', kind: 'course', hours: 14, free: true, url: 'https://www.freecodecamp.org/learn/data-analysis-with-python/' },
-      { title: 'Design an A/B test readout', provider: 'Hands-on Project', kind: 'project', hours: 5, free: true, url: 'https://online.stat.psu.edu/stat500/' }
+      { title: "Statistics — Full University Course on Data Science", provider: "freeCodeCamp", kind: "video", hours: 8, free: true, url: "https://www.youtube.com/watch?v=Xn7KWR9EO40" },
+      { title: "Basic Statistics (University of Amsterdam)", provider: "Coursera", kind: "course", hours: 14, free: false, url: "https://www.coursera.org/learn/basic-statistics" },
+      { title: "Applied Statistics STAT 500 Online Handbook", provider: "Penn State Online", kind: "docs", hours: 8, free: true, url: "https://online.stat.psu.edu/stat500/" },
+      { title: "Exploratory Data Analysis & Correlation Project in Python", provider: "GitHub", kind: "project", hours: 5, free: true, url: "https://github.com/AlexTheAnalyst/PortfolioProjects/blob/main/Movie%20Industry%20Correlation%20Project.ipynb" }
     ]
   },
   'data-viz': {

@@ -35,6 +35,38 @@ import { mockDashboardData, JobItem } from '@/data/jobs';
 import { ApplyModal } from '@/components/jobs/ApplyModal';
 import { toast } from 'sonner';
 
+function getLiveTimeAgo(postedAt: string | null | undefined, fallback: string, isAr: boolean): string {
+  if (!postedAt) return fallback;
+  try {
+    const time = new Date(postedAt).getTime();
+    if (isNaN(time)) return fallback;
+    const diff = Math.max(0, Date.now() - time);
+    const minutes = Math.floor(diff / 60_000);
+    const hours = Math.floor(diff / 3_600_000);
+    const days = Math.floor(diff / 86_400_000);
+
+    if (minutes < 2) return isAr ? 'الآن' : 'Just now';
+    if (minutes < 60) return isAr ? `منذ ${minutes} دقيقة` : `${minutes}m ago`;
+    if (hours === 1) return isAr ? 'منذ ساعة' : '1h ago';
+    if (hours === 2) return isAr ? 'منذ ساعتين' : '2h ago';
+    if (hours >= 3 && hours <= 10) return isAr ? `منذ ${hours} ساعات` : `${hours}h ago`;
+    if (hours < 24) return isAr ? `منذ ${hours} ساعة` : `${hours}h ago`;
+
+    if (days === 1) return isAr ? 'منذ يوم' : '1d ago';
+    if (days === 2) return isAr ? 'منذ يومين' : '2d ago';
+    if (days >= 3 && days <= 10) return isAr ? `منذ ${days} أيام` : `${days}d ago`;
+    if (days < 30) return isAr ? `منذ ${days} يوماً` : `${days}d ago`;
+
+    const months = Math.floor(days / 30);
+    if (months === 1) return isAr ? 'منذ شهر' : '1mo ago';
+    if (months === 2) return isAr ? 'منذ شهرين' : '2mo ago';
+    if (months >= 3 && months <= 10) return isAr ? `منذ ${months} أشهر` : `${months}mo ago`;
+    return isAr ? `منذ ${months} شهراً` : `${months}mo ago`;
+  } catch {
+    return fallback;
+  }
+}
+
 function JobsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -68,6 +100,13 @@ function JobsPageContent() {
         }
       }
     } catch {}
+  }, []);
+
+  // Live minute ticker to update relative job times dynamically
+  const [, setNowTick] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNowTick(Date.now()), 60_000);
+    return () => clearInterval(timer);
   }, []);
 
   // User skills & target role for personalized feed matching
@@ -820,7 +859,7 @@ function JobsPageContent() {
                           {job.matchScore != null && userSkills.length > 0 ? (isAr ? "توافق" : "Match") : (isAr ? "يتطلب CV" : "Needs CV")}
                         </span>
                         <span className="text-[10.5px] text-slate-400 mt-1">
-                          {isAr ? job.postedAgoAr : job.postedAgo}
+                          {getLiveTimeAgo((job as any).postedAt, isAr ? job.postedAgoAr : job.postedAgo, isAr)}
                         </span>
                       </div>
 

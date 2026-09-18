@@ -20,6 +20,7 @@ export interface JobItem {
   salaryRange: string;
   salaryRangeAr: string;
   matchScore: number | null;
+  postedAt?: string | null;
   postedAgo: string;
   postedAgoAr: string;
   applicantsCount: number | null;

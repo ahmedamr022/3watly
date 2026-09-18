@@ -41,21 +41,27 @@ function normalizeWorkType(raw: string | null, isRemote: boolean): JobItem['work
 function timeAgo(dateStr: string | null): { en: string; ar: string } {
   if (!dateStr) return { en: 'Recently', ar: 'مؤخراً' };
   try {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    if (diff < 0) return { en: 'Just now', ar: 'الآن' };
+    const time = new Date(dateStr).getTime();
+    if (isNaN(time)) return { en: 'Recently', ar: 'مؤخراً' };
+    const diff = Math.max(0, Date.now() - time);
+    const minutes = Math.floor(diff / 60_000);
     const hours = Math.floor(diff / 3_600_000);
-    if (hours < 1) return { en: 'Just now', ar: 'الآن' };
+    const days = Math.floor(diff / 86_400_000);
+
+    if (minutes < 2) return { en: 'Just now', ar: 'الآن' };
+    if (minutes < 60) return { en: `${minutes}m ago`, ar: `منذ ${minutes} دقيقة` };
     if (hours === 1) return { en: '1h ago', ar: 'منذ ساعة' };
     if (hours === 2) return { en: '2h ago', ar: 'منذ ساعتين' };
     if (hours >= 3 && hours <= 10) return { en: `${hours}h ago`, ar: `منذ ${hours} ساعات` };
     if (hours < 24) return { en: `${hours}h ago`, ar: `منذ ${hours} ساعة` };
-    const days = Math.round(hours / 24);
-    if (days <= 1) return { en: '1d ago', ar: 'منذ يوم' };
+
+    if (days === 1) return { en: '1d ago', ar: 'منذ يوم' };
     if (days === 2) return { en: '2d ago', ar: 'منذ يومين' };
     if (days >= 3 && days <= 10) return { en: `${days}d ago`, ar: `منذ ${days} أيام` };
-    if (days <= 30) return { en: `${days}d ago`, ar: `منذ ${days} يوماً` };
-    const months = Math.round(days / 30);
-    if (months <= 1) return { en: '1mo ago', ar: 'منذ شهر' };
+    if (days < 30) return { en: `${days}d ago`, ar: `منذ ${days} يوماً` };
+
+    const months = Math.floor(days / 30);
+    if (months === 1) return { en: '1mo ago', ar: 'منذ شهر' };
     if (months === 2) return { en: '2mo ago', ar: 'منذ شهرين' };
     if (months >= 3 && months <= 10) return { en: `${months}mo ago`, ar: `منذ ${months} أشهر` };
     return { en: `${months}mo ago`, ar: `منذ ${months} شهراً` };
@@ -264,6 +270,7 @@ function mapRowToJobItem(row: any, userSkills: string[], targetRole: string = ''
       ? row.salary_range
       : 'تحدد أثناء المقابلة',
     matchScore,
+    postedAt: row.posted_at || null,
     postedAgo: posted.en,
     postedAgoAr: posted.ar,
     applicantsCount: typeof row.applicants_count === 'number' ? row.applicants_count : null,

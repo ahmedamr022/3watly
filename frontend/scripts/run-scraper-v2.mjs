@@ -298,7 +298,19 @@ function parseSalary(salaryAttr, hideSalary) {
 
 function parsePostedAt(dateStr) {
   if (!dateStr) return null;
-  try { const d = new Date(dateStr); if (!isNaN(d.getTime())) return d.toISOString(); } catch {}
+  try {
+    const raw = String(dateStr).trim();
+    const m = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}:\d{1,2}:\d{1,2})/);
+    if (m) {
+      const month = m[1].padStart(2, '0');
+      const day = m[2].padStart(2, '0');
+      const year = m[3];
+      const time = m[4];
+      return `${year}-${month}-${day}T${time}.000Z`;
+    }
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) return d.toISOString();
+  } catch {}
   return null;
 }
 
