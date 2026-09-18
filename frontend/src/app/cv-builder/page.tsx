@@ -44,6 +44,104 @@ export default function CVBuilderPage() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Scroll synchronization between native browser window scroll and CV Builder Editor card
+  const editorScrollRef = useRef<HTMLDivElement>(null);
+  const [spacerHeight, setSpacerHeight] = useState(1200);
+  const isSyncingRef = useRef<'window' | 'editor' | null>(null);
+
+  // 1. Measure the editor scrollHeight and update spacerHeight
+  useEffect(() => {
+    const container = editorScrollRef.current;
+    if (!container) return;
+
+    const updateSpacer = () => {
+      if (!container) return;
+      const scrollHeight = container.scrollHeight;
+      const clientHeight = container.clientHeight;
+      const extraScroll = Math.max(0, scrollHeight - clientHeight);
+      const newSpacer = window.innerHeight + extraScroll;
+      setSpacerHeight(newSpacer);
+    };
+
+    updateSpacer();
+    const observer = new ResizeObserver(updateSpacer);
+    observer.observe(container);
+    if (container.firstElementChild) {
+      observer.observe(container.firstElementChild);
+    }
+
+    window.addEventListener('resize', updateSpacer);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSpacer);
+    };
+  }, [cv]);
+
+  // 2. Synchronize scrolling: window.scrollY <-> editor container scrollTop
+  useEffect(() => {
+    const container = editorScrollRef.current;
+    if (!container) return;
+
+    let rafId: number;
+
+    const handleWindowScroll = () => {
+      if (isSyncingRef.current === 'editor') return;
+      isSyncingRef.current = 'window';
+
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (container) {
+          container.scrollTop = window.scrollY;
+        }
+        isSyncingRef.current = null;
+      });
+    };
+
+    const handleEditorScroll = () => {
+      if (isSyncingRef.current === 'window') return;
+      isSyncingRef.current = 'editor';
+
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        window.scrollTo({ top: container.scrollTop, behavior: 'instant' as ScrollBehavior });
+        isSyncingRef.current = null;
+      });
+    };
+
+    window.addEventListener('scroll', handleWindowScroll, { passive: true });
+    container.addEventListener('scroll', handleEditorScroll, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', handleWindowScroll);
+      container.removeEventListener('scroll', handleEditorScroll);
+    };
+  }, []);
+
+  // 3. Global wheel listener: scrolling over frozen areas (toolbar, headers, margins) forwards to editor
+  useEffect(() => {
+    const handleGlobalWheel = (e: WheelEvent) => {
+      const target = e.target as HTMLElement | null;
+      // If mouse is inside CV preview or editor or dialogs, let them scroll naturally
+      if (
+        target?.closest('.cv-preview-scroll') ||
+        target?.closest('.editor-scroll-container') ||
+        target?.closest('[role="dialog"]') ||
+        target?.closest('[data-dropdown]')
+      ) {
+        return;
+      }
+      if (editorScrollRef.current) {
+        editorScrollRef.current.scrollTop += e.deltaY;
+      }
+    };
+
+    window.addEventListener('wheel', handleGlobalWheel, { passive: true });
+    return () => {
+      window.removeEventListener('wheel', handleGlobalWheel);
+    };
+  }, []);
+
   const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -215,10 +313,12 @@ export default function CVBuilderPage() {
           : "Interactive ATS-optimized resume builder with AI assistance."
       }
       showSearch={false}
+      fixedLayout={true}
+      scrollSpacerHeight={spacerHeight}
     >
-      <div className="-mt-4 sm:-mt-7 lg:-mt-8 max-w-[1500px] mx-auto pb-16">
-        {/* Top Actions & Toolbar — Sticky directly below AppTopbar, starting at 72px from frame 0 */}
-        <div className="no-print sticky top-[72px] z-30 flex flex-wrap items-center justify-between gap-4 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-xl shadow-sm will-change-transform [transform:translateZ(0)]">
+      <div className="flex flex-col h-full min-h-0">
+        {/* Top Actions & Toolbar — Static, completely frozen in place */}
+        <div className="no-print shrink-0 flex flex-wrap items-center justify-between gap-4 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-xl shadow-sm mb-4">
           
           {/* Multi-CV Version Selector & Status badge & Direct Upload */}
           <div className="flex flex-wrap items-center gap-3">
@@ -231,8 +331,6 @@ export default function CVBuilderPage() {
               accept=".pdf,.docx,.doc"
               className="hidden"
             />
-
-
 
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12.5px] font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/30"
@@ -340,7 +438,7 @@ export default function CVBuilderPage() {
 
         {/* Empty CV / New User Onboarding Banner */}
         {(!cv.contact.fullName && cv.experience.length === 0 && cv.education.length === 0) && (
-          <div className="no-print rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+          <div className="no-print shrink-0 rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm mb-4">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white font-black shadow-md text-lg">
                 ✨
@@ -371,33 +469,38 @@ export default function CVBuilderPage() {
         )}
 
         {/* ── Builder Main Grid ── */}
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
 
-          {/* ── Left: Editor Panel (scrolls naturally with the page — NO internal scrollbar) ── */}
+          {/* ── Left: Editor Panel (scrolls smoothly via native window scroll, inner scrollbar hidden) ── */}
           {!previewMode && (
-            <div className="no-print lg:col-span-5 space-y-4 pb-72">
-              <EditorPanel />
-              <div className="p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] text-xs text-slate-500 dark:text-slate-400 shadow-xs">
-                <span className="font-bold text-slate-800 dark:text-slate-200">
-                  {isAr ? "توافق الـ ATS الحالي:" : "Current ATS compatibility:"}{" "}
-                </span>
-                <span className="font-black text-emerald-600 dark:text-emerald-400">{analysis.score}/100</span> ·{" "}
-                <span className="font-semibold text-slate-600 dark:text-slate-300">
-                  {isAr ? analysis.bandLabelAr : analysis.bandLabel}
-                </span> ·{" "}
-                <Link
-                  href="/ats-diagnostics"
-                  className="font-bold text-[#1B57E0] dark:text-[#60A5FA] hover:underline"
-                >
-                  {isAr ? "فتح تقرير الـ ATS" : "Open diagnostics"}
-                </Link>
+            <div className="no-print lg:col-span-5 h-full min-h-0 flex flex-col">
+              <div 
+                ref={editorScrollRef}
+                className="editor-scroll-container flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-4 pr-1 pb-16"
+              >
+                <EditorPanel />
+                <div className="p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] text-xs text-slate-500 dark:text-slate-400 shadow-xs">
+                  <span className="font-bold text-slate-800 dark:text-slate-200">
+                    {isAr ? "توافق الـ ATS الحالي:" : "Current ATS compatibility:"}{" "}
+                  </span>
+                  <span className="font-black text-emerald-600 dark:text-emerald-400">{analysis.score}/100</span> ·{" "}
+                  <span className="font-semibold text-slate-600 dark:text-slate-300">
+                    {isAr ? analysis.bandLabelAr : analysis.bandLabel}
+                  </span> ·{" "}
+                  <Link
+                    href="/ats-diagnostics"
+                    className="font-bold text-[#1B57E0] dark:text-[#60A5FA] hover:underline"
+                  >
+                    {isAr ? "فتح تقرير الـ ATS" : "Open diagnostics"}
+                  </Link>
+                </div>
               </div>
             </div>
           )}
 
-          {/* ── Right: CV Preview (sticky — stays pinned on screen while page scrolls, single internal scroll) ── */}
-          <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} lg:sticky lg:top-[154px] self-start will-change-transform [transform:translateZ(0)] z-10`}>
-            <div className="max-h-[calc(100vh-172px)] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent rounded-2xl">
+          {/* ── Right: CV Preview (fixed in view, single internal scroll if needed) ── */}
+          <div className={`${previewMode ? 'lg:col-span-12' : 'lg:col-span-7'} h-full min-h-0 flex flex-col`}>
+            <div className="cv-preview-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent rounded-2xl">
               <CVPreview />
             </div>
           </div>

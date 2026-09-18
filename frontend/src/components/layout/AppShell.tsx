@@ -9,9 +9,18 @@ interface AppShellProps {
   title?: string;
   subtitle?: string;
   showSearch?: boolean;
+  fixedLayout?: boolean;
+  scrollSpacerHeight?: number;
 }
 
-export function AppShell({ children, title, subtitle, showSearch = true }: AppShellProps) {
+export function AppShell({
+  children,
+  title,
+  subtitle,
+  showSearch = true,
+  fixedLayout = false,
+  scrollSpacerHeight
+}: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -39,6 +48,22 @@ export function AppShell({ children, title, subtitle, showSearch = true }: AppSh
         className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500 bg-[url('/backgrounds/dashboard-light.png')] dark:bg-[url('/backgrounds/dashboard-dark.png')] opacity-100 dark:opacity-90"
       />
 
+      {/* Invisible dummy spacer to activate native browser window scrollbar when fixedLayout is used */}
+      {fixedLayout && scrollSpacerHeight !== undefined && scrollSpacerHeight > 0 && (
+        <div 
+          aria-hidden="true"
+          className="pointer-events-none opacity-0 select-none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '1px',
+            height: `${scrollSpacerHeight}px`,
+            zIndex: -1
+          }}
+        />
+      )}
+
       {/* Shared Collapsible Sidebar */}
       <AppSidebar 
         mobileOpen={mobileOpen} 
@@ -48,7 +73,9 @@ export function AppShell({ children, title, subtitle, showSearch = true }: AppSh
       />
 
       {/* Main Content Area */}
-      <div className={`relative z-10 flex-1 flex flex-col min-w-0 ${
+      <div className={`z-10 flex flex-col min-w-0 ${
+        fixedLayout ? 'fixed inset-0' : 'relative flex-1'
+      } ${
         isCollapsed ? 'lg:ltr:pl-20 lg:rtl:pr-20' : 'lg:ltr:pl-64 lg:rtl:pr-64'
       } transition-all duration-300`}>
         {/* Shared Topbar */}
@@ -60,7 +87,11 @@ export function AppShell({ children, title, subtitle, showSearch = true }: AppSh
         />
 
         {/* Page Inner Content */}
-        <main className="flex-1 p-4 sm:p-7 lg:p-8 max-w-[1500px] w-full mx-auto">
+        <main className={`flex-1 max-w-[1500px] w-full mx-auto ${
+          fixedLayout
+            ? 'p-4 sm:px-7 lg:px-8 pt-4 pb-4 overflow-hidden flex flex-col min-h-0'
+            : 'p-4 sm:p-7 lg:p-8'
+        }`}>
           {children}
         </main>
       </div>
