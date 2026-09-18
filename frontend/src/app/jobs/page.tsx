@@ -283,6 +283,11 @@ function JobsPageContent() {
   const pageSize = 10;
   const listTopRef = useRef<HTMLDivElement>(null);
 
+  // Scroll sync refs + spacer state (declared here, effects run after filteredJobs/paginatedJobs)
+  const jobsScrollRef = useRef<HTMLDivElement>(null);
+  const [spacerHeight, setSpacerHeight] = useState(1200);
+  const isSyncingRef = useRef<'window' | 'feed' | null>(null);
+
   // Filter jobs by activeTab ('all' vs 'saved')
   const filteredJobs = useMemo(() => {
     if (activeTab === 'saved') {
@@ -306,27 +311,82 @@ function JobsPageContent() {
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages || newPage === currentPage) return;
     setCurrentPage(newPage);
-    if (listTopRef.current) {
-      listTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (jobsScrollRef.current) {
+      jobsScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+
+  // ── Scroll Synchronization: native window scroll ↔ jobs feed column ──
+  // 1. Measure feed scrollHeight → update the invisible spacer so browser scrollbar reflects full content
+  useEffect(() => {
+    const container = jobsScrollRef.current;
+    if (!container) return;
+    const updateSpacer = () => {
+      const extra = Math.max(0, container.scrollHeight - container.clientHeight);
+      setSpacerHeight(window.innerHeight + extra);
+    };
+    updateSpacer();
+    const observer = new ResizeObserver(updateSpacer);
+    observer.observe(container);
+    window.addEventListener('resize', updateSpacer);
+    return () => { observer.disconnect(); window.removeEventListener('resize', updateSpacer); };
+  }, [filteredJobs, currentPage]);
+
+  // 2. Bidirectional scroll sync: window.scrollY ↔ container.scrollTop
+  useEffect(() => {
+    const container = jobsScrollRef.current;
+    if (!container) return;
+    let rafId: number;
+    const onWindowScroll = () => {
+      if (isSyncingRef.current === 'feed') return;
+      isSyncingRef.current = 'window';
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => { container.scrollTop = window.scrollY; isSyncingRef.current = null; });
+    };
+    const onFeedScroll = () => {
+      if (isSyncingRef.current === 'window') return;
+      isSyncingRef.current = 'feed';
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => { window.scrollTo({ top: container.scrollTop, behavior: 'instant' as ScrollBehavior }); isSyncingRef.current = null; });
+    };
+    window.addEventListener('scroll', onWindowScroll, { passive: true });
+    container.addEventListener('scroll', onFeedScroll, { passive: true });
+    return () => { cancelAnimationFrame(rafId); window.removeEventListener('scroll', onWindowScroll); container.removeEventListener('scroll', onFeedScroll); };
+  }, []);
+
+  // 3. Global wheel: if user scrolls over frozen areas (sidebar, header, etc.) → forward to feed
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target?.closest('.jobs-feed-scroll') ||
+        target?.closest('[role="dialog"]') ||
+        target?.closest('[data-dropdown]')
+      ) return;
+      if (jobsScrollRef.current) jobsScrollRef.current.scrollTop += e.deltaY;
+    };
+    window.addEventListener('wheel', handleWheel, { passive: true });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, []);
 
   return (
     <AppShell
       title={isAr ? "الوظائف والفرص المتاحة" : "Jobs"}
       subtitle={isAr ? "استكشف وظائف تكنولوجيا المعلومات والبيانات المطابقة لمهاراتك وخبرتك." : "Discover roles that match your skills and career goals."}
+      fixedLayout={true}
+      scrollSpacerHeight={spacerHeight}
     >
-      <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
+      <div className="flex flex-col h-full min-h-0 gap-4">
         
         {/* Active CV Badge for Jobs Match */}
-        <div className="flex items-center justify-between">
+        <div className="shrink-0 flex items-center justify-between">
           <ActiveCVBadge pageName={isAr ? "مطابقة الوظائف" : "Job Match"} />
         </div>
 
         {/* ========================================================================= */}
-        {/* 1. SEARCH & FILTERS HEADER CARD                                           */}
+        {/* 1. SEARCH & FILTERS HEADER CARD — FROZEN, NEVER SCROLLS                  */}
         {/* ========================================================================= */}
-        <div className="rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="shrink-0 rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 sm:p-6 shadow-xs space-y-4">
           
           {/* Main Search Inputs Row */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -576,10 +636,14 @@ function JobsPageContent() {
         {/* ========================================================================= */}
         {/* 2. RESULTS MAIN GRID (Left Feed + Right Intelligence Widgets)             */}
         {/* ========================================================================= */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
+        <div className="flex-1 min-h-0 grid grid-cols-1 gap-6 lg:grid-cols-12 items-stretch">
           
-          {/* Main Feed Column (Span 8) */}
-          <div className="lg:col-span-8 space-y-4">
+          {/* Main Feed Column (Span 8) — Only this scrolls */}
+          <div className="lg:col-span-8 h-full min-h-0 flex flex-col">
+            <div
+              ref={jobsScrollRef}
+              className="jobs-feed-scroll flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-4 pb-10 pr-1"
+            >
             
             {/* Feed Navigation Bar: All Jobs vs Saved Jobs Tabs + Sorting */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1 py-1">
@@ -1035,10 +1099,11 @@ function JobsPageContent() {
               </div>
             )}
 
-          </div>
+            </div>{/* end jobs-feed-scroll */}
+          </div>{/* end lg:col-span-8 flex col */}
 
-          {/* Right Sidebar Widgets Column (Span 4) */}
-          <div className="lg:col-span-4 space-y-5">
+          {/* Right Sidebar Widgets Column (Span 4) — Frozen, no window scroll */}
+          <div className="lg:col-span-4 h-full min-h-0 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-5 pb-10">
             
             {/* Widget 1: Quick Market Tip (Matching media_1787761289307.png with Gradient Area Fill) */}
             <div className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-xs space-y-3.5">
