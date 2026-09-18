@@ -202,6 +202,96 @@ function cleanSkills(rawSkills: string[]): string[] {
   return result;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Comprehensive tech-skill keyword dictionary for text-based extraction
+// ─────────────────────────────────────────────────────────────────────────────
+const KNOWN_TECH_SKILLS_LIST: string[] = [
+  'Python','SQL','Power BI','Tableau','Excel','Pandas','NumPy','R','PostgreSQL',
+  'MySQL','MongoDB','Redis','Oracle','SQL Server','Snowflake','BigQuery','dbt',
+  'Airflow','Kafka','Docker','Kubernetes','AWS','Azure','GCP','Google Cloud',
+  'Git','GitHub','CI/CD','Linux','React','Next.js','TypeScript','JavaScript',
+  'Node.js','Express','FastAPI','Django','Flask','Java','Spring Boot','C#','.NET',
+  'C++','Go','PHP','Laravel','Angular','Vue.js','Tailwind CSS','GraphQL',
+  'REST APIs','Agile','Scrum','Jira','Data Modeling','ETL','Machine Learning',
+  'Deep Learning','NLP','TensorFlow','PyTorch','Scikit-Learn','Statistics',
+  'Selenium','Postman','Flutter','Dart','Firebase','DAX','Spark','Ansible',
+  'Terraform','Prometheus','Grafana','Elasticsearch','LLMs','Generative AI',
+  'React Native','Kotlin','Swift','iOS','Android','ASP.NET','Spring',
+  'Microservices','gRPC','Celery','OpenCV','BERT','Transformers','.NET Core',
+  'Power Automate','SharePoint','Azure DevOps','Jira','Confluence','Figma',
+  'SAP','ERP','Odoo','Dynamics 365','SSRS','SSIS','SSAS','Crystal Reports',
+  'Hadoop','Hive','HBase','Cassandra','DynamoDB','Neo4j','InfluxDB',
+  'OpenAI','LangChain','Hugging Face','Stable Diffusion','YOLO','OpenCV',
+  'Matplotlib','Seaborn','Plotly','Power Query','M Language',
+  'Bash','Shell Scripting','PowerShell','Nginx','Apache','RabbitMQ',
+  'Networking','TCP/IP','DNS','VPN','Firewalls','SIEM','Penetration Testing',
+  'Manual Testing','Test Automation','Cypress','Playwright','JUnit','Jest',
+  'UX Research','Wireframing','Prototyping','Adobe XD','Sketch','InVision',
+  'Kotlin','Swift','Xcode','Android Studio',
+];
+
+/**
+ * Extract skills from free-text by scanning for known tech skills.
+ * Used as fallback when DB has no required_skills for a job.
+ */
+function extractSkillsFromText(text: string): string[] {
+  if (!text) return [];
+  const found: string[] = [];
+  const seen = new Set<string>();
+  for (const skill of KNOWN_TECH_SKILLS_LIST) {
+    const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(?<![a-zA-Z])${escaped}(?![a-zA-Z])`, 'i');
+    if (regex.test(text) && !seen.has(skill.toLowerCase())) {
+      seen.add(skill.toLowerCase());
+      found.push(skill);
+    }
+  }
+  return found;
+}
+
+// Role-based skill profiles used when no skills can be extracted from text
+const ROLE_SKILL_PROFILES: Record<string, { core: string[]; common: string[] }> = {
+  'data analyst':          { core: ['SQL','Excel','Power BI'], common: ['Python','Tableau','Statistics'] },
+  'data engineer':         { core: ['Python','SQL','ETL'], common: ['Airflow','Docker','Spark','dbt'] },
+  'data scientist':        { core: ['Python','Machine Learning','Statistics'], common: ['TensorFlow','PyTorch','Pandas'] },
+  'machine learning':      { core: ['Python','Machine Learning','Statistics'], common: ['TensorFlow','PyTorch','Scikit-Learn'] },
+  'business intelligence': { core: ['Power BI','SQL','Excel'], common: ['DAX','Tableau','Data Modeling'] },
+  'power bi':              { core: ['Power BI','SQL','DAX'], common: ['Excel','Data Modeling'] },
+  'frontend':              { core: ['JavaScript','HTML','CSS','React'], common: ['TypeScript','Next.js','Git'] },
+  'react':                 { core: ['React','JavaScript','HTML'], common: ['TypeScript','Next.js','Git'] },
+  'backend':               { core: ['REST APIs','SQL','Git'], common: ['Node.js','Python','Docker'] },
+  'full stack':            { core: ['JavaScript','SQL','Git','REST APIs'], common: ['React','Node.js','Docker'] },
+  'devops':                { core: ['Docker','CI/CD','Linux','Git'], common: ['Kubernetes','AWS','Ansible'] },
+  'flutter':               { core: ['Flutter','Dart','REST APIs'], common: ['Firebase','Git'] },
+  'product manager':       { core: ['Agile','Jira','Analytics'], common: ['Scrum','SQL'] },
+  'business analyst':      { core: ['SQL','Excel','Requirements Analysis'], common: ['Power BI','Jira'] },
+  'qa':                    { core: ['Manual Testing','Jira','Test Cases'], common: ['Selenium','Postman'] },
+  'software engineer':     { core: ['Git','REST APIs','SQL'], common: ['Docker','Agile','CI/CD'] },
+  'net developer':         { core: ['C#','.NET','SQL Server'], common: ['ASP.NET','Git','REST APIs'] },
+  'java developer':        { core: ['Java','Spring Boot','SQL'], common: ['Docker','Git','REST APIs'] },
+  'angular':               { core: ['Angular','TypeScript','JavaScript'], common: ['RxJS','Git','REST APIs'] },
+  'cloud':                 { core: ['AWS','Azure','Docker'], common: ['Kubernetes','CI/CD','Linux'] },
+  'cybersecurity':         { core: ['Linux','Networking','Security'], common: ['Firewalls','SIEM'] },
+  'ai engineer':           { core: ['Python','Machine Learning','TensorFlow'], common: ['Generative AI','LLMs'] },
+  'node':                  { core: ['Node.js','JavaScript','REST APIs'], common: ['Express','MongoDB','Git'] },
+  'mobile':                { core: ['REST APIs','Git'], common: ['Flutter','React Native','Firebase'] },
+  'technical support':     { core: ['Networking','Windows','Linux'], common: ['TCP/IP','Troubleshooting','Help Desk'] },
+  'network':               { core: ['Networking','TCP/IP','Cisco'], common: ['Firewalls','VPN','DNS'] },
+  'odoo':                  { core: ['Odoo','Python','SQL'], common: ['ERP','.NET','Linux'] },
+  'erp':                   { core: ['ERP','SQL','Python'], common: ['SAP','Dynamics 365','Odoo'] },
+};
+
+function inferSkillsFromTitle(title: string): string[] {
+  const t = title.toLowerCase();
+  for (const [key, profile] of Object.entries(ROLE_SKILL_PROFILES)) {
+    if (t.includes(key)) {
+      return [...new Set([...profile.core, ...profile.common])].slice(0, 6);
+    }
+  }
+  return [];
+}
+
+
 /**
  * Check whether user satisfies a job's required skill.
  * Uses direct match, substring, and semantic inference (only for inferred-quality jobs).
@@ -385,12 +475,36 @@ export async function GET(request: NextRequest) {
       const dataQuality: JobDataQuality = row.data_quality ?? 'unresolved';
       const skillSources: SkillSource[] = parseSkillsArray(row.skill_source) as SkillSource[];
 
-      // Verified required skills
-      const reqSkills = cleanSkills(parseSkillsArray(row.required_skills));
+      // ── Tier 1: DB verified required skills ──
+      let reqSkills = cleanSkills(parseSkillsArray(row.required_skills));
+
+      // ── Tier 2: Extract from description+requirements text ──
+      if (reqSkills.length < 2) {
+        const fullText = `${row.description || ''} ${row.requirements || ''}`;
+        const textExtracted = extractSkillsFromText(fullText);
+        if (textExtracted.length > 0) {
+          // Merge with existing (DB skills take precedence)
+          const existing = new Set(reqSkills.map(s => s.toLowerCase()));
+          for (const s of textExtracted) {
+            if (!existing.has(s.toLowerCase())) reqSkills.push(s);
+          }
+        }
+      }
+
+      // ── Tier 3: Infer from job title if still nothing ──
+      if (reqSkills.length < 2) {
+        const titleInferred = inferSkillsFromTitle(row.title || '');
+        const existing = new Set(reqSkills.map(s => s.toLowerCase()));
+        for (const s of titleInferred) {
+          if (!existing.has(s.toLowerCase())) reqSkills.push(s);
+        }
+      }
+
       // Inferred skills (lower confidence, separate field from DB)
       const inferredSkills = cleanSkills(parseSkillsArray(row.inferred_skills ?? []));
       // Preferred skills
       const preferredSkills = cleanSkills(parseSkillsArray(row.preferred_skills ?? []));
+
 
       // Role title match boost (+18 if target role aligns with this job)
       const titleLower = (row.title || '').toLowerCase();

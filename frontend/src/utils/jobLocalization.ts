@@ -1,11 +1,22 @@
 /**
  * 3WATLY Strict Job Localization & Content Sanitizer
  * Preserves the employer's real job content while ensuring clean, readable presentation.
+ *
+ * KEY RULE: Arabic display functions MUST reject English-only content and fall back
+ * to proper Arabic templates. Never show English text in the Arabic UI.
  */
 
 export function containsArabic(text?: string | null): boolean {
   if (!text) return false;
   return /[\u0600-\u06FF]/.test(text);
+}
+
+/** True if text is primarily Arabic (>30% Arabic chars relative to non-space chars) */
+export function isPrimarilyArabic(text?: string | null): boolean {
+  if (!text) return false;
+  const arabicChars = (text.match(/[\u0600-\u06FF]/g) || []).length;
+  const totalNonSpace = (text.match(/\S/g) || []).length;
+  return totalNonSpace > 0 && arabicChars / totalNonSpace >= 0.30;
 }
 
 export function cleanText(text?: string | null): string {
@@ -52,10 +63,10 @@ export function cleanArabicOverview(
   const cleanLoc = locationAr || 'القاهرة، مصر';
   const cleanTitle = titleAr || 'متخصص';
 
-  // Always prefer the employer's real description
+  // Only use employer's description if it's actually Arabic — never show English in Arabic UI
   if (rawDescAr && rawDescAr.trim().length > 15) {
     const trimmed = cleanText(rawDescAr);
-    if (trimmed.length > 20) return trimmed;
+    if (trimmed.length > 20 && isPrimarilyArabic(trimmed)) return trimmed;
   }
 
   return `فرصة عمل متميزة لمنصب ${cleanTitle} في شركة ${cleanComp} في ${cleanLoc}. توفر الوظيفة بيئة عمل متطورة تركز على أحدث التقنيات، والمشاريع المؤثرة، والنمو المهني المستمر.`;
@@ -150,6 +161,7 @@ export function cleanEnglishResponsibilities(
 
 /**
  * Ensures Arabic Key Responsibilities contain real bullet points.
+ * NEVER returns English lines — falls back to Arabic template if raw content is in English.
  */
 export function cleanArabicResponsibilities(
   titleAr?: string,
@@ -158,9 +170,9 @@ export function cleanArabicResponsibilities(
 ): string[] {
   const cleanTitle = titleAr || 'الوظيفة';
   const extracted = extractListItemsFromText(rawLinesAr);
-  const cleaned = extracted.filter(line => line.length > 5);
+  // Only keep lines that are actually Arabic
+  const cleaned = extracted.filter(line => line.length > 5 && isPrimarilyArabic(line));
 
-  // Always prefer the employer's real responsibilities
   if (cleaned.length >= 2) {
     return cleaned.slice(0, 12);
   }
@@ -208,6 +220,7 @@ export function cleanEnglishRequirements(
 
 /**
  * Ensures Arabic Requirements contain real bullet points.
+ * NEVER returns English lines — falls back to Arabic template if raw content is in English.
  */
 export function cleanArabicRequirements(
   titleAr?: string,
@@ -215,9 +228,9 @@ export function cleanArabicRequirements(
   skills?: string[]
 ): string[] {
   const extracted = extractListItemsFromText(rawLinesAr);
-  const cleaned = extracted.filter(line => line.length > 5);
+  // Only keep lines that are actually Arabic
+  const cleaned = extracted.filter(line => line.length > 5 && isPrimarilyArabic(line));
 
-  // Always prefer the employer's real requirements
   if (cleaned.length >= 2) {
     return cleaned.slice(0, 12);
   }

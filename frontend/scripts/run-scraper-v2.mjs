@@ -91,9 +91,38 @@ const KNOWN_TECH_SKILLS = new Set([
   "PyTorch","Scikit-Learn","Statistics","Selenium","Postman","Flutter","Dart",
   "Firebase","DAX","Spark","Ansible","Terraform","Prometheus","Grafana",
   "Elasticsearch","LLMs","Generative AI","React Native","Kotlin","Swift","iOS","Android",
-  "ASP.NET","Spring","Hibernate","Microservices","gRPC","Redis","Celery",
+  "ASP.NET","Spring","Hibernate","Microservices","gRPC","Celery",
   "OpenCV","TensorFlow Lite","BERT","Transformers",".NET Core",
+  // Networking & Sysadmin
+  "Networking","TCP/IP","DNS","DHCP","VPN","Firewalls","SIEM","Cisco","Routing","Switching",
+  "Active Directory","Windows Server","Windows","macOS","VMware","Hyper-V","Virtualization",
+  "Network Security","Penetration Testing","Wireshark","Nagios","SNMP","SSL/TLS",
+  // IT Support & Help Desk
+  "Help Desk","ITIL","ServiceNow","Troubleshooting","Hardware","Technical Support",
+  "Remote Desktop","Ticketing Systems","SLA Management","IT Support",
+  // BI & Reporting Tools
+  "Power Query","M Language","SSRS","SSIS","SSAS","Crystal Reports","Looker","Metabase",
+  "QlikView","Qlik Sense","MicroStrategy","SAP BI","OBIEE",
+  // ERP & Enterprise
+  "SAP","Odoo","ERP","Dynamics 365","Oracle ERP","NetSuite","SAP ABAP","SAP HANA",
+  "Salesforce","HubSpot","Zoho CRM","Confluence","SharePoint","Power Automate",
+  // DevOps & Cloud
+  "Azure DevOps","GitHub Actions","Jenkins","GitLab CI","Bitbucket","SonarQube",
+  "Nginx","Apache","RabbitMQ","Celery","Redis","Bash","Shell Scripting","PowerShell",
+  // Data & AI extras
+  "Matplotlib","Seaborn","Plotly","SciPy","OpenAI","LangChain","Hugging Face",
+  "YOLO","Stable Diffusion","Vector Databases","Pinecone","Weaviate","ChromaDB",
+  "Hadoop","Hive","HBase","Cassandra","DynamoDB","Neo4j","InfluxDB","Databricks",
+  // Mobile & UI
+  "Figma","Adobe XD","Sketch","InVision","Xcode","Android Studio","Ionic","Xamarin",
+  // Testing
+  "Manual Testing","Test Automation","Cypress","Playwright","JUnit","Jest","Pytest",
+  "Appium","JMeter","LoadRunner","Test Cases","Bug Tracking",
+  // Other common tech skills
+  "UX Research","Wireframing","Prototyping","UI/UX","Figma",
+  "Blockchain","Solidity","Web3","Smart Contracts",
 ]);
+
 
 const ROLE_SKILL_PROFILES = {
   "data analyst":        {core:["SQL","Excel","Power BI"],common:["Python","Tableau","Statistics"]},
@@ -116,11 +145,21 @@ const ROLE_SKILL_PROFILES = {
   "java developer":      {core:["Java","Spring Boot","SQL"],common:["Docker","Git","REST APIs"]},
   "angular":             {core:["Angular","TypeScript","JavaScript"],common:["RxJS","Git","REST APIs"]},
   "cloud":               {core:["AWS","Azure","Docker"],common:["Kubernetes","CI/CD","Linux"]},
-  "cybersecurity":       {core:["Linux","Networking","Security"],common:["Firewalls","SIEM"]},
+  "cybersecurity":       {core:["Linux","Networking","Network Security"],common:["Firewalls","SIEM","Penetration Testing"]},
   "ai engineer":         {core:["Python","Machine Learning","TensorFlow"],common:["Generative AI","LLMs"]},
   "node":                {core:["Node.js","JavaScript","REST APIs"],common:["Express","MongoDB","Git"]},
   "mobile":              {core:["REST APIs","Git"],common:["Flutter","React Native","Firebase"]},
+  "technical support":   {core:["Networking","Windows","Troubleshooting"],common:["TCP/IP","Help Desk","ITIL","Active Directory"]},
+  "help desk":           {core:["Troubleshooting","Windows","Networking"],common:["Help Desk","ITIL","ServiceNow","Active Directory"]},
+  "it support":          {core:["Windows","Networking","Troubleshooting"],common:["Active Directory","Help Desk","Hardware","Linux"]},
+  "network engineer":    {core:["Networking","TCP/IP","Cisco"],common:["Routing","Switching","Firewalls","VPN","DNS"]},
+  "system administrator":{core:["Linux","Windows Server","Active Directory"],common:["Networking","VMware","Bash","Docker"]},
+  "sysadmin":            {core:["Linux","Windows Server","Networking"],common:["Active Directory","Bash","VMware","DNS"]},
+  "odoo":                {core:["Odoo","Python","SQL"],common:["ERP","Linux","PostgreSQL","Git"]},
+  "erp":                 {core:["ERP","SQL","Python"],common:["SAP","Dynamics 365","Odoo","Excel"]},
+  "sap":                 {core:["SAP","SQL","Excel"],common:["SAP ABAP","SAP HANA","ERP"]},
 };
+
 
 const UNRELATED_TITLE_PATTERNS = [
   /\b(accountant|accounting|finance|financial|treasury|auditor|audit)\b/i,
@@ -150,6 +189,19 @@ function normalizeSkill(raw) {
   return SKILL_ALIASES[s.toLowerCase().replace(/\s+/g," ")] || s;
 }
 
+// Skills that should never appear in job skill tags
+const SCRAPER_SKILL_BLACKLIST = new Set([
+  'experienced','experience','senior','junior','mid level','expert','manager',
+  'internship','intern','student','entry level','fresh graduate','fresher',
+  'it','information technology','software development','engineering',
+  'general','other','miscellaneous','ability','skills','knowledge',
+  'strong','good','excellent','proficient','familiar','basic','advanced',
+  'full time','part time','contract','freelance','remote','project',
+  'education','teaching','training','instructor','analyst','research',
+  'communication','teamwork','leadership','problem solving','critical thinking',
+  'customer service','support','retail','administration',
+]);
+
 function dedupeSkills(skills) {
   const seen = new Set();
   return skills.map(s => normalizeSkill(s)).filter(s => {
@@ -158,9 +210,13 @@ function dedupeSkills(skills) {
     if (s.length < 2 || s.length > 40) return false;
     if (/^\d+$/.test(s)) return false;
     if (s.split(/\s+/).length > 4) return false;
+    if (SCRAPER_SKILL_BLACKLIST.has(lo)) return false;
+    // Accept if it's in the known list OR in aliases OR came from Wuzzuf keywords (already tech-specific)
     const inKnown = KNOWN_TECH_SKILLS.has(s) || [...KNOWN_TECH_SKILLS].some(k => k.toLowerCase()===lo);
     const inAlias = Object.values(SKILL_ALIASES).some(v => v.toLowerCase()===lo);
-    if (!inKnown && !inAlias) return false;
+    // Also allow short technical terms (2-15 chars) that look like tech acronyms/products
+    const looksLikeTech = /^[A-Z][a-zA-Z0-9#+.\-]{1,14}$/.test(s) && !/^(The|For|With|And|But|From|This|That|Your|Our|Their|Have|Will|Can|Are|Was|Not|Any|All|Each|Its)$/i.test(s);
+    if (!inKnown && !inAlias && !looksLikeTech) return false;
     if (seen.has(lo)) return false;
     seen.add(lo); return true;
   });
@@ -183,6 +239,7 @@ function inferSkillsFromTitle(title) {
   }
   return [];
 }
+
 
 function parseSeniority(careerLevel, title, fullText = '') {
   const t = (title || '').toLowerCase().trim();
