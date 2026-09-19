@@ -1,13 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  SparklesIcon,
-  TargetIcon,
-  XIcon,
-} from 'lucide-react';
+import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon, TargetIcon, XIcon } from 'lucide-react';
 import { useSkillPlan } from '@/contexts/SkillPlanContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { TARGET_ROLES } from '@/data/rolesData';
@@ -15,362 +9,258 @@ import { TargetRoleCard } from './TargetRoleCard';
 import { TargetRoleDetailPanel } from './TargetRoleDetailPanel';
 import { CarouselDots } from './CarouselDots';
 
-interface TargetRoleModalProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-// ── Card sizes (contained within modal width) ─────────────────────────────────
-
-interface CardMetrics {
-  idleWidth: number;
-  activeWidth: number;
-  idleHeight: number;
-  activeHeight: number;
-  gap: number;
-}
-
-const WIDE: CardMetrics = {
-  idleWidth: 210,
-  activeWidth: 248,
-  idleHeight: 232,
-  activeHeight: 270,
-  gap: 16,
-};
-
-const COMPACT: CardMetrics = {
-  idleWidth: 158,
-  activeWidth: 192,
-  idleHeight: 208,
-  activeHeight: 244,
-  gap: 10,
-};
+// ─── Card dimensions ──────────────────────────────────────────────────────────
+// Active card: 200×230, idle cards: 162×195, gap 14
+// Carousel track height = 230 + 28 (breathing) = 258
+const A_W = 200; const A_H = 230;
+const I_W = 162; const I_H = 195;
+const GAP = 14;
+const TRACK_H = A_H + 28;
 
 const SPAN = 3;
 
 const DEPTH = [
   { rotate: 0,  z: 0,    scale: 1,     opacity: 1    },
-  { rotate: 10, z: -60,  scale: 0.97,  opacity: 0.9  },
-  { rotate: 14, z: -130, scale: 0.93,  opacity: 0.65 },
-  { rotate: 16, z: -200, scale: 0.88,  opacity: 0    },
+  { rotate: 9,  z: -55,  scale: 0.97,  opacity: 0.88 },
+  { rotate: 13, z: -115, scale: 0.93,  opacity: 0.6  },
+  { rotate: 16, z: -170, scale: 0.88,  opacity: 0    },
 ];
 
-function mod(value: number, length: number) {
-  return ((value % length) + length) % length;
-}
+function mod(v: number, n: number) { return ((v % n) + n) % n; }
 
-function slotX(offset: number, m: CardMetrics) {
+function slotX(offset: number) {
   if (offset === 0) return 0;
   const steps = Math.abs(offset);
-  const distance =
-    m.activeWidth / 2 + m.gap + m.idleWidth / 2 + (steps - 1) * (m.idleWidth + m.gap);
-  return Math.sign(offset) * distance;
+  const dist = A_W / 2 + GAP + I_W / 2 + (steps - 1) * (I_W + GAP);
+  return Math.sign(offset) * dist;
 }
 
-function useCardMetrics(): CardMetrics {
-  const [compact, setCompact] = useState(false);
-  useEffect(() => {
-    const query = window.matchMedia('(max-width: 640px)');
-    const sync = () => setCompact(query.matches);
-    sync();
-    query.addEventListener('change', sync);
-    return () => query.removeEventListener('change', sync);
-  }, []);
-  return compact ? COMPACT : WIDE;
-}
-
-// ── Main modal ────────────────────────────────────────────────────────────────
-
-export function TargetRoleModal({ open, onClose }: TargetRoleModalProps) {
+// ─── Modal ────────────────────────────────────────────────────────────────────
+export function TargetRoleModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { roleId, setRoleId } = useSkillPlan();
   const { isAr } = useLanguage();
-  const touchStartX = useRef<number | null>(null);
-  const [position, setPosition] = useState(0);
-  const metrics = useCardMetrics();
+  const touchX = useRef<number | null>(null);
+  const [pos, setPos] = useState(0);
 
-  // Sync to currently saved role on open
   useEffect(() => {
     if (open) {
-      const idx = TARGET_ROLES.findIndex((r) => r.id === roleId);
-      setPosition(idx >= 0 ? idx : 0);
+      const i = TARGET_ROLES.findIndex(r => r.id === roleId);
+      setPos(i >= 0 ? i : 0);
     }
   }, [open, roleId]);
 
-  const labels = useMemo(() => TARGET_ROLES.map((r) => r.title), []);
-  const activeIndex = mod(position, TARGET_ROLES.length);
-  const activeRole = TARGET_ROLES[activeIndex];
+  const labels     = useMemo(() => TARGET_ROLES.map(r => r.title), []);
+  const activeIdx  = mod(pos, TARGET_ROLES.length);
+  const activeRole = TARGET_ROLES[activeIdx];
 
-  const step = useCallback((delta: number) => {
-    setPosition((p) => p + delta);
-  }, []);
-
-  const goToIndex = useCallback((index: number) => {
-    setPosition((p) => {
+  const step = useCallback((d: number) => setPos(p => p + d), []);
+  const goTo = useCallback((idx: number) => {
+    setPos(p => {
       const half = TARGET_ROLES.length / 2;
-      let delta = index - mod(p, TARGET_ROLES.length);
+      let delta = idx - mod(p, TARGET_ROLES.length);
       if (delta > half) delta -= TARGET_ROLES.length;
       if (delta < -half) delta += TARGET_ROLES.length;
       return p + delta;
     });
   }, []);
 
-  // Keyboard nav
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
+    const h = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      else if (e.key === 'ArrowRight') { e.preventDefault(); step(isAr ? -1 : 1); }
-      else if (e.key === 'ArrowLeft')  { e.preventDefault(); step(isAr ? 1 : -1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); step(isAr ? -1 : 1); }
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); step(isAr ? 1 : -1); }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
   }, [open, isAr, step, onClose]);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const d = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(d) > 44) step(d < 0 ? 1 : -1);
-    touchStartX.current = null;
-  };
 
   const slots = useMemo(() => {
     const out: { key: number; offset: number; roleIndex: number }[] = [];
-    for (let o = -SPAN; o <= SPAN; o++) {
-      out.push({ key: position + o, offset: o, roleIndex: mod(position + o, TARGET_ROLES.length) });
-    }
+    for (let o = -SPAN; o <= SPAN; o++)
+      out.push({ key: pos + o, offset: o, roleIndex: mod(pos + o, TARGET_ROLES.length) });
     return out;
-  }, [position]);
+  }, [pos]);
 
-  const handleConfirm = () => {
-    setRoleId(activeRole.id);
-    onClose();
-  };
+  const confirm = () => { setRoleId(activeRole.id); onClose(); };
 
   if (!open) return null;
 
-  const carouselH = metrics.activeHeight + 40;
-
   return (
     <>
-      {/* ── Backdrop ─────────────────────────────────────────────── */}
+      {/* ── Backdrop ───────────────────────────────────── */}
       <div
-        className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-black/72 backdrop-blur-md"
         onClick={onClose}
-        aria-hidden="true"
-        style={{ animation: 'fadeIn 0.18s ease-out' }}
+        aria-hidden
+        style={{ animation: 'trm-fade .16s ease' }}
       />
 
-      {/* ── Modal shell ──────────────────────────────────────────── */}
+      {/* ── Dialog box ────────────────────────────────── */}
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="trm-title"
         dir={isAr ? 'rtl' : 'ltr'}
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 pointer-events-none"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 pointer-events-none"
       >
         <div
-          className="pointer-events-auto relative w-full max-w-[960px] max-h-[92vh] flex flex-col overflow-hidden rounded-[24px]"
+          className="pointer-events-auto relative flex flex-col overflow-hidden rounded-[22px] w-full"
           style={{
-            background: 'linear-gradient(170deg, #070C20 0%, #04060f 60%, #060813 100%)',
-            boxShadow: '0 32px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.07)',
-            animation: 'slideUp 0.25s cubic-bezier(0.22,1,0.36,1)',
+            maxWidth: 720,
+            // No overflow: height = header(~108px) + carousel(TRACK_H) + dots(32) + detail(~200px) + gaps(~40) ≈ 638px
+            background: 'linear-gradient(160deg, #08091e 0%, #04060f 55%, #060c18 100%)',
+            boxShadow: '0 28px 70px rgba(0,0,0,0.92), 0 0 0 1px rgba(255,255,255,0.09), 0 0 60px rgba(88,28,180,0.18)',
+            animation: 'trm-up .22s cubic-bezier(.22,1,.36,1)',
           }}
         >
-          {/* Ambient glow blobs (clipped inside modal) */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -left-32 -top-32 h-80 w-96 rounded-full"
-            style={{ background: 'radial-gradient(closest-side, rgba(88,28,180,0.5), rgba(88,28,180,0))' }}
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute right-0 -top-20 h-56 w-72 rounded-full"
-            style={{ background: 'radial-gradient(closest-side, rgba(38,64,190,0.25), rgba(38,64,190,0))' }}
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute right-6 top-6 hidden h-16 w-28 opacity-40 lg:block"
-            style={{
-              backgroundImage: 'radial-gradient(rgba(150,132,255,0.6) 1.4px, transparent 1.4px)',
-              backgroundSize: '12px 12px',
-            }}
-          />
+          {/* Ambient blobs (contained inside modal) */}
+          <div aria-hidden className="pointer-events-none absolute -left-20 -top-20 h-52 w-60 rounded-full"
+            style={{ background: 'radial-gradient(closest-side,rgba(88,28,180,.42),transparent)' }} />
+          <div aria-hidden className="pointer-events-none absolute right-0 -top-10 h-36 w-48 rounded-full"
+            style={{ background: 'radial-gradient(closest-side,rgba(38,64,190,.28),transparent)' }} />
+          <div aria-hidden className="pointer-events-none absolute right-4 top-4 h-10 w-18 opacity-25"
+            style={{ backgroundImage: 'radial-gradient(rgba(150,132,255,.6) 1.1px,transparent 1.1px)', backgroundSize: '9px 9px' }} />
 
-          {/* ── Header ─────────────────────────────────────────── */}
-          <div className="relative shrink-0 px-6 pt-6 pb-4 text-center">
-            {/* Close btn */}
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="إغلاق"
-              className="absolute top-4 right-4 z-10 grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/[0.06] text-slate-300 outline-none transition-colors duration-200 hover:bg-white/[0.12] hover:text-white focus-visible:ring-2 focus-visible:ring-sky-400 cursor-pointer"
-              style={{ boxShadow: '0 6px 16px rgba(0,0,0,0.5)' }}
-            >
-              <XIcon className="h-4 w-4" strokeWidth={2.5} />
-            </button>
+          {/* Close */}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="إغلاق"
+            className="absolute top-3 right-3 z-20 grid h-8 w-8 place-items-center rounded-full border border-white/10 bg-white/[0.07] text-slate-300 outline-none transition-colors hover:bg-white/[0.14] hover:text-white cursor-pointer"
+            style={{ boxShadow: '0 4px 12px rgba(0,0,0,.5)' }}
+          >
+            <XIcon className="h-4 w-4" strokeWidth={2.5} />
+          </button>
 
-            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
-              {/* Icon badge */}
+          {/* ── Header ─────────────────────────────────── */}
+          <div className="relative shrink-0 px-6 pt-5 pb-3 text-center">
+            <div className="flex flex-wrap items-center justify-center gap-2.5">
               <span
-                className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-[14px]"
+                className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-[12px]"
                 style={{
-                  backgroundImage: 'linear-gradient(145deg, #A78BFA 0%, #6D28D9 48%, #2563EB 100%)',
-                  boxShadow: '0 10px 24px rgba(109,40,217,0.55), inset 0 2px 0 rgba(255,255,255,0.3)',
+                  backgroundImage: 'linear-gradient(145deg,#A78BFA 0%,#6D28D9 48%,#2563EB 100%)',
+                  boxShadow: '0 8px 20px rgba(109,40,217,.55),inset 0 2px 0 rgba(255,255,255,.28)',
                 }}
               >
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 top-0 h-1/2"
-                  style={{ backgroundImage: 'linear-gradient(180deg,rgba(255,255,255,0.28),rgba(255,255,255,0))' }}
-                />
-                <TargetIcon id="trm-title" aria-hidden="true" className="relative h-6 w-6 text-white" strokeWidth={2} />
+                <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2"
+                  style={{ backgroundImage: 'linear-gradient(180deg,rgba(255,255,255,.26),transparent)' }} />
+                <TargetIcon aria-hidden className="relative h-5 w-5 text-white" strokeWidth={2} />
               </span>
 
-              <h2 className="text-[19px] font-extrabold leading-tight text-white sm:text-[22px]">
+              <h2 className="text-[18px] font-extrabold text-white sm:text-[21px]">
                 أكثر المسمى الوظيفي{' '}
-                <span
-                  className="bg-clip-text text-transparent"
-                  style={{ backgroundImage: 'linear-gradient(90deg,#C084FC 0%,#F472B6 100%)' }}
-                >
+                <span className="bg-clip-text text-transparent"
+                  style={{ backgroundImage: 'linear-gradient(90deg,#C084FC 0%,#F472B6 100%)' }}>
                   المستهدف
                 </span>
               </h2>
 
-              <SparklesIcon
-                aria-hidden="true"
-                className="h-5 w-5 shrink-0 text-[#93C5FD]"
-                strokeWidth={2}
-                fill="currentColor"
-                fillOpacity={0.25}
-              />
+              <SparklesIcon aria-hidden className="h-4 w-4 text-[#93C5FD]"
+                strokeWidth={2} fill="currentColor" fillOpacity={.25} />
             </div>
 
-            <p className="mt-2 text-[13px] leading-relaxed text-slate-400 sm:text-[14px]">
-              يتم إعادة حساب مهاراتك وواجباتك والوظائف المطابقة لك بناءً على المسمى الذي تختاره.
+            <p className="mt-1.5 text-[12px] text-slate-400">
+              يتم إعادة حساب مهاراتك والوظائف المطابقة لك بناءً على المسمى الذي تختاره.
             </p>
+
+            <div className="mt-3 h-px"
+              style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent)' }} />
           </div>
 
-          {/* ── Scrollable body ────────────────────────────────── */}
-          <div className="relative flex-1 overflow-y-auto overflow-x-hidden">
+          {/* ── Carousel ──────────────────────────────── */}
+          <div
+            className="relative shrink-0 px-10 sm:px-12"
+            role="group"
+            aria-roledescription="carousel"
+          >
+            {/* Arrows */}
+            <button type="button" onClick={() => step(-1)} aria-label="السابق"
+              className="absolute left-1 top-1/2 z-[60] -translate-y-1/2 grid h-8 w-8 place-items-center rounded-full border border-white/12 bg-white/[0.07] text-slate-300 outline-none transition-colors hover:bg-white/[0.14] hover:text-white active:scale-95 cursor-pointer"
+              style={{ boxShadow: '0 6px 18px rgba(0,0,0,.55)' }}>
+              <ChevronLeftIcon className="h-4 w-4" strokeWidth={2.3} />
+            </button>
+            <button type="button" onClick={() => step(1)} aria-label="التالي"
+              className="absolute right-1 top-1/2 z-[60] -translate-y-1/2 grid h-8 w-8 place-items-center rounded-full border border-white/12 bg-white/[0.07] text-slate-300 outline-none transition-colors hover:bg-white/[0.14] hover:text-white active:scale-95 cursor-pointer"
+              style={{ boxShadow: '0 6px 18px rgba(0,0,0,.55)' }}>
+              <ChevronRightIcon className="h-4 w-4" strokeWidth={2.3} />
+            </button>
 
-            {/* ── Carousel ──────────────────────────────────────── */}
+            {/* 3D track */}
             <div
-              className="relative px-10 sm:px-14"
-              role="group"
-              aria-roledescription="carousel"
-              aria-label="المسميات الوظيفية المستهدفة"
+              className="relative overflow-hidden"
+              style={{ height: TRACK_H, perspective: '1200px', perspectiveOrigin: '50% 50%' }}
+              onTouchStart={e => { touchX.current = e.touches[0].clientX; }}
+              onTouchEnd={e => {
+                if (touchX.current === null) return;
+                const d = e.changedTouches[0].clientX - touchX.current;
+                if (Math.abs(d) > 40) step(d < 0 ? 1 : -1);
+                touchX.current = null;
+              }}
             >
-              {/* Arrow buttons */}
-              <button
-                type="button"
-                onClick={() => step(-1)}
-                aria-label="السابق"
-                className="absolute left-1 top-1/2 z-[60] -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.06] text-slate-300 outline-none backdrop-blur-md transition-colors duration-200 hover:border-white/25 hover:bg-white/[0.12] hover:text-white active:scale-95 cursor-pointer"
-                style={{ boxShadow: '0 10px 26px rgba(0,0,0,0.55)' }}
-              >
-                <ChevronLeftIcon className="h-5 w-5" strokeWidth={2.2} />
-              </button>
-              <button
-                type="button"
-                onClick={() => step(1)}
-                aria-label="التالي"
-                className="absolute right-1 top-1/2 z-[60] -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.06] text-slate-300 outline-none backdrop-blur-md transition-colors duration-200 hover:border-white/25 hover:bg-white/[0.12] hover:text-white active:scale-95 cursor-pointer"
-                style={{ boxShadow: '0 10px 26px rgba(0,0,0,0.55)' }}
-              >
-                <ChevronRightIcon className="h-5 w-5" strokeWidth={2.2} />
-              </button>
+              {slots.map(({ key, offset, roleIndex }) => {
+                const dist = Math.min(Math.abs(offset), DEPTH.length - 1);
+                const dep  = DEPTH[dist];
+                const dir  = Math.sign(offset);
+                const isAct = offset === 0;
+                const role  = TARGET_ROLES[roleIndex];
+                return (
+                  <div
+                    key={key}
+                    className="absolute left-1/2 top-1/2"
+                    style={{
+                      transformOrigin: 'center center',
+                      transform: `translate(-50%,-50%) translateX(${slotX(offset)}px) translateZ(${dep.z}px) rotateY(${-dir * dep.rotate}deg) scale(${dep.scale})`,
+                      opacity: dep.opacity,
+                      pointerEvents: dep.opacity === 0 ? 'none' : 'auto',
+                      zIndex: 40 - dist,
+                      willChange: 'transform,opacity',
+                      transition: 'transform 420ms cubic-bezier(.22,1,.36,1),opacity 420ms cubic-bezier(.22,1,.36,1)',
+                    }}
+                  >
+                    <TargetRoleCard
+                      role={role}
+                      isActive={isAct}
+                      width={isAct ? A_W : I_W}
+                      height={isAct ? A_H : I_H}
+                      onSelect={() => step(offset)}
+                    />
+                  </div>
+                );
+              })}
 
-              {/* 3D track */}
-              <div
-                className="relative overflow-hidden"
-                style={{
-                  height: carouselH,
-                  perspective: '1400px',
-                  perspectiveOrigin: '50% 50%',
-                }}
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-              >
-                {slots.map(({ key, offset, roleIndex }) => {
-                  const dist = Math.min(Math.abs(offset), DEPTH.length - 1);
-                  const depth = DEPTH[dist];
-                  const dir = Math.sign(offset);
-                  const isActive = offset === 0;
-                  const role = TARGET_ROLES[roleIndex];
-
-                  return (
-                    <div
-                      key={key}
-                      className="absolute left-1/2 top-1/2"
-                      style={{
-                        transformOrigin: 'center center',
-                        transform: `translate(-50%,-50%) translateX(${slotX(offset, metrics)}px) translateZ(${depth.z}px) rotateY(${-dir * depth.rotate}deg) scale(${depth.scale})`,
-                        opacity: depth.opacity,
-                        pointerEvents: depth.opacity === 0 ? 'none' : 'auto',
-                        zIndex: 40 - dist,
-                        willChange: 'transform,opacity',
-                        transition: 'transform 440ms cubic-bezier(0.22,1,0.36,1), opacity 440ms cubic-bezier(0.22,1,0.36,1)',
-                      }}
-                    >
-                      <TargetRoleCard
-                        role={role}
-                        isActive={isActive}
-                        width={isActive ? metrics.activeWidth : metrics.idleWidth}
-                        height={isActive ? metrics.activeHeight : metrics.idleHeight}
-                        onSelect={() => step(offset)}
-                      />
-                    </div>
-                  );
-                })}
-
-                {/* Edge fade-out masks */}
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-y-0 left-0 z-[45] w-12 sm:w-16"
-                  style={{ backgroundImage: 'linear-gradient(90deg,#04060f 0%,rgba(4,6,15,0) 100%)' }}
-                />
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-y-0 right-0 z-[45] w-12 sm:w-16"
-                  style={{ backgroundImage: 'linear-gradient(270deg,#04060f 0%,rgba(4,6,15,0) 100%)' }}
-                />
-              </div>
+              {/* Edge fade masks */}
+              <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-[45] w-10"
+                style={{ backgroundImage: 'linear-gradient(90deg,#04060f,transparent)' }} />
+              <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 z-[45] w-10"
+                style={{ backgroundImage: 'linear-gradient(270deg,#04060f,transparent)' }} />
             </div>
+          </div>
 
-            {/* Dots */}
-            <CarouselDots
+          {/* ── Dots ──────────────────────────────────── */}
+          <CarouselDots
+            labels={labels}
+            activeIndex={activeIdx}
+            onSelect={goTo}
+            className="mt-2 justify-center shrink-0"
+            size="sm"
+          />
+
+          {/* ── Detail panel ──────────────────────────── */}
+          <div className="shrink-0 px-4 sm:px-5 pb-5 pt-3">
+            <TargetRoleDetailPanel
+              role={activeRole}
               labels={labels}
-              activeIndex={activeIndex}
-              onSelect={goToIndex}
-              className="mt-3 justify-center"
+              activeIndex={activeIdx}
+              onSelect={goTo}
+              onConfirm={confirm}
             />
-
-            {/* ── Detail panel ──────────────────────────────────── */}
-            <div className="mt-5 px-4 sm:px-6 pb-6">
-              <TargetRoleDetailPanel
-                role={activeRole}
-                labels={labels}
-                activeIndex={activeIndex}
-                onSelect={goToIndex}
-                onConfirm={handleConfirm}
-              />
-            </div>
           </div>
         </div>
       </div>
 
       <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0)    scale(1);    }
-        }
+        @keyframes trm-fade { from{opacity:0} to{opacity:1} }
+        @keyframes trm-up   { from{opacity:0;transform:translateY(16px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
       `}</style>
     </>
   );

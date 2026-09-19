@@ -13,241 +13,164 @@ interface TargetRoleCardProps {
   onSelect: () => void;
 }
 
-interface StatProps {
-  icon: React.ElementType;
-  value: string;
-  iconColor: string;
-  valueColor: string;
-}
-
-function Stat({ icon: Icon, value, iconColor, valueColor }: StatProps) {
-  return (
-    <span className="flex items-center gap-1 whitespace-nowrap">
-      <Icon
-        aria-hidden="true"
-        className="h-[13px] w-[13px] shrink-0"
-        style={{ color: iconColor }}
-        strokeWidth={2.2}
-      />
-      <span className="text-[11px] font-bold leading-none" style={{ color: valueColor }}>
-        {value}
-      </span>
-    </span>
-  );
-}
-
-export function TargetRoleCard({
-  role,
-  isActive,
-  width,
-  height,
-  onSelect,
-}: TargetRoleCardProps) {
+export function TargetRoleCard({ role, isActive, width, height, onSelect }: TargetRoleCardProps) {
   const t = role.theme;
   const Icon = role.icon;
-  const tile = isActive ? 56 : 46;
-  const glyph = isActive ? 28 : 22;
-  const pad = isActive ? 18 : 14;
 
-  const hairline = isActive
-    ? `linear-gradient(150deg, ${t.borderActive} 0%, ${t.borderActive}cc 38%, ${t.borderActive}4d 72%, ${t.borderActive}99 100%)`
-    : `linear-gradient(150deg, ${t.borderActive}80 0%, ${t.borderIdle}b3 38%, ${t.borderIdle}40 100%)`;
+  const tile = isActive ? 52 : 42;
+  const glyph = isActive ? 26 : 20;
+  const pad = isActive ? 14 : 10;
 
   return (
     <div
       dir="rtl"
       aria-current={isActive ? 'true' : undefined}
-      className="relative"
+      className="relative select-none cursor-pointer group"
+      onClick={onSelect}
       style={{
         width,
         height,
-        transition: 'width 420ms cubic-bezier(0.22, 1, 0.36, 1), height 420ms cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'all 380ms cubic-bezier(0.22, 1, 0.36, 1)',
       }}
     >
-      {/* detached outer ring — the signature glow of the featured card */}
+      {/* Detached outer glow ring for active card */}
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -inset-[7px] rounded-[30px] border"
+        aria-hidden
+        className="pointer-events-none absolute -inset-1 rounded-[22px] border transition-all duration-300"
         style={{
           borderColor: t.borderActive,
-          opacity: isActive ? 0.85 : 0,
-          boxShadow: `0 0 22px ${t.glow}, inset 0 0 22px ${t.glow}`,
-          transition: 'opacity 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+          opacity: isActive ? 0.9 : 0,
+          boxShadow: `0 0 24px ${t.glow}, inset 0 0 16px ${t.glow}`,
         }}
       />
 
-      {/* hairline border wrapper */}
+      {/* Main card boundary with crisp border */}
       <div
-        className="relative h-full w-full rounded-[23px] p-px"
+        className="relative h-full w-full rounded-[20px] p-[1.5px] transition-all duration-300"
         style={{
-          backgroundImage: hairline,
+          background: isActive
+            ? `linear-gradient(145deg, ${t.borderActive} 0%, ${t.borderActive}99 40%, ${t.borderIdle}66 100%)`
+            : `linear-gradient(145deg, ${t.borderActive}70 0%, ${t.borderIdle}80 40%, rgba(255,255,255,0.08) 100%)`,
           boxShadow: isActive
-            ? `0 0 40px ${t.glow}, 0 34px 70px rgba(0,0,0,0.7)`
-            : `0 22px 48px rgba(0,0,0,0.6)`,
-          transition: 'box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+            ? `0 0 35px ${t.glow}, 0 20px 40px rgba(0,0,0,0.8)`
+            : `0 10px 25px rgba(0,0,0,0.6)`,
         }}
       >
         <div
-          className="relative h-full w-full overflow-hidden rounded-[22px]"
+          className="relative h-full w-full overflow-hidden rounded-[19px] flex flex-col justify-between"
           style={{
-            backgroundImage: `radial-gradient(120% 78% at 16% -6%, ${t.surfaceTop} 0%, rgba(0,0,0,0) 68%), linear-gradient(168deg, ${t.surfaceTop}55 0%, ${t.surfaceBottom} 62%, #000000 100%)`,
+            backgroundImage: `radial-gradient(120% 80% at 15% -10%, ${t.surfaceTop} 0%, rgba(0,0,0,0) 65%), linear-gradient(165deg, ${t.surfaceTop}70 0%, ${t.surfaceBottom} 60%, #030611 100%)`,
             backgroundColor: t.surfaceBottom,
+            padding: pad,
           }}
         >
           <CardWaves color={t.accent} strong={isActive} uid={role.id} />
 
-          {/* bloom behind the icon tile */}
+          {/* Top light bloom */}
           <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -left-10 -top-12 h-52 w-52 rounded-full"
+            aria-hidden
+            className="pointer-events-none absolute -left-6 -top-8 h-36 w-36 rounded-full transition-opacity duration-300"
             style={{
               background: `radial-gradient(closest-side, ${t.bloom}, rgba(0,0,0,0))`,
-              opacity: isActive ? 1 : 0.5,
-              transition: 'opacity 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+              opacity: isActive ? 1 : 0.45,
             }}
           />
 
-          {/* top gloss */}
+          {/* Top gloss line */}
           <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 top-0 h-px"
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-[1px]"
             style={{
-              backgroundImage:
-                'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 100%)',
+              backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%)',
             }}
           />
 
-          {/* bottom vignette */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3"
-            style={{
-              backgroundImage: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.45) 100%)',
-            }}
-          />
-
-          <div className="relative flex h-full flex-col" style={{ padding: pad }}>
-            {/* icon tile on the left, "most wanted" badge on the right */}
-            <div dir="ltr" className="flex items-start justify-between">
-              <span
-                className="relative grid shrink-0 place-items-center overflow-hidden"
-                style={{
-                  width: tile,
-                  height: tile,
-                  borderRadius: isActive ? 22 : 19,
-                  backgroundImage: `linear-gradient(158deg, ${t.iconFrom} 0%, ${t.iconTo} 100%)`,
-                  boxShadow: `0 16px 34px ${t.glow}, 0 2px 0 rgba(255,255,255,0.25) inset, 0 -14px 22px rgba(0,0,0,0.22) inset`,
-                  transition:
-                    'width 420ms cubic-bezier(0.22, 1, 0.36, 1), height 420ms cubic-bezier(0.22, 1, 0.36, 1), border-radius 420ms cubic-bezier(0.22, 1, 0.36, 1)',
-                }}
-              >
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 top-0 h-1/2"
-                  style={{
-                    backgroundImage:
-                      'linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 100%)',
-                  }}
-                />
-                <Icon
-                  aria-hidden="true"
-                  style={{ width: glyph, height: glyph }}
-                  strokeWidth={1.7}
-                  className="relative text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]"
-                />
-              </span>
-
-              {role.hot ? (
-                <span
-                  dir="rtl"
-                  className="mt-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[11px] font-bold leading-none text-white"
-                  style={{
-                    backgroundImage: 'linear-gradient(90deg, #1668C9 0%, #2E90F2 100%)',
-                    boxShadow:
-                      '0 10px 24px rgba(29,111,209,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
-                  }}
-                >
-                  <FlameIcon
-                    aria-hidden="true"
-                    className="h-[12px] w-[12px] text-[#FF8A3D]"
-                    fill="currentColor"
-                    strokeWidth={1.4}
-                  />
-                  الأكثر طلباً
-                </span>
-              ) : null}
-            </div>
-
-            {/* breathing room */}
-            <div aria-hidden="true" className="flex-1" />
-
-            <h3
-              className="text-center font-extrabold leading-tight text-white"
+          {/* Header Row: Icon + Most Wanted Badge */}
+          <div dir="ltr" className="relative z-10 flex items-start justify-between gap-1.5 shrink-0">
+            <div
+              className="relative grid place-items-center overflow-hidden transition-all duration-300 rounded-[14px]"
               style={{
-                fontSize: isActive ? 19 : 15,
-                transition: 'font-size 420ms cubic-bezier(0.22, 1, 0.36, 1)',
+                width: tile,
+                height: tile,
+                backgroundImage: `linear-gradient(155deg, ${t.iconFrom} 0%, ${t.iconTo} 100%)`,
+                boxShadow: `0 8px 20px ${t.glow}, inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -8px 12px rgba(0,0,0,0.25)`,
               }}
             >
-              <button
-                type="button"
-                onClick={onSelect}
-                className="static text-inherit outline-none before:absolute before:inset-0 before:z-10 before:rounded-[22px] before:content-[''] focus-visible:before:ring-2 focus-visible:before:ring-white/80"
+              <Icon
+                aria-hidden
+                style={{ width: glyph, height: glyph }}
+                strokeWidth={1.9}
+                className="relative text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)]"
+              />
+            </div>
+
+            {role.hot && (
+              <div
+                dir="rtl"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10.5px] font-bold text-white shadow-md"
+                style={{
+                  backgroundImage: 'linear-gradient(90deg, #1668C9 0%, #2E90F2 100%)',
+                  boxShadow: '0 6px 14px rgba(29,111,209,0.5), inset 0 1px 0 rgba(255,255,255,0.3)',
+                }}
               >
-                {role.title}
-              </button>
+                <FlameIcon className="h-3 w-3 text-[#FF8A3D]" fill="currentColor" strokeWidth={1.2} />
+                <span>الأكثر طلباً</span>
+              </div>
+            )}
+          </div>
+
+          {/* Body Content */}
+          <div className="relative z-10 my-auto text-center space-y-1">
+            <h3
+              className="font-extrabold text-white leading-tight transition-all duration-300 truncate"
+              style={{ fontSize: isActive ? 15 : 13 }}
+            >
+              {role.title}
             </h3>
 
-            {role.subtitle ? (
+            {role.subtitle && (
               <p
                 dir="ltr"
-                className="mt-0.5 text-center font-bold leading-tight text-white/95"
-                style={{
-                  fontSize: isActive ? 15 : 12,
-                  transition: 'font-size 420ms cubic-bezier(0.22, 1, 0.36, 1)',
-                }}
+                className="font-semibold text-white/85 text-[11px] leading-tight truncate"
               >
                 {role.subtitle}
               </p>
-            ) : null}
+            )}
 
             <p
-              className="mt-2 text-center leading-[1.75] text-slate-300/85"
-              style={{
-                fontSize: isActive ? 12 : 10.5,
-                transition: 'font-size 420ms cubic-bezier(0.22, 1, 0.36, 1)',
-              }}
+              className="text-slate-300/85 leading-snug line-clamp-2 px-1"
+              style={{ fontSize: isActive ? 11 : 10 }}
             >
               {role.description}
             </p>
+          </div>
 
-            {/* stats bar */}
-            <div
-              dir="ltr"
-              className="mt-3 flex items-center justify-between rounded-[11px] border px-2.5 py-2"
-              style={{
-                borderColor: `${t.borderIdle}99`,
-                backgroundColor: 'rgba(255,255,255,0.055)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
-              }}
-            >
-              <Stat
-                icon={TrendingUpIcon}
-                value={role.growth}
-                iconColor="#34D399"
-                valueColor="#34D399"
-              />
-              <Stat
-                icon={BriefcaseIcon}
-                value={`${role.jobs} وظيفة`}
-                iconColor={t.accent}
-                valueColor="#E8EEF7"
-              />
-              <Stat
-                icon={MapPinIcon}
-                value={role.location}
-                iconColor={t.accent}
-                valueColor="#E8EEF7"
-              />
+          {/* Bottom stats bar */}
+          <div
+            dir="ltr"
+            className="relative z-10 flex items-center justify-between rounded-[10px] border border-white/10 px-2 py-1.5 shrink-0"
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.06)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+            }}
+          >
+            <div className="flex items-center gap-1">
+              <TrendingUpIcon className="h-3 w-3 text-[#34D399]" strokeWidth={2.2} />
+              <span className="text-[10.5px] font-bold text-[#34D399] leading-none">{role.growth}</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <BriefcaseIcon className="h-3 w-3" style={{ color: t.accent }} strokeWidth={2} />
+              <span className="text-[10px] font-bold text-slate-200 leading-none truncate max-w-[54px]">
+                {role.jobs} وظيفة
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <MapPinIcon className="h-3 w-3" style={{ color: t.accent }} strokeWidth={2} />
+              <span className="text-[10px] font-bold text-slate-200 leading-none truncate max-w-[42px]">
+                {role.location.split('/')[0].trim()}
+              </span>
             </div>
           </div>
         </div>
