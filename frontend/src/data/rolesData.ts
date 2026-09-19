@@ -77,7 +77,7 @@ export const TARGET_ROLES: RoleItem[] = [
     jobs: '1,247',
     jobsCount: 1247,
     growth: '+24%',
-    salary: 'متوسط الراتب: 32,000 ج.م',
+    salary: '35,000 – 60,000 ج.م / شهر',
     hot: true,
     icon: Brain,
     skills: [
@@ -111,7 +111,7 @@ export const TARGET_ROLES: RoleItem[] = [
     jobs: '1,950',
     jobsCount: 1950,
     growth: '+27%',
-    salary: 'متوسط الراتب: 35,000 ج.م',
+    salary: '26,000 – 48,000 ج.م / شهر',
     hot: true,
     icon: Layers,
     skills: [
@@ -145,7 +145,7 @@ export const TARGET_ROLES: RoleItem[] = [
     jobs: '1,840',
     jobsCount: 1840,
     growth: '+22%',
-    salary: 'متوسط الراتب: 28,000 ج.م',
+    salary: '18,000 – 38,000 ج.م / شهر',
     hot: true,
     icon: Layout,
     skills: [
@@ -179,7 +179,7 @@ export const TARGET_ROLES: RoleItem[] = [
     jobs: '1,520',
     jobsCount: 1520,
     growth: '+25%',
-    salary: 'متوسط الراتب: 30,000 ج.م',
+    salary: '25,000 – 50,000 ج.م / شهر',
     hot: true,
     icon: Server,
     skills: [
@@ -213,7 +213,7 @@ export const TARGET_ROLES: RoleItem[] = [
     jobs: '820',
     jobsCount: 820,
     growth: '+45%',
-    salary: 'متوسط الراتب: 40,000 ج.م',
+    salary: '35,000 – 65,000 ج.م / شهر',
     hot: true,
     icon: Sparkles,
     skills: [
@@ -247,7 +247,7 @@ export const TARGET_ROLES: RoleItem[] = [
     jobs: '934',
     jobsCount: 934,
     growth: '+18%',
-    salary: 'متوسط الراتب: 26,000 ج.م',
+    salary: '20,000 – 42,000 ج.م / شهر',
     hot: true,
     icon: BarChart3,
     skills: [
@@ -281,7 +281,7 @@ export const TARGET_ROLES: RoleItem[] = [
     jobs: '1,610',
     jobsCount: 1610,
     growth: '+15%',
-    salary: 'متوسط الراتب: 29,500 ج.م',
+    salary: '28,000 – 55,000 ج.م / شهر',
     hot: true,
     icon: Users,
     skills: [
@@ -315,7 +315,7 @@ export const TARGET_ROLES: RoleItem[] = [
     jobs: '910',
     jobsCount: 910,
     growth: '+20%',
-    salary: 'متوسط الراتب: 27,000 ج.م',
+    salary: '18,000 – 40,000 ج.م / شهر',
     hot: false,
     icon: Smartphone,
     skills: [
