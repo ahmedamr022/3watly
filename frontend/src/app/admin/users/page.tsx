@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Users, Search, Filter, ChevronLeft, ChevronRight,
+  Users, Search, ChevronLeft, ChevronRight,
   Shield, UserX, UserCheck, MoreHorizontal, RefreshCw, AlertTriangle, Crown
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -20,19 +20,21 @@ interface AdminUser {
 }
 
 const ROLE_BADGE: Record<string, string> = {
-  owner: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  admin: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
-  user: 'bg-slate-700/40 text-slate-400 border-slate-600/30',
+  owner: 'bg-amber-500/15 text-amber-500 dark:text-amber-400 border-amber-500/30 font-bold',
+  admin: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30 font-bold',
+  user: 'bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-400/20 font-semibold',
 };
 
 const STATUS_BADGE: Record<string, string> = {
-  active: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  suspended: 'bg-red-500/15 text-red-400 border-red-500/30',
+  active: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-semibold',
+  suspended: 'bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30 font-semibold',
 };
 
-function formatDate(iso: string) {
+function formatDate(iso: string, isAr: boolean) {
   try {
-    return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(iso).toLocaleDateString(isAr ? 'ar-EG' : 'en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
   } catch { return iso; }
 }
 
@@ -105,21 +107,22 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white/80 dark:bg-[#070C18]/90 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 shadow-sm">
         <div>
-          <h1 className="text-xl font-black text-white flex items-center gap-2">
-            <Users className="w-5 h-5 text-cyan-400" />
-            {isAr ? 'إدارة المستخدمين' : 'User Management'}
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+            <Users className="w-6 h-6 text-cyan-500" />
+            {isAr ? 'إدارة حسابات المستخدمين' : 'User Accounts Management'}
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
-            {isAr ? `${total.toLocaleString()} مستخدم مسجل` : `${total.toLocaleString()} registered users`}
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            {isAr ? `${total.toLocaleString()} مستخدم مسجل في المنصة` : `${total.toLocaleString()} registered users in platform`}
           </p>
         </div>
+
         <button
           type="button"
           onClick={fetchUsers}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50 self-start"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-50 self-start shadow-xs"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           {isAr ? 'تحديث' : 'Refresh'}
@@ -130,13 +133,13 @@ export default function AdminUsersPage() {
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder={isAr ? 'بحث بالاسم أو البريد...' : 'Search by name or email...'}
+            placeholder={isAr ? 'بحث بالاسم أو البريد الإلكتروني...' : 'Search by name or email...'}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="w-full ps-9 pe-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
+            className="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white/80 dark:bg-[#0B1120] border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500/50 shadow-xs"
           />
         </div>
 
@@ -170,42 +173,32 @@ export default function AdminUsersPage() {
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           {error}
         </div>
       )}
 
       {/* Table */}
-      <div className="bg-white/3 border border-white/8 rounded-2xl overflow-hidden">
+      <div className="bg-white/80 dark:bg-[#070C18]/90 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 rounded-2xl overflow-hidden shadow-lg">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/8">
-                <th className="text-start px-5 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  {isAr ? 'المستخدم' : 'User'}
-                </th>
-                <th className="text-start px-5 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  {isAr ? 'الدور' : 'Role'}
-                </th>
-                <th className="text-start px-5 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  {isAr ? 'الحالة' : 'Status'}
-                </th>
-                <th className="text-start px-5 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">
-                  {isAr ? 'تاريخ التسجيل' : 'Joined'}
-                </th>
-                <th className="text-end px-5 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  {isAr ? 'إجراءات' : 'Actions'}
-                </th>
+              <tr className="border-b border-slate-200/80 dark:border-white/8 bg-slate-50/50 dark:bg-white/2 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="text-start px-6 py-4">{isAr ? 'المستخدم' : 'User'}</th>
+                <th className="text-center px-6 py-4">{isAr ? 'الدور' : 'Role'}</th>
+                <th className="text-center px-6 py-4">{isAr ? 'الحالة' : 'Status'}</th>
+                <th className="text-start px-6 py-4 hidden md:table-cell">{isAr ? 'تاريخ التسجيل' : 'Joined'}</th>
+                <th className="text-end px-6 py-4">{isAr ? 'إجراءات' : 'Actions'}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {loading
                 ? Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i}>
                       {Array.from({ length: 5 }).map((_, j) => (
-                        <td key={j} className="px-5 py-4">
-                          <div className="h-4 bg-white/8 rounded animate-pulse" />
+                        <td key={j} className="px-6 py-4">
+                          <div className="h-4 bg-slate-200 dark:bg-white/8 rounded animate-pulse" />
                         </td>
                       ))}
                     </tr>
@@ -213,75 +206,73 @@ export default function AdminUsersPage() {
                 : users.length === 0
                 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-12 text-center text-slate-500 text-sm">
-                      {isAr ? 'لا يوجد مستخدمون.' : 'No users found.'}
+                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500 text-sm">
+                      {isAr ? 'لا يوجد مستخدمون مطابقون للبحث.' : 'No users found.'}
                     </td>
                   </tr>
                 )
                 : users.map((u) => (
-                  <tr key={u.id} className="hover:bg-white/3 transition-colors group">
-                    <td className="px-5 py-3.5">
+                  <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-white/3 transition-colors group">
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 border border-white/10 flex items-center justify-center shrink-0">
-                          <span className="text-[11px] font-bold text-white">
-                            {(u.full_name ?? u.email)[0]?.toUpperCase()}
-                          </span>
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">
+                          {(u.full_name ?? u.email)[0]?.toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[13px] font-semibold text-white truncate">
+                          <p className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate">
                             {u.full_name || '—'}
                           </p>
-                          <p className="text-[11px] text-slate-500 truncate">{u.email}</p>
+                          <p className="text-[11.5px] text-slate-500 dark:text-slate-400 font-mono truncate">{u.email}</p>
                         </div>
                       </div>
                     </td>
 
-                    <td className="px-5 py-3.5">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${ROLE_BADGE[u.role]}`}>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`inline-block text-[10.5px] px-2.5 py-0.5 rounded-full border ${ROLE_BADGE[u.role] ?? ROLE_BADGE.user}`}>
                         {u.role}
                       </span>
                     </td>
 
-                    <td className="px-5 py-3.5">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${STATUS_BADGE[u.account_status]}`}>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`inline-block text-[10.5px] px-2.5 py-0.5 rounded-full border ${STATUS_BADGE[u.account_status] ?? STATUS_BADGE.active}`}>
                         {u.account_status}
                       </span>
                     </td>
 
-                    <td className="px-5 py-3.5 hidden md:table-cell">
-                      <span className="text-[12px] text-slate-500">{formatDate(u.created_at)}</span>
+                    <td className="px-6 py-4 hidden md:table-cell">
+                      <span className="text-xs text-slate-500 dark:text-slate-400">{formatDate(u.created_at, isAr)}</span>
                     </td>
 
-                    <td className="px-5 py-3.5 text-end">
+                    <td className="px-6 py-4 text-end">
                       <div className="relative inline-block">
                         <button
                           type="button"
                           onClick={() => setOpenMenu(openMenu === u.id ? null : u.id)}
                           disabled={actionLoading === u.id}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/8 transition-colors cursor-pointer disabled:opacity-40"
+                          className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/8 transition-colors cursor-pointer disabled:opacity-40"
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </button>
 
                         {openMenu === u.id && (
-                          <div className="absolute end-0 mt-1 w-52 rounded-xl bg-[#0B1120] border border-white/10 shadow-2xl z-20 py-1 overflow-hidden">
+                          <div className="absolute end-0 mt-1.5 w-56 rounded-2xl bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-white/12 shadow-2xl z-30 py-1.5 overflow-hidden animate-in fade-in zoom-in-95">
                             {/* Suspend / Activate */}
                             {u.account_status === 'active' ? (
                               <button
                                 type="button"
                                 onClick={() => handleAction(u.id, { accountStatus: 'suspended' })}
-                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] text-red-400 hover:bg-red-950/40 transition-colors cursor-pointer text-start"
+                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer text-start"
                               >
-                                <UserX className="w-3.5 h-3.5" />
+                                <UserX className="w-4 h-4" />
                                 {isAr ? 'تعليق الحساب' : 'Suspend Account'}
                               </button>
                             ) : (
                               <button
                                 type="button"
                                 onClick={() => handleAction(u.id, { accountStatus: 'active' })}
-                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] text-emerald-400 hover:bg-emerald-950/40 transition-colors cursor-pointer text-start"
+                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer text-start"
                               >
-                                <UserCheck className="w-3.5 h-3.5" />
+                                <UserCheck className="w-4 h-4" />
                                 {isAr ? 'تفعيل الحساب' : 'Activate Account'}
                               </button>
                             )}
@@ -289,18 +280,18 @@ export default function AdminUsersPage() {
                             {/* Role changes — owner only */}
                             {isOwner && (
                               <>
-                                <div className="border-t border-white/8 my-1" />
+                                <div className="border-t border-slate-100 dark:border-white/8 my-1" />
                                 {u.role !== 'owner' && (
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      if (confirm(isAr ? `هل أنت متأكد من ترقية "${u.full_name || u.email}" إلى مالك للمنصة (Owner)؟ سيكون له كامل الصلاحيات.` : `Are you sure you want to promote "${u.full_name || u.email}" to Platform Owner?`)) {
+                                      if (confirm(isAr ? `هل أنت متأكد من ترقية "${u.full_name || u.email}" إلى مالك للمنصة (Owner)؟ سيكون له كامل الصلاحيات.` : `Promote "${u.full_name || u.email}" to Owner?`)) {
                                         handleAction(u.id, { role: 'owner' });
                                       }
                                     }}
-                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] text-amber-400 hover:bg-amber-950/40 transition-colors cursor-pointer text-start font-bold"
+                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors cursor-pointer text-start"
                                   >
-                                    <Crown className="w-3.5 h-3.5 text-amber-400" />
+                                    <Crown className="w-4 h-4 text-amber-500" />
                                     {isAr ? '👑 ترقية لمالك (Owner)' : '👑 Make Owner'}
                                   </button>
                                 )}
@@ -308,9 +299,9 @@ export default function AdminUsersPage() {
                                   <button
                                     type="button"
                                     onClick={() => handleAction(u.id, { role: 'admin' })}
-                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] text-cyan-400 hover:bg-cyan-950/40 transition-colors cursor-pointer text-start"
+                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 transition-colors cursor-pointer text-start"
                                   >
-                                    <Shield className="w-3.5 h-3.5" />
+                                    <Shield className="w-4 h-4" />
                                     {isAr ? '🛡️ ترقية لمسؤول (Admin)' : '🛡️ Make Admin'}
                                   </button>
                                 )}
@@ -318,9 +309,9 @@ export default function AdminUsersPage() {
                                   <button
                                     type="button"
                                     onClick={() => handleAction(u.id, { role: 'user' })}
-                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] text-slate-400 hover:bg-white/5 transition-colors cursor-pointer text-start"
+                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-start"
                                   >
-                                    <UserX className="w-3.5 h-3.5" />
+                                    <UserX className="w-4 h-4" />
                                     {isAr ? '👤 تحويل لمستخدم عادي' : '👤 Make Regular User'}
                                   </button>
                                 )}
@@ -338,8 +329,8 @@ export default function AdminUsersPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-4 border-t border-white/8">
-            <p className="text-[12px] text-slate-500">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200/80 dark:border-white/8 bg-slate-50/50 dark:bg-white/2">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {isAr
                 ? `عرض ${Math.min((page - 1) * LIMIT + 1, total)}–${Math.min(page * LIMIT, total)} من ${total}`
                 : `Showing ${Math.min((page - 1) * LIMIT + 1, total)}–${Math.min(page * LIMIT, total)} of ${total}`}
@@ -349,18 +340,18 @@ export default function AdminUsersPage() {
                 type="button"
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page <= 1}
-                className="p-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-30 cursor-pointer transition-colors"
+                className="p-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30 cursor-pointer transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
-              <span className="text-[12px] text-slate-400 px-2">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 px-2">
                 {page} / {totalPages}
               </span>
               <button
                 type="button"
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page >= totalPages}
-                className="p-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-30 cursor-pointer transition-colors"
+                className="p-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30 cursor-pointer transition-colors"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>

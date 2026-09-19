@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  FileText, Search, ChevronLeft, ChevronRight, RefreshCw, AlertTriangle, Shield
-} from 'lucide-react';
+import { FileText, Search, ChevronLeft, ChevronRight, RefreshCw, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { AdminGuard } from '@/components/admin/AdminGuard';
 
 interface AuditLog {
@@ -19,18 +16,18 @@ interface AuditLog {
   created_at: string;
 }
 
-const ACTION_COLOR: Record<string, string> = {
-  'user.suspend': 'text-red-400',
-  'user.status_change': 'text-orange-400',
-  'user.role_change': 'text-amber-400',
-  'resource.create': 'text-emerald-400',
-  'resource.update': 'text-cyan-400',
-  'resource.delete': 'text-red-400',
+const ACTION_COLORS: Record<string, string> = {
+  'user.role_change': 'bg-amber-500/15 text-amber-500 dark:text-amber-400 border-amber-500/30',
+  'user.status_change': 'bg-red-500/15 text-red-500 dark:text-red-400 border-red-500/30',
+  'resource.create': 'bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 border-emerald-500/30',
+  'resource.update': 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30',
+  'resource.delete': 'bg-rose-500/15 text-rose-500 dark:text-rose-400 border-rose-500/30',
+  'resources.seed_catalog': 'bg-purple-500/15 text-purple-500 dark:text-purple-400 border-purple-500/30',
 };
 
-function formatDate(iso: string) {
+function formatDate(iso: string, isAr: boolean) {
   try {
-    return new Date(iso).toLocaleString('en-GB', {
+    return new Date(iso).toLocaleString(isAr ? 'ar-EG' : 'en-GB', {
       day: '2-digit', month: 'short', year: 'numeric',
       hour: '2-digit', minute: '2-digit'
     });
@@ -45,7 +42,8 @@ function AuditLogsContent() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const LIMIT = 50;
+
+  const LIMIT = 25;
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -74,21 +72,22 @@ function AuditLogsContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white/80 dark:bg-[#070C18]/90 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 shadow-sm">
         <div>
-          <h1 className="text-xl font-black text-white flex items-center gap-2">
-            <FileText className="w-5 h-5 text-amber-400" />
-            {isAr ? 'سجل العمليات' : 'Audit Logs'}
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+            <FileText className="w-6 h-6 text-amber-500" />
+            {isAr ? 'سجل العمليات الإدارية (Audit Logs)' : 'Administrative Audit Logs'}
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
-            {isAr ? `${total.toLocaleString()} إجراء مسجل` : `${total.toLocaleString()} logged actions`}
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            {isAr ? `${total.toLocaleString()} عملية مسجلة في النظام (حصرية للمالك)` : `${total.toLocaleString()} logged operations (Owner only)`}
           </p>
         </div>
         <button
           type="button"
           onClick={fetchLogs}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50 self-start"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-50 self-start shadow-xs"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           {isAr ? 'تحديث' : 'Refresh'}
@@ -97,48 +96,42 @@ function AuditLogsContent() {
 
       {/* Search */}
       <div className="relative max-w-sm">
-        <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input
           type="text"
-          placeholder={isAr ? 'بحث في الإجراءات...' : 'Filter by action...'}
+          placeholder={isAr ? 'بحث في أسماء الإجراءات...' : 'Filter by action name...'}
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="w-full ps-9 pe-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
+          className="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white/80 dark:bg-[#0B1120] border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500/50 shadow-xs"
         />
       </div>
 
       {error && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-          <AlertTriangle className="w-4 h-4 shrink-0" />{error}
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          {error}
         </div>
       )}
 
-      <div className="bg-white/3 border border-white/8 rounded-2xl overflow-hidden">
+      {/* Table */}
+      <div className="bg-white/80 dark:bg-[#070C18]/90 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 rounded-2xl overflow-hidden shadow-lg">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/8">
-                <th className="text-start px-5 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  {isAr ? 'الإجراء' : 'Action'}
-                </th>
-                <th className="text-start px-5 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  {isAr ? 'المنفذ' : 'Actor'}
-                </th>
-                <th className="text-start px-5 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">
-                  {isAr ? 'الهدف' : 'Target'}
-                </th>
-                <th className="text-start px-5 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  {isAr ? 'التاريخ' : 'Date'}
-                </th>
+              <tr className="border-b border-slate-200/80 dark:border-white/8 bg-slate-50/50 dark:bg-white/2 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="text-start px-6 py-4">{isAr ? 'الإجراء' : 'Action'}</th>
+                <th className="text-start px-6 py-4">{isAr ? 'المنفذ' : 'Actor'}</th>
+                <th className="text-start px-6 py-4 hidden md:table-cell">{isAr ? 'الهدف والبيانات' : 'Target & Data'}</th>
+                <th className="text-start px-6 py-4">{isAr ? 'التاريخ والوقت' : 'Timestamp'}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {loading
-                ? Array.from({ length: 8 }).map((_, i) => (
+                ? Array.from({ length: 6 }).map((_, i) => (
                     <tr key={i}>
                       {Array.from({ length: 4 }).map((_, j) => (
-                        <td key={j} className="px-5 py-4">
-                          <div className="h-4 bg-white/8 rounded animate-pulse" />
+                        <td key={j} className="px-6 py-4">
+                          <div className="h-4 bg-slate-200 dark:bg-white/8 rounded animate-pulse" />
                         </td>
                       ))}
                     </tr>
@@ -146,30 +139,32 @@ function AuditLogsContent() {
                 : logs.length === 0
                 ? (
                   <tr>
-                    <td colSpan={4} className="px-5 py-12 text-center text-slate-500 text-sm">
+                    <td colSpan={4} className="px-6 py-12 text-center text-slate-500 text-sm">
                       {isAr ? 'لا توجد سجلات بعد.' : 'No audit logs yet.'}
                     </td>
                   </tr>
                 )
                 : logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-white/3 transition-colors">
-                    <td className="px-5 py-3.5">
-                      <code className={`text-[12px] font-mono font-semibold ${ACTION_COLOR[log.action] ?? 'text-slate-300'}`}>
+                  <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-white/3 transition-colors">
+                    <td className="px-6 py-4">
+                      <span className={`inline-block text-[11px] px-2.5 py-0.5 rounded-full border font-mono font-bold ${
+                        ACTION_COLORS[log.action] ?? 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-400/20'
+                      }`}>
                         {log.action}
-                      </code>
+                      </span>
                     </td>
-                    <td className="px-5 py-3.5">
-                      <p className="text-[12px] text-slate-300 truncate max-w-[150px]">
-                        {log.actor_email ?? '—'}
-                      </p>
+                    <td className="px-6 py-4">
+                      <span className="text-xs font-semibold text-slate-900 dark:text-slate-200 font-mono">
+                        {log.actor_email || log.actor_id || 'System'}
+                      </span>
                     </td>
-                    <td className="px-5 py-3.5 hidden md:table-cell">
-                      <p className="text-[11px] text-slate-500">
-                        {log.target_type}{log.target_id ? ` · ${log.target_id.slice(0, 8)}…` : ''}
-                      </p>
+                    <td className="px-6 py-4 hidden md:table-cell">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                        {log.target_type ? `${log.target_type}:${log.target_id || ''}` : '—'}
+                      </span>
                     </td>
-                    <td className="px-5 py-3.5">
-                      <span className="text-[11px] text-slate-500">{formatDate(log.created_at)}</span>
+                    <td className="px-6 py-4">
+                      <span className="text-xs text-slate-500 dark:text-slate-400">{formatDate(log.created_at, isAr)}</span>
                     </td>
                   </tr>
                 ))}
@@ -178,26 +173,29 @@ function AuditLogsContent() {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-4 border-t border-white/8">
-            <p className="text-[12px] text-slate-500">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200/80 dark:border-white/8 bg-slate-50/50 dark:bg-white/2">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {isAr
-                ? `الصفحة ${page} من ${totalPages}`
-                : `Page ${page} of ${totalPages}`}
+                ? `عرض ${Math.min((page - 1) * LIMIT + 1, total)}–${Math.min(page * LIMIT, total)} من ${total}`
+                : `Showing ${Math.min((page - 1) * LIMIT + 1, total)}–${Math.min(page * LIMIT, total)} of ${total}`}
             </p>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page <= 1}
-                className="p-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-30 cursor-pointer"
+                className="p-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30 cursor-pointer transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 px-2">
+                {page} / {totalPages}
+              </span>
               <button
                 type="button"
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page >= totalPages}
-                className="p-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-30 cursor-pointer"
+                className="p-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30 cursor-pointer transition-colors"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
