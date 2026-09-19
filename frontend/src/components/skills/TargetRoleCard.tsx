@@ -22,14 +22,14 @@ interface StatProps {
 
 function Stat({ icon: Icon, value, iconColor, valueColor }: StatProps) {
   return (
-    <span className="flex items-center gap-1.5 whitespace-nowrap">
+    <span className="flex items-center gap-1 whitespace-nowrap">
       <Icon
         aria-hidden="true"
-        className="h-[17px] w-[17px] shrink-0"
+        className="h-[13px] w-[13px] shrink-0"
         style={{ color: iconColor }}
         strokeWidth={2.2}
       />
-      <span className="text-[13px] font-bold leading-none" style={{ color: valueColor }}>
+      <span className="text-[11px] font-bold leading-none" style={{ color: valueColor }}>
         {value}
       </span>
     </span>
@@ -45,9 +45,9 @@ export function TargetRoleCard({
 }: TargetRoleCardProps) {
   const t = role.theme;
   const Icon = role.icon;
-  const tile = isActive ? 78 : 66;
-  const glyph = isActive ? 38 : 32;
-  const pad = isActive ? 24 : 20;
+  const tile = isActive ? 56 : 46;
+  const glyph = isActive ? 28 : 22;
+  const pad = isActive ? 18 : 14;
 
   const hairline = isActive
     ? `linear-gradient(150deg, ${t.borderActive} 0%, ${t.borderActive}cc 38%, ${t.borderActive}4d 72%, ${t.borderActive}99 100%)`
@@ -160,7 +160,7 @@ export function TargetRoleCard({
               {role.hot ? (
                 <span
                   dir="rtl"
-                  className="mt-1.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[12.5px] font-bold leading-none text-white"
+                  className="mt-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[11px] font-bold leading-none text-white"
                   style={{
                     backgroundImage: 'linear-gradient(90deg, #1668C9 0%, #2E90F2 100%)',
                     boxShadow:
@@ -169,7 +169,7 @@ export function TargetRoleCard({
                 >
                   <FlameIcon
                     aria-hidden="true"
-                    className="h-[15px] w-[15px] text-[#FF8A3D]"
+                    className="h-[12px] w-[12px] text-[#FF8A3D]"
                     fill="currentColor"
                     strokeWidth={1.4}
                   />
@@ -184,7 +184,7 @@ export function TargetRoleCard({
             <h3
               className="text-center font-extrabold leading-tight text-white"
               style={{
-                fontSize: isActive ? 26 : 21,
+                fontSize: isActive ? 19 : 15,
                 transition: 'font-size 420ms cubic-bezier(0.22, 1, 0.36, 1)',
               }}
             >
@@ -200,9 +200,9 @@ export function TargetRoleCard({
             {role.subtitle ? (
               <p
                 dir="ltr"
-                className="mt-1 text-center font-bold leading-tight text-white/95"
+                className="mt-0.5 text-center font-bold leading-tight text-white/95"
                 style={{
-                  fontSize: isActive ? 21 : 17,
+                  fontSize: isActive ? 15 : 12,
                   transition: 'font-size 420ms cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
               >
@@ -211,9 +211,9 @@ export function TargetRoleCard({
             ) : null}
 
             <p
-              className="mt-3 text-center leading-[1.85] text-slate-300/85"
+              className="mt-2 text-center leading-[1.75] text-slate-300/85"
               style={{
-                fontSize: isActive ? 14.5 : 13,
+                fontSize: isActive ? 12 : 10.5,
                 transition: 'font-size 420ms cubic-bezier(0.22, 1, 0.36, 1)',
               }}
             >
@@ -223,7 +223,7 @@ export function TargetRoleCard({
             {/* stats bar */}
             <div
               dir="ltr"
-              className="mt-5 flex items-center justify-between rounded-[15px] border px-3.5 py-3"
+              className="mt-3 flex items-center justify-between rounded-[11px] border px-2.5 py-2"
               style={{
                 borderColor: `${t.borderIdle}99`,
                 backgroundColor: 'rgba(255,255,255,0.055)',

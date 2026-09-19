@@ -31,19 +31,19 @@ interface CardMetrics {
 }
 
 const WIDE: CardMetrics = {
-  idleWidth: 300,
-  activeWidth: 348,
-  idleHeight: 318,
-  activeHeight: 366,
-  gap: 26,
+  idleWidth: 224,
+  activeWidth: 262,
+  idleHeight: 242,
+  activeHeight: 280,
+  gap: 18,
 };
 
 const COMPACT: CardMetrics = {
-  idleWidth: 236,
-  activeWidth: 280,
-  idleHeight: 300,
-  activeHeight: 344,
-  gap: 16,
+  idleWidth: 172,
+  activeWidth: 210,
+  idleHeight: 224,
+  activeHeight: 260,
+  gap: 12,
 };
 
 /** How many cards are rendered on each side of the focused one. */
@@ -254,7 +254,7 @@ export function TargetRoleModal({ open, onClose }: TargetRoleModalProps) {
         />
 
         {/* Inner container with overflow hidden for rounded corners */}
-        <div className="relative overflow-hidden rounded-[28px] py-14 sm:py-16 lg:py-20">
+        <div className="relative overflow-hidden rounded-[28px] py-10 sm:py-12 lg:py-14">
           <div className="relative mx-auto w-full max-w-[1460px] px-4 sm:px-6">
 
             {/* ── header ───────────────────────────────────────────── */}
@@ -285,7 +285,7 @@ export function TargetRoleModal({ open, onClose }: TargetRoleModalProps) {
                   />
                 </span>
 
-                <h2 className="text-[27px] font-extrabold leading-tight text-white sm:text-[34px] lg:text-[42px]">
+                <h2 className="text-[22px] font-extrabold leading-tight text-white sm:text-[28px] lg:text-[34px]">
                   أكثر المسمى الوظيفي{' '}
                   <span
                     className="bg-clip-text text-transparent"
