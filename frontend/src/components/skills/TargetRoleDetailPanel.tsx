@@ -1,205 +1,270 @@
-"use client";
+'use client';
 
 import React from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import {
-  Briefcase,
-  Calendar,
-  Check,
-  ChevronRight,
-  ChevronLeft,
-  MapPin,
-  TrendingUp,
-  Sparkles,
+  BriefcaseIcon,
+  CalendarDaysIcon,
+  ChevronRightIcon,
+  MapPinIcon,
+  TrendingUpIcon,
 } from 'lucide-react';
+import { CarouselDots } from './CarouselDots';
 import { RoleItem } from '@/data/rolesData';
+
+const PANEL_BACKGROUND = '/images/role-card-bg.png';
 
 interface TargetRoleDetailPanelProps {
   role: RoleItem;
-  readinessPct: number;
-  isCurrentSavedRole: boolean;
-  onConfirmSelection: () => void;
-  isAr?: boolean;
+  labels: string[];
+  activeIndex: number;
+  onSelect: (index: number) => void;
+  onConfirm: () => void;
+}
+
+interface DetailRow {
+  label: string;
+  value: string;
+  icon: React.ElementType;
+  iconColor: string;
+  valueColor: string;
 }
 
 export function TargetRoleDetailPanel({
   role,
-  readinessPct,
-  isCurrentSavedRole,
-  onConfirmSelection,
-  isAr = true,
+  labels,
+  activeIndex,
+  onSelect,
+  onConfirm,
 }: TargetRoleDetailPanelProps) {
+  const reduceMotion = useReducedMotion();
   const t = role.theme;
   const Icon = role.icon;
 
-  const detailStats = [
+  const rows: DetailRow[] = [
     {
-      label: isAr ? 'سوق العمل' : 'Job Market',
-      value: `${role.jobs} ${isAr ? 'وظيفة نشطة' : 'active jobs'}`,
-      icon: Briefcase,
-      color: t.accent,
-    },
-    {
-      label: isAr ? 'نسبة النمو السنوي' : 'YoY Growth',
-      value: role.growth,
-      icon: TrendingUp,
-      color: '#10B981',
-    },
-    {
-      label: isAr ? 'متوسط الراتب المتوقع' : 'Average Salary',
-      value: role.salary,
-      icon: Calendar,
-      color: t.accent,
-    },
-    {
-      label: isAr ? 'الموقع ونمط العمل' : 'Location',
+      label: 'الموقع',
       value: role.location,
-      icon: MapPin,
-      color: t.accent,
+      icon: MapPinIcon,
+      iconColor: t.accent,
+      valueColor: '#FFFFFF',
+    },
+    {
+      label: 'عدد الوظائف',
+      value: `${role.jobs} وظيفة`,
+      icon: BriefcaseIcon,
+      iconColor: t.accent,
+      valueColor: '#FFFFFF',
+    },
+    {
+      label: 'نسبة النمو',
+      value: role.growth,
+      icon: TrendingUpIcon,
+      iconColor: '#34D399',
+      valueColor: '#34D399',
+    },
+    {
+      label: 'الراتب',
+      value: role.salary,
+      icon: CalendarDaysIcon,
+      iconColor: t.accent,
+      valueColor: '#FFFFFF',
     },
   ];
 
   return (
     <div
-      dir={isAr ? 'rtl' : 'ltr'}
-      className="relative w-full rounded-3xl p-px overflow-hidden shadow-2xl transition-all duration-300"
+      className="relative w-full rounded-[27px] p-px"
       style={{
         backgroundImage: `linear-gradient(150deg, ${t.borderActive}b3 0%, ${t.borderIdle}66 40%, ${t.borderActive}4d 100%)`,
-        boxShadow: `0 20px 50px rgba(0,0,0,0.3), 0 0 30px ${t.glow}`,
+        boxShadow: `0 34px 84px rgba(0,0,0,0.72), 0 0 40px ${t.glow}`,
       }}
     >
-      <div className="relative w-full overflow-hidden rounded-[23px] bg-white dark:bg-[#060F26] p-6 sm:p-7">
+      <section
+        dir="rtl"
+        aria-live="polite"
+        aria-label={`تفاصيل ${role.title}`}
+        className="relative w-full overflow-hidden rounded-[26px]"
+        style={{ backgroundColor: '#030b1c' }}
+      >
         {/* Background artwork */}
         <img
-          src="/images/role-card-bg.png"
+          src={PANEL_BACKGROUND}
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-left opacity-15 dark:opacity-30 select-none"
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-left"
         />
 
-        {/* Backdrop radial glow */}
+        {/* readability veil */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 hidden lg:block"
+          style={{
+            backgroundImage:
+              'linear-gradient(270deg, rgba(3,9,24,0.95) 0%, rgba(3,9,24,0.88) 42%, rgba(3,9,24,0.44) 72%, rgba(3,9,24,0.05) 100%)',
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[#030b1c]/88 lg:hidden"
+        />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
           style={{
-            backgroundImage: `radial-gradient(110% 120% at 100% 50%, ${t.glow} 0%, rgba(0,0,0,0) 65%)`,
-            opacity: 0.35,
+            backgroundImage: `radial-gradient(110% 120% at 100% 50%, ${t.glow} 0%, rgba(0,0,0,0) 62%)`,
+            opacity: 0.5,
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-px"
+          style={{
+            backgroundImage:
+              'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0) 100%)',
           }}
         />
 
-        <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center z-10">
-          {/* Quick Facts (Left column in LTR, Right column in RTL) */}
-          <div className="lg:col-span-5 space-y-3.5 border-b lg:border-b-0 lg:border-e border-slate-200 dark:border-white/10 pb-5 lg:pb-0 lg:pe-6">
-            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-              {isAr ? 'مؤشرات سوق العمل للوظيفة في مصر:' : 'Egypt Tech Market Indicators:'}
-            </h4>
-            <div className="space-y-2.5">
-              {detailStats.map((st) => {
-                const StatIcon = st.icon;
-                return (
-                  <div
-                    key={st.label}
-                    className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50/90 dark:bg-white/5 border border-slate-200/90 dark:border-white/10"
+        <motion.div
+          key={role.id}
+          initial={{ opacity: 0, y: reduceMotion ? 0 : 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.24, ease: [0.23, 1, 0.32, 1] }}
+          className="relative grid grid-cols-12 gap-6 p-6 pb-14 sm:p-7 sm:pb-14 lg:min-h-[348px] lg:gap-7"
+        >
+          {/* ── right: quick facts ─────────────────────────────── */}
+          <div className="order-2 col-span-12 flex flex-col justify-center gap-3 border-t border-[#153055] pt-5 lg:order-1 lg:col-span-4 lg:border-l lg:border-t-0 lg:pl-7 lg:pt-0">
+            {rows.map((row) => {
+              const RowIcon = row.icon;
+              return (
+                <div key={row.label} className="flex items-center justify-between gap-4">
+                  <span
+                    className="shrink-0 rounded-[11px] border border-[#204775] bg-[#06172F]/80 px-4 py-[7px] text-[13px] font-semibold leading-none text-slate-200"
+                    style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)' }}
                   >
-                    <span className="text-[12px] font-semibold text-slate-600 dark:text-slate-300">
-                      {st.label}
+                    {row.label}
+                  </span>
+                  <span dir="ltr" className="flex min-w-0 items-center gap-2 text-right">
+                    <RowIcon
+                      aria-hidden="true"
+                      className="h-[19px] w-[19px] shrink-0"
+                      style={{ color: row.iconColor }}
+                      strokeWidth={2.1}
+                    />
+                    <span
+                      className="truncate text-[15px] font-bold leading-none"
+                      style={{ color: row.valueColor }}
+                    >
+                      {row.value}
                     </span>
-                    <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
-                      <StatIcon className="w-3.5 h-3.5" style={{ color: st.color }} />
-                      <span>{st.value}</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── middle: identity, summary, skills ──────────────── */}
+          <div className="order-1 col-span-12 flex flex-col items-center justify-center gap-4 text-center lg:order-2 lg:col-span-5">
+            <div
+              dir="ltr"
+              className="flex items-center gap-4 rounded-[18px] border py-2 pl-2 pr-5"
+              style={{
+                borderColor: `${t.borderIdle}cc`,
+                backgroundColor: 'rgba(6, 26, 52, 0.72)',
+                boxShadow:
+                  '0 14px 34px rgba(2,8,20,0.7), inset 0 1px 0 rgba(255,255,255,0.1)',
+              }}
+            >
+              <span
+                className="relative grid h-[54px] w-[54px] shrink-0 place-items-center overflow-hidden rounded-[16px]"
+                style={{
+                  backgroundImage: `linear-gradient(158deg, ${t.iconFrom} 0%, ${t.iconTo} 100%)`,
+                  boxShadow: `0 12px 26px ${t.glow}, inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -10px 16px rgba(0,0,0,0.22)`,
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 top-0 h-1/2"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0))',
+                  }}
+                />
+                <Icon
+                  aria-hidden="true"
+                  className="relative h-7 w-7 text-white"
+                  strokeWidth={1.8}
+                />
+              </span>
+              <h3 className="text-[24px] font-extrabold leading-none text-white sm:text-[27px]">
+                {role.title}
+              </h3>
+            </div>
+
+            <p className="max-w-[460px] text-[15px] leading-[1.9] text-slate-300 sm:text-[15.5px]">
+              {role.description}
+            </p>
+
+            <ul dir="rtl" className="flex flex-wrap items-stretch justify-center gap-3">
+              {role.skills.map((skill) => {
+                const SkillIcon = skill.icon;
+                return (
+                  <li
+                    key={skill.label}
+                    className="flex min-w-[104px] flex-1 flex-col items-center justify-center gap-1.5 rounded-[14px] border border-[#1B3B6B] bg-[#05142C]/80 px-3 py-2.5"
+                    style={{
+                      boxShadow:
+                        'inset 0 1px 0 rgba(255,255,255,0.09), 0 10px 22px rgba(0,0,0,0.45)',
+                    }}
+                  >
+                    <SkillIcon
+                      aria-hidden="true"
+                      className="h-[22px] w-[22px]"
+                      style={{ color: t.accent }}
+                      strokeWidth={2}
+                    />
+                    <span className="text-[12.5px] font-semibold leading-tight text-slate-200">
+                      {skill.label}
                     </span>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </div>
 
-          {/* Role Overview & CTA (Main Section) */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-5">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md shrink-0"
-                  style={{
-                    backgroundImage: `linear-gradient(135deg, ${t.iconFrom} 0%, ${t.iconTo} 100%)`,
-                  }}
-                >
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                    {isAr ? role.title : role.titleEn}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {role.subtitle || role.titleEn}
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300 pt-1">
-                {role.description}
-              </p>
-            </div>
-
-            {/* Core Skills Chips */}
-            <div className="space-y-2">
-              <p className="text-[11.5px] font-bold text-slate-700 dark:text-slate-300">
-                {isAr ? 'أهم المهارات المطلوبة لهذا المسار:' : 'Core Required Skills:'}
-              </p>
-              <div className="flex items-center gap-2 flex-wrap">
-                {role.skills.map((sk) => {
-                  const SkIcon = sk.icon;
-                  return (
-                    <span
-                      key={sk.label}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-white/8 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-white/10"
-                    >
-                      <SkIcon className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
-                      <span>{sk.label}</span>
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Readiness & Action Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-200 dark:border-white/10">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center font-black text-xs text-cyan-600 dark:text-cyan-300">
-                  {readinessPct}%
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-white">
-                    {isAr ? 'نسبة جاهزيتك للمسار' : 'Your Plan Readiness'}
-                  </p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    {readinessPct >= 70
-                      ? (isAr ? 'جاهزية ممتازة للتقديم' : 'Strong match')
-                      : (isAr ? 'خطة سد فجوة المهارات متاحة فوراً' : 'Skills plan ready')}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={onConfirmSelection}
-                className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white font-bold text-sm shadow-xl shadow-cyan-600/25 hover:opacity-95 transition-all cursor-pointer transform active:scale-98"
-              >
-                {isCurrentSavedRole ? (
-                  <>
-                    <Check className="w-4 h-4" strokeWidth={3} />
-                    <span>{isAr ? 'المسار المستهدف الحالي (تم الحفظ)' : 'Current Target Role'}</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>{isAr ? 'اختيار هذا المسار الوظيفي 🎯' : 'Select Target Role 🎯'}</span>
-                  </>
-                )}
-              </button>
-            </div>
+          {/* ── left: CTA ──────────────── */}
+          <div className="order-3 col-span-12 flex items-end lg:col-span-3">
+            <button
+              type="button"
+              onClick={onConfirm}
+              className="group/cta inline-flex w-full max-w-[320px] items-center justify-center gap-3 rounded-full px-6 py-3.5 text-[16px] font-bold text-white outline-none transition-[transform,filter] duration-200 hover:-translate-y-[2px] hover:brightness-110 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#03091a] active:translate-y-0"
+              style={{
+                backgroundImage:
+                  'linear-gradient(90deg, #8B5CF6 0%, #6366F1 52%, #2F80ED 100%)',
+                boxShadow:
+                  '0 16px 38px rgba(91,63,222,0.6), inset 0 1px 0 rgba(255,255,255,0.3)',
+              }}
+            >
+              <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full bg-white/20">
+                <ChevronRightIcon
+                  aria-hidden="true"
+                  className="h-4 w-4 transition-transform duration-200 group-hover/cta:translate-x-[2px]"
+                  strokeWidth={3}
+                />
+              </span>
+              اختيار هذا المسار الوظيفي
+            </button>
           </div>
-        </div>
-      </div>
+        </motion.div>
+
+        <CarouselDots
+          labels={labels}
+          activeIndex={activeIndex}
+          onSelect={onSelect}
+          size="sm"
+          className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 lg:left-auto lg:right-8 lg:translate-x-0"
+        />
+      </section>
     </div>
   );
 }
