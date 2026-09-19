@@ -328,11 +328,31 @@ function inferSkillsFromTitle(title: string): ExtractedSkill[] {
 
 /** Extract verified skills from free text against known skill dictionary */
 function extractSkillsFromText(text: string): string[] {
+  if (!text) return [];
   const found = new Set<string>();
   const normalizedText = text.toLowerCase();
   for (const skill of KNOWN_TECH_SKILLS) {
+    if (skill === 'R') {
+      if (/(?:^|\s|\/|,)(?:r\s+programming|r\s+language|r\s+script|language\s+r|r-project|cran|rstudio|r\s*[\/,]\s*python|python\s*[\/,]\s*r)(?:$|\s|\/|,|\.)/i.test(normalizedText)) {
+        found.add('R');
+      }
+      continue;
+    }
+    if (skill === 'C') {
+      if (/(?:^|\s|\/|,)(?:c\s+programming|c\s+language|c\s*\/\s*c\+\+)(?:$|\s|\/|,|\.)/i.test(normalizedText)) {
+        found.add('C');
+      }
+      continue;
+    }
+    if (skill === 'Go') {
+      if (/(?:^|\s|\/|,)(?:golang|go\s+language|go\s+programming|go\s*\/\s*golang)(?:$|\s|\/|,|\.)/i.test(normalizedText)) {
+        found.add('Go');
+      }
+      continue;
+    }
+
     const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(?<![a-zA-Z])${escaped}(?![a-zA-Z])`, 'i');
+    const regex = new RegExp(`(?<![a-zA-Z0-9])${escaped}(?![a-zA-Z0-9])`, 'i');
     if (regex.test(normalizedText)) {
       found.add(skill);
     }

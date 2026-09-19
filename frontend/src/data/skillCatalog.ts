@@ -412,9 +412,251 @@ export const SKILLS: Record<string, SkillDefinition> = {
     prerequisites: [],
     salaryUplift: 2,
     resources: [
-      { title: 'Storytelling with data', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=8EMW7io4rSI' },
+      { title: 'Storytelling with Data Masterclass', provider: 'YouTube', kind: 'video', hours: 3, free: true, url: 'https://www.youtube.com/watch?v=8EMW7io4rSI' },
       { title: 'Data Visualization Principles', provider: 'Coursera', kind: 'course', hours: 8, free: true, url: 'https://datavizcatalogue.com/' },
-      { title: 'Redesign a public dashboard', provider: 'Hands-on Project', kind: 'project', hours: 5, free: true, url: 'https://www.storytellingwithdata.com/' }
+      { title: 'Redesign a Public Dashboard Project', provider: 'Hands-on Project', kind: 'project', hours: 5, free: true, url: 'https://www.storytellingwithdata.com/' }
+    ]
+  },
+  react: {
+    id: 'react',
+    name: 'React.js',
+    aliases: ['React', 'React.js', 'ReactJS'],
+    tier: 'core',
+    hours: 12,
+    courses: 4,
+    growth: 15,
+    why: 'React is the undisputed market leader for building dynamic, high-performance web frontends and UI components.',
+    actions: ['Build an interactive component with hooks and state', 'Implement responsive UI layouts with Tailwind', 'Deploy a production app on Vercel'],
+    prerequisites: ['javascript'],
+    salaryUplift: 5,
+    resources: [
+      { title: 'React 18 / 19 Full Course for Beginners', provider: 'freeCodeCamp', kind: 'video', hours: 12, free: true, url: 'https://www.youtube.com/watch?v=bMknfKXIFA8' },
+      { title: 'Meta React Basics & Advanced Components', provider: 'Coursera', kind: 'course', hours: 20, free: false, url: 'https://www.coursera.org/learn/react-basics' },
+      { title: 'Official React.dev Documentation & Interactive Sandbox', provider: 'React Docs', kind: 'docs', hours: 4, free: true, url: 'https://react.dev/' },
+      { title: 'Fullstack React Dashboard Portfolio Project', provider: 'GitHub', kind: 'project', hours: 8, free: true, url: 'https://github.com/adrianhajdin/project_syncfusion_dashboard' }
+    ]
+  },
+  nextjs: {
+    id: 'nextjs',
+    name: 'Next.js',
+    aliases: ['Next.js', 'NextJS', 'Next 14', 'Next 15'],
+    tier: 'advanced',
+    hours: 10,
+    courses: 4,
+    growth: 28,
+    why: 'Next.js provides SSR, SSG, Server Actions, and API routes for scalable modern production web applications.',
+    actions: ['Build an app with Server Components and App Router', 'Integrate Auth and Supabase with Route Handlers', 'Optimize Core Web Vitals'],
+    prerequisites: ['react', 'typescript'],
+    salaryUplift: 6,
+    resources: [
+      { title: 'Next.js 14 / 15 Full Tutorial for Beginners', provider: 'freeCodeCamp', kind: 'video', hours: 6, free: true, url: 'https://www.youtube.com/watch?v=wm5gMKuwSYk' },
+      { title: 'Vercel Official Next.js Interactive Curriculum', provider: 'Vercel Learn', kind: 'course', hours: 8, free: true, url: 'https://nextjs.org/learn' },
+      { title: 'Next.js Official Documentation', provider: 'Next.js Docs', kind: 'docs', hours: 4, free: true, url: 'https://nextjs.org/docs' },
+      { title: 'Fullstack Next.js & Tailwind SaaS Platform Repo', provider: 'GitHub', kind: 'project', hours: 10, free: true, url: 'https://github.com/shadcn/taxonomy' }
+    ]
+  },
+  typescript: {
+    id: 'typescript',
+    name: 'TypeScript',
+    aliases: ['TypeScript', 'TS'],
+    tier: 'foundation',
+    hours: 6,
+    courses: 3,
+    growth: 22,
+    why: 'TypeScript brings type safety, developer velocity, and robust contracts to modern frontend and backend codebases.',
+    actions: ['Type an untyped JavaScript codebase', 'Master Generics and Discriminated Unions', 'Configure strict tsconfig compiler options'],
+    prerequisites: ['javascript'],
+    salaryUplift: 4,
+    resources: [
+      { title: 'TypeScript Full Course for Beginners', provider: 'freeCodeCamp', kind: 'video', hours: 5, free: true, url: 'https://www.youtube.com/watch?v=gp5H0Vw39yw' },
+      { title: 'TypeScript Handbook Official Guide', provider: 'TypeScript Docs', kind: 'docs', hours: 4, free: true, url: 'https://www.typescriptlang.org/docs/handbook/intro.html' },
+      { title: 'Type-Safe Fullstack Architecture Pattern', provider: 'GitHub', kind: 'project', hours: 6, free: true, url: 'https://github.com/colinhacks/zod' }
+    ]
+  },
+  javascript: {
+    id: 'javascript',
+    name: 'JavaScript',
+    aliases: ['JavaScript', 'JS', 'ES6+'],
+    tier: 'foundation',
+    hours: 8,
+    courses: 3,
+    growth: 10,
+    why: 'JavaScript is the fundamental core language powering all web browsers and modern runtime servers.',
+    actions: ['Master Async/Await, Promises, and the Event Loop', 'Manipulate DOM and handle events cleanly', 'Build a real-time web app'],
+    prerequisites: [],
+    salaryUplift: 3,
+    resources: [
+      { title: 'JavaScript Full Course (Beginner to Advanced)', provider: 'freeCodeCamp', kind: 'video', hours: 8, free: true, url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg' },
+      { title: 'MDN Web Docs JavaScript Guide', provider: 'Mozilla MDN', kind: 'docs', hours: 6, free: true, url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript' },
+      { title: 'JavaScript 30 Days Coding Challenges Project', provider: 'GitHub', kind: 'project', hours: 8, free: true, url: 'https://github.com/wesbos/JavaScript30' }
+    ]
+  },
+  nodejs: {
+    id: 'nodejs',
+    name: 'Node.js',
+    aliases: ['Node.js', 'Node', 'Express.js', 'Express'],
+    tier: 'core',
+    hours: 10,
+    courses: 4,
+    growth: 14,
+    why: 'Node.js powers fast, event-driven REST and GraphQL backend services in thousands of tech companies.',
+    actions: ['Build a RESTful API with Express & JWT Auth', 'Connect to PostgreSQL / MongoDB with Prisma or Mongoose', 'Deploy backend microservice to cloud'],
+    prerequisites: ['javascript'],
+    salaryUplift: 5,
+    resources: [
+      { title: 'Node.js and Express.js Full Course', provider: 'freeCodeCamp', kind: 'video', hours: 8, free: true, url: 'https://www.youtube.com/watch?v=Oe421EPjeBE' },
+      { title: 'Server-side Development with NodeJS, Express and MongoDB', provider: 'Coursera', kind: 'course', hours: 18, free: false, url: 'https://www.coursera.org/learn/server-side-nodejs' },
+      { title: 'Node.js Official Documentation & API Reference', provider: 'Node.js Docs', kind: 'docs', hours: 4, free: true, url: 'https://nodejs.org/docs/latest/api/' },
+      { title: 'Production REST API Boilerplate with JWT & DB', provider: 'GitHub', kind: 'project', hours: 6, free: true, url: 'https://github.com/hagopj13/node-express-boilerplate' }
+    ]
+  },
+  fastapi: {
+    id: 'fastapi',
+    name: 'FastAPI',
+    aliases: ['FastAPI', 'Python API'],
+    tier: 'core',
+    hours: 8,
+    courses: 3,
+    growth: 26,
+    why: 'FastAPI is the highest-performance Python framework for AI model serving, microservices, and modern APIs.',
+    actions: ['Build an async REST API with Pydantic validation', 'Implement OAuth2 / JWT authentication', 'Deploy API with Docker and Uvicorn'],
+    prerequisites: ['python'],
+    salaryUplift: 5,
+    resources: [
+      { title: 'FastAPI Tutorial — Full Course for Beginners', provider: 'freeCodeCamp', kind: 'video', hours: 6, free: true, url: 'https://www.youtube.com/watch?v=0sOvCWFmrtA' },
+      { title: 'FastAPI Official Documentation & Interactive OpenAPI', provider: 'FastAPI Docs', kind: 'docs', hours: 4, free: true, url: 'https://fastapi.tiangolo.com/' },
+      { title: 'Fullstack FastAPI & PostgreSQL Project Template', provider: 'GitHub', kind: 'project', hours: 8, free: true, url: 'https://github.com/fastapi/full-stack-fastapi-template' }
+    ]
+  },
+  'machine-learning': {
+    id: 'machine-learning',
+    name: 'Machine Learning',
+    aliases: ['Machine Learning', 'ML', 'Scikit-Learn'],
+    tier: 'advanced',
+    hours: 18,
+    courses: 4,
+    growth: 20,
+    why: 'Machine Learning algorithms enable predictive analytics, classification, and data-driven product automation.',
+    actions: ['Train and evaluate regression and classification models', 'Implement feature engineering and cross-validation', 'Deploy an ML model via API'],
+    prerequisites: ['python', 'statistics'],
+    salaryUplift: 7,
+    resources: [
+      { title: 'Machine Learning Course for Beginners', provider: 'freeCodeCamp', kind: 'video', hours: 10, free: true, url: 'https://www.youtube.com/watch?v=NWONte5ncC5o' },
+      { title: 'Machine Learning Specialization (Andrew Ng)', provider: 'Coursera', kind: 'course', hours: 30, free: false, url: 'https://www.coursera.org/specializations/machine-learning-introduction' },
+      { title: 'Scikit-Learn Official User Guide', provider: 'Scikit-Learn Docs', kind: 'docs', hours: 6, free: true, url: 'https://scikit-learn.org/stable/user_guide.html' },
+      { title: 'End-to-End Machine Learning Projects Repository', provider: 'GitHub', kind: 'project', hours: 10, free: true, url: 'https://github.com/ageron/handson-ml3' }
+    ]
+  },
+  'gen-ai-llm': {
+    id: 'gen-ai-llm',
+    name: 'Generative AI & LLMs',
+    aliases: ['Generative AI', 'LLMs', 'LangChain', 'OpenAI API', 'RAG'],
+    tier: 'advanced',
+    hours: 14,
+    courses: 4,
+    growth: 45,
+    why: 'Generative AI is transforming career products with intelligent agents, RAG search, and LLM automation.',
+    actions: ['Build a Retrieval-Augmented Generation (RAG) system', 'Create multi-agent workflows with LangChain/LangGraph', 'Deploy AI-driven chatbot with vector DB'],
+    prerequisites: ['python', 'fastapi'],
+    salaryUplift: 8,
+    resources: [
+      { title: 'Generative AI & LangChain Full Course', provider: 'freeCodeCamp', kind: 'video', hours: 8, free: true, url: 'https://www.youtube.com/watch?v=aywZrzNaKjs' },
+      { title: 'Generative AI with Large Language Models', provider: 'Coursera', kind: 'course', hours: 16, free: false, url: 'https://www.coursera.org/learn/generative-ai-with-llms' },
+      { title: 'LangChain & Vector Database Official Docs', provider: 'LangChain Docs', kind: 'docs', hours: 5, free: true, url: 'https://python.langchain.com/docs/introduction/' },
+      { title: 'Production RAG Chatbot with Vector Search Repo', provider: 'GitHub', kind: 'project', hours: 8, free: true, url: 'https://github.com/run-llama/llama_index' }
+    ]
+  },
+  'r-programming': {
+    id: 'r-programming',
+    name: 'R Programming',
+    aliases: ['R Programming', 'R Language', 'RStudio', 'ggplot2'],
+    tier: 'core',
+    hours: 10,
+    courses: 3,
+    growth: 8,
+    why: 'R is the standard language for statistical computing, clinical trials, academic research, and advanced bioinformatics.',
+    actions: ['Perform exploratory statistical analysis in R', 'Build visualizations with ggplot2 and dplyr', 'Publish an interactive Shiny dashboard'],
+    prerequisites: ['statistics'],
+    salaryUplift: 4,
+    resources: [
+      { title: 'R Programming for Beginners — Full Course', provider: 'freeCodeCamp', kind: 'video', hours: 6, free: true, url: 'https://www.youtube.com/watch?v=_V8eKsto3Ug' },
+      { title: 'R Programming (Johns Hopkins University)', provider: 'Coursera', kind: 'course', hours: 20, free: false, url: 'https://www.coursera.org/learn/r-programming' },
+      { title: 'R for Data Science (Hadley Wickham Official Book)', provider: 'R4DS Book', kind: 'docs', hours: 6, free: true, url: 'https://r4ds.had.co.nz/' },
+      { title: 'Interactive Data Science Projects with R Shiny', provider: 'GitHub', kind: 'project', hours: 6, free: true, url: 'https://github.com/rstudio/shiny-examples' }
+    ]
+  },
+  aws: {
+    id: 'aws',
+    name: 'AWS Cloud',
+    aliases: ['AWS', 'Amazon Web Services', 'Cloud Computing'],
+    tier: 'core',
+    hours: 14,
+    courses: 4,
+    growth: 19,
+    why: 'AWS is the world-leading cloud provider powering scalable infrastructure, databases, and microservices.',
+    actions: ['Deploy web application on S3, CloudFront and ECS', 'Configure IAM roles, VPC networks, and RDS databases', 'Build serverless APIs using AWS Lambda and API Gateway'],
+    prerequisites: ['linux'],
+    salaryUplift: 6,
+    resources: [
+      { title: 'AWS Certified Cloud Practitioner Full Course', provider: 'freeCodeCamp', kind: 'video', hours: 14, free: true, url: 'https://www.youtube.com/watch?v=SOTamWNgDKc' },
+      { title: 'AWS Cloud Solutions Architect Specialization', provider: 'Coursera', kind: 'course', hours: 24, free: false, url: 'https://www.coursera.org/specializations/aws-cloud-solutions-architect' },
+      { title: 'AWS Official Architecture Center & Docs', provider: 'AWS Docs', kind: 'docs', hours: 6, free: true, url: 'https://aws.amazon.com/architecture/' },
+      { title: 'Terraform AWS Production Infrastructure Blueprint', provider: 'GitHub', kind: 'project', hours: 8, free: true, url: 'https://github.com/antonbabenko/terraform-aws-devops' }
+    ]
+  },
+  flutter: {
+    id: 'flutter',
+    name: 'Flutter & Dart',
+    aliases: ['Flutter', 'Dart', 'Cross-Platform Mobile'],
+    tier: 'core',
+    hours: 14,
+    courses: 4,
+    growth: 25,
+    why: 'Flutter allows building beautiful, native cross-platform mobile apps for iOS and Android with a single codebase.',
+    actions: ['Build a multi-screen mobile app with state management', 'Integrate REST API and Firebase Authentication', 'Publish application to App Store / Google Play'],
+    prerequisites: [],
+    salaryUplift: 5,
+    resources: [
+      { title: 'Flutter Course for Beginners — 37 Hours Bootcamp', provider: 'freeCodeCamp', kind: 'video', hours: 37, free: true, url: 'https://www.youtube.com/watch?v=VPvVD8t02U8' },
+      { title: 'Flutter & Dart — The Complete Guide', provider: 'Udemy', kind: 'course', hours: 28, free: false, url: 'https://flutter.dev/learn' },
+      { title: 'Flutter Official Documentation & Widget Catalog', provider: 'Flutter Docs', kind: 'docs', hours: 6, free: true, url: 'https://docs.flutter.dev/' },
+      { title: 'Fullstack Flutter E-Commerce Application Portfolio', provider: 'GitHub', kind: 'project', hours: 10, free: true, url: 'https://github.com/abuanwar072/E-commerce-Complete-Flutter-UI' }
+    ]
+  },
+  cybersecurity: {
+    id: 'cybersecurity',
+    name: 'Cybersecurity Fundamentals',
+    aliases: ['Cybersecurity', 'Security', 'Network Security', 'SOC'],
+    tier: 'core',
+    hours: 12,
+    courses: 3,
+    growth: 21,
+    why: 'Cybersecurity is critical for protecting corporate data, securing APIs, and ensuring regulatory compliance.',
+    actions: ['Conduct vulnerability scans and security audits', 'Configure firewalls, VPNs, and access control policies', 'Analyze network traffic and intrusion detection logs'],
+    prerequisites: ['linux'],
+    salaryUplift: 6,
+    resources: [
+      { title: 'Cybersecurity Full Course for Beginners', provider: 'freeCodeCamp', kind: 'video', hours: 8, free: true, url: 'https://www.youtube.com/watch?v=U_P23dqepQ4' },
+      { title: 'Google Cybersecurity Professional Certificate', provider: 'Coursera', kind: 'course', hours: 30, free: false, url: 'https://www.coursera.org/professional-certificates/google-cybersecurity' },
+      { title: 'NIST Cybersecurity Framework Official Guide', provider: 'NIST Docs', kind: 'docs', hours: 5, free: true, url: 'https://www.nist.gov/cyberframework' }
+    ]
+  },
+  'ui-ux-design': {
+    id: 'ui-ux-design',
+    name: 'UI/UX Design (Figma)',
+    aliases: ['UI/UX', 'Figma', 'Product Design', 'User Research'],
+    tier: 'core',
+    hours: 10,
+    courses: 3,
+    growth: 14,
+    why: 'Great design bridges user needs with technical execution and is essential for product adoption and customer satisfaction.',
+    actions: ['Create wireframes and high-fidelity prototypes in Figma', 'Conduct user interviews and usability testing', 'Build a reusable Design System'],
+    prerequisites: [],
+    salaryUplift: 4,
+    resources: [
+      { title: 'Figma UI UX Design Essentials Full Course', provider: 'freeCodeCamp', kind: 'video', hours: 10, free: true, url: 'https://www.youtube.com/watch?v=c9Wg6Cb_YlU' },
+      { title: 'Google UX Design Professional Certificate', provider: 'Coursera', kind: 'course', hours: 24, free: false, url: 'https://www.coursera.org/professional-certificates/google-ux-design' },
+      { title: 'Figma Community Design Systems & Templates', provider: 'Figma Community', kind: 'project', hours: 6, free: true, url: 'https://www.figma.com/community' }
     ]
   }
 };

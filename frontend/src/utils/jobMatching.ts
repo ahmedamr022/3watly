@@ -71,23 +71,49 @@ export function isSkillSatisfied(
   }
 
   const normReq = normalizeSkillName(reqSkill);
-  const lowReq = normReq.toLowerCase();
+  const lowReq = normReq.toLowerCase().trim();
+
+  // Single/double letter skill flag (e.g. 'r', 'c', 'go', 'ai', 'bi', 'ui', 'ux')
+  const isShortReq = lowReq.length <= 2;
 
   // 1. Direct exact or normalized match
   for (const u of userSkills) {
     const normUser = normalizeSkillName(u);
-    const lowUser = normUser.toLowerCase();
+    const lowUser = normUser.toLowerCase().trim();
     if (lowReq === lowUser) {
       return { satisfied: true, fitPct: 100, matchedWith: normUser };
     }
+
+    // Explicit alias check for short skills
+    if (isShortReq) {
+      if (lowReq === 'r' && (lowUser === 'r programming' || lowUser === 'r language' || lowUser === 'r studio' || lowUser === 'r-project')) {
+        return { satisfied: true, fitPct: 100, matchedWith: normUser };
+      }
+      if (lowReq === 'c' && (lowUser === 'c programming' || lowUser === 'c language' || lowUser === 'c/c++')) {
+        return { satisfied: true, fitPct: 100, matchedWith: normUser };
+      }
+      if (lowReq === 'go' && (lowUser === 'golang' || lowUser === 'go programming' || lowUser === 'go language')) {
+        return { satisfied: true, fitPct: 100, matchedWith: normUser };
+      }
+    }
   }
 
-  // 2. Substring match (e.g. 'Python' in 'Python 3', 'REST APIs' in 'REST API')
-  for (const u of userSkills) {
-    const normUser = normalizeSkillName(u);
-    const lowUser = normUser.toLowerCase();
-    if (lowUser.length >= 3 && (lowReq.includes(lowUser) || lowUser.includes(lowReq))) {
-      return { satisfied: true, fitPct: 90, matchedWith: normUser };
+  // 2. Token / word-boundary match (e.g. 'Python' in 'Python 3', 'REST APIs' in 'REST API')
+  // STRICT RULE: Both user skill and required skill must be at least 4 chars long to do token boundary matches
+  if (!isShortReq) {
+    for (const u of userSkills) {
+      const normUser = normalizeSkillName(u);
+      const lowUser = normUser.toLowerCase().trim();
+      if (lowUser.length >= 4 && lowReq.length >= 4) {
+        const escapedUser = lowUser.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedReq = lowReq.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const userInReqRegex = new RegExp(`(^|\\s|\\b)${escapedUser}(\\b|\\s|$)`, 'i');
+        const reqInUserRegex = new RegExp(`(^|\\s|\\b)${escapedReq}(\\b|\\s|$)`, 'i');
+
+        if (userInReqRegex.test(lowReq) || reqInUserRegex.test(lowUser)) {
+          return { satisfied: true, fitPct: 90, matchedWith: normUser };
+        }
+      }
     }
   }
 
@@ -95,9 +121,23 @@ export function isSkillSatisfied(
   const inferences = SKILL_INFERENCE[lowReq];
   if (inferences && inferences.length > 0) {
     for (const u of userSkills) {
-      const lowUser = u.toLowerCase();
-      if (inferences.some(need => lowUser.includes(need) || need.includes(lowUser))) {
-        return { satisfied: true, fitPct: 85, matchedWith: normalizeSkillName(u) };
+      const lowUser = u.toLowerCase().trim();
+      const normUser = normalizeSkillName(u);
+      for (const need of inferences) {
+        const cleanNeed = need.toLowerCase().trim();
+        if (cleanNeed.length <= 2) {
+          if (lowUser === cleanNeed || (cleanNeed === 'r' && (lowUser === 'r programming' || lowUser === 'r language'))) {
+            return { satisfied: true, fitPct: 85, matchedWith: normUser };
+          }
+        } else if (lowUser === cleanNeed) {
+          return { satisfied: true, fitPct: 85, matchedWith: normUser };
+        } else if (lowUser.length >= 4 && cleanNeed.length >= 4) {
+          const escapedNeed = cleanNeed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const needRegex = new RegExp(`(^|\\s|\\b)${escapedNeed}(\\b|\\s|$)`, 'i');
+          if (needRegex.test(lowUser)) {
+            return { satisfied: true, fitPct: 85, matchedWith: normUser };
+          }
+        }
       }
     }
   }
@@ -110,7 +150,7 @@ export function extractSkillsFromJobText(title: string, desc: string, reqs: stri
   const found = new Set<string>();
 
   const CANDIDATES = [
-    'Python', 'SQL', 'Power BI', 'Tableau', 'Excel', 'Pandas', 'NumPy', 'R',
+    'Python', 'SQL', 'Power BI', 'Tableau', 'Excel', 'Pandas', 'NumPy',
     'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'Docker', 'Kubernetes', 'AWS', 'Azure',
     'Git', 'CI/CD', 'Linux', 'React', 'Next.js', 'TypeScript', 'JavaScript', 'Node.js',
     'Django', 'Flask', 'FastAPI', 'Java', 'Spring Boot', 'C#', '.NET', 'Flutter',
@@ -121,11 +161,16 @@ export function extractSkillsFromJobText(title: string, desc: string, reqs: stri
 
   for (const cand of CANDIDATES) {
     const lower = cand.toLowerCase();
-    const escaped = lower.replace(/[.*+?^$\\{}()|[\]\\]/g, '\\$&');
+    const escaped = lower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`\\b${escaped}\\b`, 'i');
     if (regex.test(fullText)) {
       found.add(cand);
     }
+  }
+
+  // Strict check for R programming language (avoid false positives like R&D, Section R, R.)
+  if (/(?:^|\s|\/|,)(?:r\s+programming|r\s+language|r\s+script|language\s+r|r-project|cran|rstudio|r\s*[\/,]\s*python|python\s*[\/,]\s*r)(?:$|\s|\/|,|\.)/i.test(fullText)) {
+    found.add('R');
   }
 
   return Array.from(found);

@@ -17,10 +17,11 @@ interface AdminUser {
   account_status: 'active' | 'suspended';
   created_at: string;
   onboarding_completed: boolean;
+  avatar_url?: string | null;
 }
 
 const ROLE_BADGE: Record<string, string> = {
-  owner: 'bg-amber-500/15 text-amber-500 dark:text-amber-400 border-amber-500/30 font-bold',
+  owner: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 font-bold',
   admin: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30 font-bold',
   user: 'bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-400/20 font-semibold',
 };
@@ -40,7 +41,7 @@ function formatDate(iso: string, isAr: boolean) {
 
 export default function AdminUsersPage() {
   const { isAr } = useLanguage();
-  const { isOwner } = useAuth();
+  const { user, isOwner } = useAuth();
 
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
@@ -211,39 +212,77 @@ export default function AdminUsersPage() {
                     </td>
                   </tr>
                 )
-                : users.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-white/3 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">
-                          {(u.full_name ?? u.email)[0]?.toUpperCase()}
+                : users.map((u) => {
+                  const isCurrentUser = Boolean(user?.email && u.email.toLowerCase() === user.email.toLowerCase());
+                  const displayName = u.full_name || u.email.split('@')[0];
+                  const initial = displayName[0]?.toUpperCase() || 'U';
+
+                  return (
+                    <tr
+                      key={u.id}
+                      className={`
+                        border-b border-slate-200/90 dark:border-white/10 transition-colors group
+                        ${isCurrentUser
+                          ? 'bg-amber-500/10 dark:bg-amber-500/15 border-s-4 border-s-amber-500 hover:bg-amber-500/15'
+                          : 'hover:bg-slate-50/90 dark:hover:bg-cyan-500/5'
+                        }
+                      `}
+                    >
+                      <td className="px-6 py-4.5">
+                        <div className="flex items-center gap-3.5">
+                          {/* Avatar Image or Fallback */}
+                          <div className="relative shrink-0">
+                            {u.avatar_url ? (
+                              <img
+                                src={u.avatar_url}
+                                alt={displayName}
+                                className={`w-10 h-10 rounded-full object-cover border ${isCurrentUser ? 'border-amber-500 ring-2 ring-amber-500/30' : 'border-slate-200 dark:border-cyan-500/30'} shadow-sm`}
+                              />
+                            ) : (
+                              <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${isCurrentUser ? 'from-amber-500 to-orange-600' : 'from-cyan-500 to-indigo-600'} text-white font-black text-sm flex items-center justify-center shadow-sm shrink-0 border border-white/20`}>
+                                {initial}
+                              </div>
+                            )}
+                            {isCurrentUser && (
+                              <span className="absolute -top-1 -end-1 w-4 h-4 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[9px] shadow-sm">
+                                👑
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-[14px] font-bold text-slate-900 dark:text-white truncate">
+                                {u.full_name || '—'}
+                              </p>
+                              {isCurrentUser && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 shadow-xs">
+                                  {isAr ? 'أنت (حسابك الحالي)' : 'You (Current Account)'}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[12px] text-slate-500 dark:text-slate-400 font-mono truncate mt-0.5">{u.email}</p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate">
-                            {u.full_name || '—'}
-                          </p>
-                          <p className="text-[11.5px] text-slate-500 dark:text-slate-400 font-mono truncate">{u.email}</p>
-                        </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className="px-6 py-4 text-center">
-                      <span className={`inline-block text-[10.5px] px-2.5 py-0.5 rounded-full border ${ROLE_BADGE[u.role] ?? ROLE_BADGE.user}`}>
-                        {u.role}
-                      </span>
-                    </td>
+                      <td className="px-6 py-4.5 text-center">
+                        <span className={`inline-block text-[11px] px-3 py-0.5 rounded-full border font-bold ${ROLE_BADGE[u.role] ?? ROLE_BADGE.user}`}>
+                          {u.role === 'owner' ? (isAr ? '👑 المالك' : '👑 Owner') : u.role === 'admin' ? (isAr ? '🛡️ مسؤول' : '🛡️ Admin') : (isAr ? '👤 مستخدم' : '👤 User')}
+                        </span>
+                      </td>
 
-                    <td className="px-6 py-4 text-center">
-                      <span className={`inline-block text-[10.5px] px-2.5 py-0.5 rounded-full border ${STATUS_BADGE[u.account_status] ?? STATUS_BADGE.active}`}>
-                        {u.account_status}
-                      </span>
-                    </td>
+                      <td className="px-6 py-4.5 text-center">
+                        <span className={`inline-block text-[11px] px-3 py-0.5 rounded-full border font-bold ${STATUS_BADGE[u.account_status] ?? STATUS_BADGE.active}`}>
+                          {u.account_status === 'active' ? (isAr ? '🟢 نشط' : '🟢 Active') : (isAr ? '🔴 معلق' : '🔴 Suspended')}
+                        </span>
+                      </td>
 
-                    <td className="px-6 py-4 hidden md:table-cell">
-                      <span className="text-xs text-slate-500 dark:text-slate-400">{formatDate(u.created_at, isAr)}</span>
-                    </td>
+                      <td className="px-6 py-4.5 hidden md:table-cell">
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{formatDate(u.created_at, isAr)}</span>
+                      </td>
 
-                    <td className="px-6 py-4 text-end">
+                      <td className="px-6 py-4.5 text-end">
                       <div className="relative inline-block">
                         <button
                           type="button"
@@ -322,7 +361,8 @@ export default function AdminUsersPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
