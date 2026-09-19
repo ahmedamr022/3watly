@@ -41,7 +41,7 @@ export function AdminTopbar({ onOpenMobile }: AdminTopbarProps) {
     : (isAr ? 'مسؤول' : 'Admin');
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-white/80 dark:bg-[#070C18]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/8 transition-colors duration-200">
+    <header className="sticky top-0 z-30 w-full bg-gradient-to-r from-blue-50/70 via-white/60 to-blue-50/70 dark:bg-gradient-to-r dark:from-[#0B1E45]/60 dark:via-[#07132B]/75 dark:to-[#0B1E45]/60 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10 transition-colors duration-200 shadow-xs">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">
 
         {/* Start / Left: Profile pill + Toggles */}
@@ -50,14 +50,14 @@ export function AdminTopbar({ onOpenMobile }: AdminTopbarProps) {
             <button
               type="button"
               onClick={onOpenMobile}
-              className="lg:hidden p-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer transition-colors"
+              className="lg:hidden p-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5 cursor-pointer transition-colors"
             >
               <Menu className="w-5 h-5" />
             </button>
           )}
 
-          {/* User Profile Pill matching Mockup */}
-          <div className="flex items-center gap-2.5 p-1.5 pe-3 rounded-2xl bg-slate-100/80 dark:bg-white/5 border border-slate-200/90 dark:border-white/10 shadow-xs">
+          {/* User Profile Pill */}
+          <div className="flex items-center gap-2.5 p-1.5 pe-3.5 rounded-2xl bg-white/70 dark:bg-gradient-to-r dark:from-[#0D2452]/50 dark:to-[#091735]/60 border border-slate-200 dark:border-cyan-500/25 shadow-sm backdrop-blur-md">
             <UserAvatar
               avatarUrl={user?.avatarUrl}
               name={displayName}
@@ -67,7 +67,7 @@ export function AdminTopbar({ onOpenMobile }: AdminTopbarProps) {
               <span className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate max-w-[110px]">
                 {displayName}
               </span>
-              <span className={`text-[10px] font-semibold ${isOwner ? 'text-amber-500 dark:text-amber-400' : 'text-cyan-600 dark:text-cyan-400'}`}>
+              <span className={`text-[10px] font-bold ${isOwner ? 'text-amber-500 dark:text-amber-400' : 'text-cyan-600 dark:text-cyan-400'}`}>
                 {roleLabel}
               </span>
             </div>
@@ -79,8 +79,8 @@ export function AdminTopbar({ onOpenMobile }: AdminTopbarProps) {
 
         {/* End / Right: Breadcrumb Badge */}
         <div className="flex items-center gap-2 shrink-0">
-          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100/80 dark:bg-white/5 border border-slate-200/90 dark:border-white/10 text-xs font-semibold text-slate-600 dark:text-slate-300">
-            <Shield className="w-3.5 h-3.5 text-cyan-500" />
+          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/70 dark:bg-gradient-to-r dark:from-[#0D2452]/40 dark:to-[#081838]/50 border border-slate-200 dark:border-cyan-500/25 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs backdrop-blur-md">
+            <Shield className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
             <Link
               href="/admin"
               className="hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors"

@@ -108,12 +108,15 @@ export function AdminSidebar({ mobileOpen, onMobileClose }: AdminSidebarProps) {
 
   const sidebarContent = (
     <div className={`
-      flex flex-col h-full bg-white/80 dark:bg-[#070C18]/90 backdrop-blur-xl border-e border-slate-200/80 dark:border-white/8
+      flex flex-col h-full
+      bg-gradient-to-b from-blue-50/80 via-white/70 to-blue-100/60
+      dark:bg-gradient-to-b dark:from-[#0B1E45]/70 dark:via-[#051128]/80 dark:to-[#020612]/90
+      backdrop-blur-2xl border-e border-slate-200/80 dark:border-white/10 shadow-2xl
       transition-all duration-300 ease-in-out select-none
       ${collapsed ? 'w-20' : 'w-64'}
     `}>
       {/* Brand Header */}
-      <div className={`flex items-center gap-3 px-5 py-6 border-b border-slate-200/80 dark:border-white/8 ${collapsed ? 'justify-center' : 'justify-between'}`}>
+      <div className={`flex items-center gap-3 px-5 py-6 border-b border-slate-200/80 dark:border-white/10 ${collapsed ? 'justify-center' : 'justify-between'}`}>
         {!collapsed && (
           <Link href="/admin" className="flex items-center gap-2.5 transition-transform hover:scale-105">
             <Logo size="md" />
@@ -127,7 +130,7 @@ export function AdminSidebar({ mobileOpen, onMobileClose }: AdminSidebarProps) {
         <button
           type="button"
           onClick={toggleCollapsed}
-          className="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer shrink-0"
+          className="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-colors cursor-pointer shrink-0"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {isAr
@@ -152,18 +155,18 @@ export function AdminSidebar({ mobileOpen, onMobileClose }: AdminSidebarProps) {
                 relative flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-[13.5px] font-semibold
                 transition-all duration-150 group
                 ${active
-                  ? 'bg-gradient-to-r from-cyan-500/15 via-blue-500/10 to-transparent text-cyan-600 dark:text-cyan-300 font-bold border border-cyan-500/25 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-white/5 border border-transparent'
+                  ? 'bg-gradient-to-r from-cyan-500/25 via-blue-500/15 to-transparent text-cyan-700 dark:text-cyan-300 font-bold border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 border border-transparent'
                 }
                 ${collapsed ? 'justify-center px-2' : ''}
               `}
             >
               {/* Active cyan dot indicator on leading edge */}
               {active && (
-                <span className="absolute start-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)]" />
+                <span className="absolute start-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,1)]" />
               )}
               
-              <Icon className={`w-5 h-5 shrink-0 transition-transform duration-150 group-hover:scale-110 ${active ? 'text-cyan-500 dark:text-cyan-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-800 dark:group-hover:text-slate-200'}`} />
+              <Icon className={`w-5 h-5 shrink-0 transition-transform duration-150 group-hover:scale-110 ${active ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-800 dark:group-hover:text-slate-200'}`} />
               
               {!collapsed && (
                 <span className="truncate">{isAr ? item.labelAr : item.label}</span>
@@ -174,13 +177,13 @@ export function AdminSidebar({ mobileOpen, onMobileClose }: AdminSidebarProps) {
       </nav>
 
       {/* Back to App Link */}
-      <div className={`p-4 border-t border-slate-200/80 dark:border-white/8 ${collapsed ? 'flex justify-center' : ''}`}>
+      <div className={`p-4 border-t border-slate-200/80 dark:border-white/10 ${collapsed ? 'flex justify-center' : ''}`}>
         <Link
           href="/dashboard"
           onClick={onMobileClose}
           className={`
             flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[12.5px] font-semibold
-            text-slate-500 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group
+            text-slate-500 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-200/50 dark:hover:bg-white/5 transition-colors group
             ${collapsed ? 'justify-center px-2' : ''}
           `}
           title={collapsed ? (isAr ? 'العودة للتطبيق' : 'Back to App') : undefined}

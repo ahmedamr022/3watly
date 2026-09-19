@@ -492,18 +492,18 @@ export default function AdminResourcesPage() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-purple-950/40 via-[#070C18] to-cyan-950/30 border border-white/10 shadow-lg">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-blue-50/80 via-white/70 to-blue-100/60 dark:bg-gradient-to-r dark:from-[#0D2452]/60 dark:via-[#091738]/70 dark:to-[#061026]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-cyan-500/25 shadow-xl shadow-cyan-950/20">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
-              {isAr ? 'مكتبة المهارات الذكية' : 'Skill Intelligence Library'}
+            <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
+              {isAr ? 'مكتبة المهارات والكورسات' : 'Skill Intelligence Library'}
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
-            <BookOpen className="w-6 h-6 text-cyan-400" />
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+            <BookOpen className="w-6 h-6 text-cyan-500 dark:text-cyan-400" />
             {isAr ? 'إدارة المصادر والكورسات التعليمية' : 'Learning Resources & Course Manager'}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 max-w-2xl">
             {isAr
               ? 'كل كورس هنا مربوط بمعرف المهارة (Skill Key) ويظهر تلقائياً للمستخدمين عند تحليل فجوة المهارات في الـ Skill Gap Matrix.'
               : 'Every course is bound to a skill key and auto-recommends to users with matching skill gaps.'}
@@ -516,7 +516,7 @@ export default function AdminResourcesPage() {
             onClick={fetchResources}
             disabled={loading}
             title={isAr ? 'تحديث البيانات' : 'Refresh'}
-            className="p-2.5 rounded-xl border border-white/10 text-slate-300 hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
+            className="p-2.5 rounded-xl border border-slate-200 dark:border-cyan-500/30 bg-white/70 dark:bg-[#0D2452]/50 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#12316B]/60 transition-all cursor-pointer disabled:opacity-50 shadow-xs"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -525,9 +525,9 @@ export default function AdminResourcesPage() {
             type="button"
             onClick={handleSeedCatalog}
             disabled={seeding}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs sm:text-sm font-bold hover:bg-purple-500/25 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-700 dark:text-purple-300 text-xs sm:text-sm font-bold hover:bg-purple-500/25 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
           >
-            {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-purple-400" />}
+            {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-purple-500 dark:text-purple-400" />}
             {isAr ? 'مزامنة الكتالوج المعتمد' : 'Sync Skill Catalog'}
           </button>
 
@@ -550,8 +550,8 @@ export default function AdminResourcesPage() {
           className={`
             px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer border
             ${selectedSkill === 'all'
-              ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm'
-              : 'bg-[#0B1120] text-slate-400 border-white/10 hover:text-white hover:border-white/20'
+              ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border-cyan-500/40 shadow-sm'
+              : 'bg-white/70 dark:bg-gradient-to-r dark:from-[#0B1E45]/60 dark:to-[#07132B]/70 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-cyan-500/20 hover:text-slate-900 dark:hover:text-white'
             }
           `}
         >
@@ -570,13 +570,13 @@ export default function AdminResourcesPage() {
               className={`
                 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer border
                 ${isSelected
-                  ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm'
-                  : 'bg-[#0B1120] text-slate-400 border-white/10 hover:text-white hover:border-white/20'
+                  ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/40 shadow-sm'
+                  : 'bg-white/70 dark:bg-gradient-to-r dark:from-[#0B1E45]/60 dark:to-[#07132B]/70 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-cyan-500/20 hover:text-slate-900 dark:hover:text-white'
                 }
               `}
             >
               <span>{label}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-bold ${isSelected ? 'bg-purple-500/30 text-purple-200' : 'bg-white/5 text-slate-500'}`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-bold ${isSelected ? 'bg-purple-500/30 text-purple-700 dark:text-purple-200' : 'bg-slate-200/60 dark:bg-white/5 text-slate-500'}`}>
                 {count}
               </span>
             </button>
@@ -587,13 +587,13 @@ export default function AdminResourcesPage() {
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
             placeholder={isAr ? 'بحث في المصادر بالاسم أو الرابط...' : 'Search resources by title or URL...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full ps-10 pe-4 py-2.5 rounded-xl bg-[#0B1120] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
+            className="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white/80 dark:bg-gradient-to-r dark:from-[#0B1E45]/60 dark:to-[#07132B]/70 border border-slate-200 dark:border-cyan-500/25 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500/60 shadow-xs backdrop-blur-md"
           />
         </div>
         <div className="w-full sm:w-56">
@@ -607,7 +607,7 @@ export default function AdminResourcesPage() {
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
           <AlertTriangle className="w-4 h-4 shrink-0" />{error}
         </div>
       )}
@@ -616,18 +616,18 @@ export default function AdminResourcesPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-44 rounded-2xl bg-white/3 animate-pulse border border-white/8" />
+              <div key={i} className="h-44 rounded-2xl bg-white/40 dark:bg-white/5 animate-pulse border border-slate-200 dark:border-white/8" />
             ))
           : resources.length === 0
           ? (
-            <div className="col-span-full py-16 px-6 text-center rounded-2xl bg-[#070C18] border border-white/8 flex flex-col items-center">
-              <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 mb-3 text-purple-400">
+            <div className="col-span-full py-16 px-6 text-center rounded-2xl bg-gradient-to-b from-blue-50/60 to-white/70 dark:bg-gradient-to-b dark:from-[#0B1E45]/60 dark:to-[#040C1E]/80 backdrop-blur-2xl border border-slate-200 dark:border-cyan-500/20 shadow-2xl flex flex-col items-center">
+              <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 mb-3 text-purple-500 dark:text-purple-400">
                 <BookOpen className="w-8 h-8 opacity-80" />
               </div>
-              <h3 className="text-base font-bold text-white mb-1">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
                 {isAr ? 'لم يتم العثور على مصادر مطابقة' : 'No matching resources found'}
               </h3>
-              <p className="text-xs text-slate-400 max-w-md mb-5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mb-5">
                 {isAr
                   ? 'اضغط على استيراد الكتالوج لمزامنة 70+ كورس ومصدر معتمد، أو أضف كورس جديد يدوياً.'
                   : 'Import the skill catalog to populate 70+ curated courses.'}
@@ -653,11 +653,11 @@ export default function AdminResourcesPage() {
                 <div
                   key={r.id}
                   className={`
-                    group relative flex flex-col justify-between p-4.5 rounded-2xl border transition-all duration-200
-                    hover:border-cyan-500/30 hover:shadow-xl hover:shadow-cyan-950/20
+                    group relative flex flex-col justify-between p-5 rounded-2xl border transition-all duration-200
+                    hover:scale-[1.01] hover:border-cyan-500/40 hover:shadow-2xl hover:shadow-cyan-950/20
                     ${r.is_active
-                      ? 'bg-gradient-to-b from-[#0B1120] to-[#070C18] border-white/10'
-                      : 'bg-[#060913] border-white/5 opacity-55'
+                      ? 'bg-gradient-to-br from-white/90 via-blue-50/70 to-white/80 dark:bg-gradient-to-b dark:from-[#0B1E45]/60 dark:via-[#07132B]/75 dark:to-[#040C1E]/85 backdrop-blur-2xl border-slate-200/90 dark:border-cyan-500/20 shadow-lg'
+                      : 'bg-white/40 dark:bg-[#060913]/60 border-slate-200/50 dark:border-white/5 opacity-55'
                     }
                   `}
                 >
@@ -665,16 +665,16 @@ export default function AdminResourcesPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2">
                       {/* Skill Badge */}
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-black bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 uppercase tracking-wide">
-                        <Zap className="w-3 h-3 text-cyan-400" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-black bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 uppercase tracking-wide">
+                        <Zap className="w-3 h-3 text-cyan-500 dark:text-cyan-400" />
                         {skillDisplay}
                       </span>
 
                       {/* Free / Paid Badge */}
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
                         r.is_free
-                          ? 'bg-emerald-500/12 text-emerald-400 border-emerald-500/25'
-                          : 'bg-amber-500/12 text-amber-400 border-amber-500/25'
+                          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                          : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30'
                       }`}>
                         {r.is_free ? (isAr ? 'مجاني' : 'Free') : (isAr ? 'مدفوع' : 'Paid')}
                       </span>
@@ -682,33 +682,33 @@ export default function AdminResourcesPage() {
 
                     {/* Course Title */}
                     <div>
-                      <h3 className="text-[13.5px] font-bold text-white leading-snug line-clamp-2 group-hover:text-cyan-300 transition-colors">
+                      <h3 className="text-[14px] font-bold text-slate-900 dark:text-white leading-snug line-clamp-2 group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors">
                         {r.title}
                       </h3>
                       {r.title_ar && (
-                        <p className="text-[11.5px] text-slate-400 mt-1 line-clamp-1" dir="rtl">
+                        <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-1" dir="rtl">
                           {r.title_ar}
                         </p>
                       )}
                     </div>
 
                     {/* Meta details: Provider + Hours + Kind */}
-                    <div className="flex items-center gap-2 flex-wrap pt-1 text-[11px] text-slate-400">
+                    <div className="flex items-center gap-2 flex-wrap pt-1 text-[11px] text-slate-500 dark:text-slate-400">
                       {/* Provider pill */}
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-semibold border ${provStyle.bg} ${provStyle.text} ${provStyle.border}`}>
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md font-semibold border ${provStyle.bg} ${provStyle.text} ${provStyle.border}`}>
                         <ProvIcon className="w-3 h-3" />
                         {r.provider}
                       </span>
 
                       {/* Kind pill */}
-                      <span className="px-2 py-0.5 rounded-md bg-white/4 border border-white/8 text-slate-300">
+                      <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300">
                         {kindLabel}
                       </span>
 
                       {/* Duration */}
                       {r.duration_hours && (
-                        <span className="inline-flex items-center gap-1 text-slate-400">
-                          <Clock className="w-3 h-3 text-slate-500" />
+                        <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                          <Clock className="w-3 h-3 text-slate-400" />
                           {r.duration_hours} {isAr ? 'ساعة' : 'hrs'}
                         </span>
                       )}
@@ -716,12 +716,12 @@ export default function AdminResourcesPage() {
                   </div>
 
                   {/* Card Bottom: URL visit + Actions */}
-                  <div className="flex items-center justify-between gap-2 pt-4 mt-3 border-t border-white/6">
+                  <div className="flex items-center justify-between gap-2 pt-4 mt-3 border-t border-slate-100 dark:border-white/8">
                     <a
                       href={r.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>{isAr ? 'زيارة الكورس' : 'Open Link'}</span>
@@ -734,7 +734,7 @@ export default function AdminResourcesPage() {
                         onClick={() => handleToggleActive(r)}
                         title={r.is_active ? (isAr ? 'تعطيل' : 'Deactivate') : (isAr ? 'تفعيل' : 'Activate')}
                         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                          r.is_active ? 'text-cyan-400 hover:bg-cyan-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-white/5'
+                          r.is_active ? 'text-cyan-500 dark:text-cyan-400 hover:bg-cyan-500/10' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5'
                         }`}
                       >
                         {r.is_active ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
@@ -745,7 +745,7 @@ export default function AdminResourcesPage() {
                         type="button"
                         onClick={() => { setEditResource(r); setModalOpen(true); }}
                         title={isAr ? 'تعديل' : 'Edit'}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/8 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/8 transition-colors cursor-pointer"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -756,7 +756,7 @@ export default function AdminResourcesPage() {
                         onClick={() => handleDelete(r.id)}
                         disabled={deletingId === r.id}
                         title={isAr ? 'حذف' : 'Delete'}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-950/30 transition-colors cursor-pointer disabled:opacity-40"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer disabled:opacity-40"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

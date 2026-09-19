@@ -106,14 +106,14 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white/80 dark:bg-[#070C18]/90 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 shadow-sm">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-blue-50/80 via-white/70 to-blue-100/60 dark:bg-gradient-to-r dark:from-[#0D2452]/60 dark:via-[#091738]/70 dark:to-[#061026]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-cyan-500/25 shadow-xl shadow-cyan-950/20">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Users className="w-6 h-6 text-cyan-500" />
+            <Users className="w-6 h-6 text-cyan-500 dark:text-cyan-400" />
             {isAr ? 'إدارة حسابات المستخدمين' : 'User Accounts Management'}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
             {isAr ? `${total.toLocaleString()} مستخدم مسجل في المنصة` : `${total.toLocaleString()} registered users in platform`}
           </p>
         </div>
@@ -122,7 +122,7 @@ export default function AdminUsersPage() {
           type="button"
           onClick={fetchUsers}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-50 self-start shadow-xs"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-cyan-500/30 bg-white/70 dark:bg-[#0D2452]/50 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#12316B]/60 transition-all cursor-pointer disabled:opacity-50 self-start shadow-xs"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           {isAr ? 'تحديث' : 'Refresh'}
@@ -139,7 +139,7 @@ export default function AdminUsersPage() {
             placeholder={isAr ? 'بحث بالاسم أو البريد الإلكتروني...' : 'Search by name or email...'}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white/80 dark:bg-[#0B1120] border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500/50 shadow-xs"
+            className="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white/80 dark:bg-gradient-to-r dark:from-[#0B1E45]/60 dark:to-[#07132B]/70 border border-slate-200 dark:border-cyan-500/25 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500/60 shadow-xs backdrop-blur-md"
           />
         </div>
 
@@ -179,12 +179,12 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-white/80 dark:bg-[#070C18]/90 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 rounded-2xl overflow-hidden shadow-lg">
+      {/* Table Container */}
+      <div className="bg-gradient-to-b from-blue-50/60 via-white/70 to-blue-50/60 dark:bg-gradient-to-b dark:from-[#0B1E45]/55 dark:via-[#07132B]/65 dark:to-[#040C1E]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-cyan-500/20 rounded-2xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-200/80 dark:border-white/8 bg-slate-50/50 dark:bg-white/2 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <tr className="border-b border-slate-200/80 dark:border-white/10 bg-slate-100/60 dark:bg-[#0E2656]/30 text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                 <th className="text-start px-6 py-4">{isAr ? 'المستخدم' : 'User'}</th>
                 <th className="text-center px-6 py-4">{isAr ? 'الدور' : 'Role'}</th>
                 <th className="text-center px-6 py-4">{isAr ? 'الحالة' : 'Status'}</th>
@@ -192,7 +192,7 @@ export default function AdminUsersPage() {
                 <th className="text-end px-6 py-4">{isAr ? 'إجراءات' : 'Actions'}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/6">
               {loading
                 ? Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i}>
