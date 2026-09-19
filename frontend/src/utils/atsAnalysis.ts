@@ -446,11 +446,10 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
   const parserPassed = parserItems.filter((i) => i.passed).length;
   const impact = metricRatio(cv);
 
-  const structureScore = structurePassed / structureItems.length * 30;
-  const parserScore = parserPassed / parserItems.length * 30;
+  const structureScore = (structurePassed / structureItems.length) * 30;
+  const parserScore = (parserPassed / parserItems.length) * 30;
   const keywordScore = Math.min(1, found.length / benchmark) * 28;
   const impactScore = impact * 12;
-  const summaryBonus = cv.skillsSummary ? 3 : 0;
 
   const score = Math.max(
     0,
@@ -460,8 +459,7 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
         structureScore +
         parserScore +
         keywordScore +
-        impactScore +
-        summaryBonus
+        impactScore
       )
     )
   );
@@ -556,16 +554,7 @@ export function analyzeCV(cv: CVData, template: TemplateId): Analysis {
   }
 
 
-  // Fix: missing skills summary
-  if (!cv.skillsSummary) {
-    fixes.push({
-      id: 'skills-summary',
-      title: 'Add a Skills Summary banner',
-      titleAr: 'إضافة شريط ملخص المهارات',
-      why: 'A skills summary increases ATS keyword density and catches recruiter eyes in 3 seconds.',
-      whyAr: 'شريط المهارات يزيد كثافة الكلمات المفتاحية ويجذب انتباه المحكّم خلال 3 ثوانٍ فقط.',
-    });
-  }
+
   return {
     score,
     band,

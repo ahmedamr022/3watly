@@ -1079,19 +1079,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
           return `تمت إضافة ${toAdd.join('، ')} إلى قسم المهارات التقنية لرفع مطابقة الـ ATS 🚀`;
         }
 
-        case 'skills-summary': {
-          const topSkills = flatSkills.slice(0, 8);
-          const bannerText = topSkills.length > 0
-            ? `Core Competencies: ${topSkills.join(' · ')}`
-            : `Core Competencies: ${targetRole} · Problem Solving · Data Analysis · Git`;
 
-          update((prev) => ({
-            ...prev,
-            skillsSummary: bannerText
-          }), 'fix-skills-summary');
-
-          return 'تم إنشاء شريط المهارات المركّز لأنظمة الـ ATS بنجاح!';
-        }
 
         case 'linkedin-missing': {
           const cleanName = (current.contact.fullName || 'user').toLowerCase().replace(/\s+/g, '-');
