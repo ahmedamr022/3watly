@@ -255,7 +255,7 @@ export default function AdminUsersPage() {
                         </button>
 
                         {openMenu === u.id && (
-                          <div className="absolute end-0 mt-1.5 w-56 rounded-2xl bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-white/12 shadow-2xl z-30 py-1.5 overflow-hidden animate-in fade-in zoom-in-95">
+                          <div className="absolute end-0 mt-1.5 w-56 rounded-2xl bg-white/95 dark:bg-[#07132B]/95 backdrop-blur-2xl border border-slate-200 dark:border-cyan-500/30 shadow-2xl z-30 py-1.5 overflow-hidden animate-in fade-in zoom-in-95">
                             {/* Suspend / Activate */}
                             {u.account_status === 'active' ? (
                               <button

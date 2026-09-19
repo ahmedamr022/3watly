@@ -194,32 +194,32 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="w-full max-w-xl rounded-2xl bg-[#070C18] border border-white/12 shadow-2xl max-h-[92vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-white/8 bg-white/2">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-md">
+      <div className="w-full max-w-xl rounded-3xl bg-white dark:bg-[#070C18] border border-slate-200 dark:border-white/12 shadow-2xl max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-slate-200/80 dark:border-white/8 bg-slate-50/70 dark:bg-white/2">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-purple-500/15 border border-purple-500/25 text-purple-400">
+            <div className="p-2 rounded-xl bg-purple-500/15 border border-purple-500/25 text-purple-600 dark:text-purple-400">
               <BookOpen className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-[15px] font-bold text-white">
+              <h2 className="text-[15px] font-bold text-slate-900 dark:text-white">
                 {isEdit
                   ? (isAr ? 'تعديل المصدر التعليمي' : 'Edit Learning Resource')
                   : (isAr ? 'إضافة كورس أو مصدر جديد' : 'Add New Course / Resource')}
               </h2>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 {isAr ? 'سيظهر هذا المصدر تلقائياً للطلاب في مسار المهارة' : 'Linked directly to platform Skill Gap matrix'}
               </p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/8 cursor-pointer">
+          <button type="button" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/8 cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               {error}
             </div>
@@ -227,7 +227,7 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
 
           {/* Skill Selector */}
           <div className="space-y-1.5">
-            <label className="block text-[11.5px] font-bold text-slate-300">
+            <label className="block text-[11.5px] font-bold text-slate-700 dark:text-slate-300">
               {isAr ? '🎯 المهارة المرتبطة بها الكورس (Skill Selection) *' : '🎯 Linked Skill Target *'}
             </label>
             <CustomDropdown
@@ -243,7 +243,7 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
                   placeholder={isAr ? 'اكتب معرف المهارة (مثلاً: flutter, kubernetes)' : 'Enter custom skill ID (e.g. flutter, rust)'}
                   value={customSkillId}
                   onChange={(e) => setCustomSkillId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-purple-500/40 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#0B1120] border border-purple-500/40 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
                 />
               </div>
             )}
@@ -257,7 +257,7 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
           <div className="grid grid-cols-2 gap-3.5 pt-1">
             {/* Title EN */}
             <div className="col-span-2">
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
                 {isAr ? 'عنوان الكورس أو المصدر (English) *' : 'Course Title (English) *'}
               </label>
               <input
@@ -265,13 +265,13 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
                 value={form.title}
                 onChange={(e) => set('title', e.target.value)}
                 placeholder="e.g. Python Full Course for Beginners"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             {/* Title AR */}
             <div className="col-span-2">
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
                 {isAr ? 'العنوان بالعربي (اختياري)' : 'Arabic Title (Optional)'}
               </label>
               <input
@@ -279,13 +279,13 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
                 onChange={(e) => set('title_ar', e.target.value)}
                 dir="rtl"
                 placeholder="مثال: دورة بايثون الشاملة من الصفر للاحتراف"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             {/* Provider */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
                 {isAr ? 'المنصة / المزود *' : 'Provider *'}
               </label>
               <CustomDropdown
@@ -297,7 +297,7 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
 
             {/* Kind */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
                 {isAr ? 'نوع المحتوى *' : 'Content Kind *'}
               </label>
               <CustomDropdown
@@ -309,7 +309,7 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
 
             {/* URL */}
             <div className="col-span-2">
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
                 {isAr ? 'رابط الكورس المباشر *' : 'Direct URL *'}
               </label>
               <input
@@ -318,13 +318,13 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
                 value={form.url}
                 onChange={(e) => set('url', e.target.value)}
                 placeholder="https://www.youtube.com/watch?v=..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             {/* Duration */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
                 {isAr ? 'المدة التقديرية (ساعات)' : 'Estimated Duration (Hours)'}
               </label>
               <input
@@ -333,13 +333,13 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
                 step="0.5"
                 value={form.duration_hours}
                 onChange={(e) => set('duration_hours', e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0B1120] border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-500/50"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             {/* Language */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
                 {isAr ? 'لغة المحتوى' : 'Language'}
               </label>
               <CustomDropdown
@@ -350,41 +350,41 @@ function ResourceModal({ initial, onClose, onSave, isAr }: ResourceModalProps) {
             </div>
 
             {/* Free Toggle */}
-            <div className="p-3 rounded-xl bg-white/3 border border-white/8 flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/3 border border-slate-200 dark:border-white/8 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-white">{isAr ? 'مجاني 100%' : 'Free Resource'}</p>
-                <p className="text-[10px] text-slate-400">{form.is_free ? (isAr ? 'بدون رسوم' : 'No cost') : (isAr ? 'كورس مدفوع' : 'Paid')}</p>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">{isAr ? 'مجاني 100%' : 'Free Resource'}</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">{form.is_free ? (isAr ? 'بدون رسوم' : 'No cost') : (isAr ? 'كورس مدفوع' : 'Paid')}</p>
               </div>
               <button
                 type="button"
                 onClick={() => set('is_free', !form.is_free)}
-                className={`p-1 rounded-lg transition-colors cursor-pointer ${form.is_free ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-500 bg-white/5'}`}
+                className={`p-1 rounded-lg transition-colors cursor-pointer ${form.is_free ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10' : 'text-slate-400 bg-slate-100 dark:bg-white/5'}`}
               >
                 {form.is_free ? <ToggleRight className="w-6 h-6" /> : <ToggleLeft className="w-6 h-6" />}
               </button>
             </div>
 
             {/* Active Toggle */}
-            <div className="p-3 rounded-xl bg-white/3 border border-white/8 flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/3 border border-slate-200 dark:border-white/8 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-white">{isAr ? 'حالة النشر' : 'Published'}</p>
-                <p className="text-[10px] text-slate-400">{form.is_active ? (isAr ? 'متاح للطلاب' : 'Visible to users') : (isAr ? 'معطل مؤقتاً' : 'Hidden')}</p>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">{isAr ? 'حالة النشر' : 'Published'}</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">{form.is_active ? (isAr ? 'متاح للطلاب' : 'Visible to users') : (isAr ? 'معطل مؤقتاً' : 'Hidden')}</p>
               </div>
               <button
                 type="button"
                 onClick={() => set('is_active', !form.is_active)}
-                className={`p-1 rounded-lg transition-colors cursor-pointer ${form.is_active ? 'text-cyan-400 bg-cyan-500/10' : 'text-slate-500 bg-white/5'}`}
+                className={`p-1 rounded-lg transition-colors cursor-pointer ${form.is_active ? 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/10' : 'text-slate-400 bg-slate-100 dark:bg-white/5'}`}
               >
                 {form.is_active ? <ToggleRight className="w-6 h-6" /> : <ToggleLeft className="w-6 h-6" />}
               </button>
             </div>
           </div>
 
-          <div className="flex gap-3 pt-3 border-t border-white/8">
+          <div className="flex gap-3 pt-3 border-t border-slate-200/80 dark:border-white/8">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-medium text-slate-400 hover:bg-white/5 cursor-pointer transition-colors"
+              className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer transition-colors"
             >
               {isAr ? 'إلغاء' : 'Cancel'}
             </button>

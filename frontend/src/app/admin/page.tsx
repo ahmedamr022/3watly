@@ -250,12 +250,12 @@ export default function AdminDashboardPage() {
             })}
       </div>
 
-      {/* Recent Users Table Section matching Image 3 */}
-      <div className="rounded-2xl bg-white/80 dark:bg-[#070C18]/90 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 shadow-lg overflow-hidden">
+      {/* Recent Users Table Section */}
+      <div className="rounded-3xl bg-white/85 dark:bg-gradient-to-b dark:from-[#0B1E45]/60 dark:via-[#07132B]/75 dark:to-[#040C1E]/85 backdrop-blur-2xl border border-slate-200/90 dark:border-cyan-500/25 shadow-xl overflow-hidden">
         {/* Table Header */}
-        <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-200/80 dark:border-white/8 bg-slate-50/50 dark:bg-white/2">
+        <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-200/80 dark:border-white/10 bg-slate-50/70 dark:bg-white/2">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-500 dark:text-cyan-400">
+            <div className="p-2 rounded-xl bg-cyan-500/15 border border-cyan-500/25 text-cyan-600 dark:text-cyan-400">
               <Users className="w-4 h-4" />
             </div>
             <h2 className="text-[15px] font-bold text-slate-900 dark:text-white">
