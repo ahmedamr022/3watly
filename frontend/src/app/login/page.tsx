@@ -29,7 +29,7 @@ export default function LoginPage() {
   const [topError, setTopError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ email?: boolean; password?: boolean }>({});
 
-  // Restore remembered email on mount
+  // Restore remembered email on mount & check URL errors
   useEffect(() => {
     try {
       const savedEmail = localStorage.getItem('3watly_remember_email');
@@ -37,8 +37,18 @@ export default function LoginPage() {
         setEmail(savedEmail);
         setRemember(true);
       }
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('error') === 'linkedin_maintenance') {
+          setTopError(
+            isAr
+              ? 'خدمة تسجيل الدخول بواسطة LinkedIn تحت الصيانة حالياً لربط التطبيق الرسمي.'
+              : 'LinkedIn sign-in is currently under maintenance for official app integration.'
+          );
+        }
+      }
     } catch {}
-  }, []);
+  }, [isAr]);
 
   // If user already has a valid session → skip login and go straight to dashboard
   useEffect(() => {

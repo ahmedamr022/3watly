@@ -35,7 +35,7 @@ export function GrowthChart({ filters }: { filters: Filters }) {
 
   return (
     <section className="flex h-full flex-col justify-between rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-      <div>
+      <div className="flex flex-1 flex-col">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 pb-3 border-b border-slate-100 dark:border-white/5">
           <div>
@@ -85,9 +85,9 @@ export function GrowthChart({ filters }: { filters: Filters }) {
         </div>
 
         {/* Line Chart */}
-        <div className="mt-4 h-[220px] w-full">
+        <div className="mt-4 flex-1 min-h-[260px] sm:min-h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={model.points} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+            <LineChart data={model.points} margin={{ top: 15, right: 15, left: -20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.12)" />
               <XAxis
                 dataKey="tick"

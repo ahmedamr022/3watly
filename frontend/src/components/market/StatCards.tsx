@@ -54,7 +54,7 @@ export function StatCards({ stats, onSelect }: StatCardsProps) {
       id: 'skill',
       label: isAr ? 'المهارة الأكثر طلباً' : 'Top In-Demand Skill',
       value: stats.topSkill.name,
-      sub: isAr ? `${stats.topSkill.share}% من وظائف البيانات` : `${stats.topSkill.share}% of data roles`,
+      sub: isAr ? `مطلوبة في ${stats.topSkill.share}% من الوظائف` : `${stats.topSkill.share}% of active roles`,
       icon: Star,
       iconBg: 'bg-[#FFF7ED] dark:bg-amber-950/70',
       iconColor: 'text-[#F97316] dark:text-[#FB923C]',

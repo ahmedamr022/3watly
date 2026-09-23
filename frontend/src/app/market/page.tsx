@@ -149,7 +149,7 @@ export default function MarketPage() {
     setExporting(true);
     setTimeout(() => {
       const name = `3watly-tech-market-${filters.track}-${filters.workModel}-${filters.experience}.csv`;
-      downloadFile(name, buildReportCsv(filters));
+      downloadFile(name, buildReportCsv(filters, stats, topSkills, isAr));
       setExporting(false);
       toast.success(isAr ? 'تم تصدير تقرير السوق بنجاح' : 'Market report exported successfully', {
         description: name,

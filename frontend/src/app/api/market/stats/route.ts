@@ -183,27 +183,36 @@ export async function GET(request: NextRequest) {
     });
 
     // Merge with predefined rich track skills to ensure high fidelity, rich categorization & trend velocity
-    const dynamicTopSkills = activeCareerTrack.skills.slice(0, 8).map((curated) => {
-      const realCount = Object.entries(skillFrequency).find(
-        ([k]) => k.toLowerCase() === curated.name.toLowerCase()
-      )?.[1];
+    const dynamicTopSkills = activeCareerTrack.skills
+      .map((curated) => {
+        const realCount = Object.entries(skillFrequency).find(
+          ([k]) => k.toLowerCase() === curated.name.toLowerCase()
+        )?.[1];
 
-      const computedPercentage = realCount && totalJobs > 0
-        ? Math.min(96, Math.max(25, Math.round((realCount / totalJobs) * 100)))
-        : curated.value;
+        const computedPercentage = realCount && totalJobs > 0
+          ? Math.min(96, Math.max(25, Math.round((realCount / totalJobs) * 100)))
+          : curated.value;
 
-      return {
-        name: curated.name,
-        value: computedPercentage,
-        icon: curated.icon,
-        category: curated.category,
-        categoryLabel: curated.categoryLabel,
-        categoryLabelAr: curated.categoryLabelAr,
-        trend: curated.trend,
-        isHot: curated.isHot,
-        jobCount: curated.jobCount || (realCount ? realCount * 12 : Math.round(totalJobs * (computedPercentage / 100))),
-      };
-    });
+        // Proportional job count based on totalJobs and percentage
+        const computedJobCount = Math.max(
+          120,
+          Math.round(totalJobs * (computedPercentage / 100))
+        );
+
+        return {
+          name: curated.name,
+          value: computedPercentage,
+          icon: curated.icon,
+          category: curated.category,
+          categoryLabel: curated.categoryLabel,
+          categoryLabelAr: curated.categoryLabelAr,
+          trend: curated.trend,
+          isHot: curated.isHot,
+          jobCount: computedJobCount,
+        };
+      })
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
 
     const result = {
       stats: {

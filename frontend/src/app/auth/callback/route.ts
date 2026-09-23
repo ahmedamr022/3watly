@@ -17,6 +17,12 @@ export async function GET(request: Request) {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error && data.user) {
         const user = data.user;
+        const provider = (user.app_metadata as any)?.provider;
+        if (provider === 'linkedin' || provider === 'linkedin_oidc') {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(new URL('/login?error=linkedin_maintenance', origin));
+        }
+
         const metadata = user.user_metadata || {};
         const fullName =
           metadata.full_name ||

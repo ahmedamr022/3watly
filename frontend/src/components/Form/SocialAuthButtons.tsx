@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Wrench } from 'lucide-react';
 
 function GoogleMark() {
   return (
@@ -30,7 +30,7 @@ function LinkedInMark() {
   return (
     <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] shrink-0" aria-hidden="true">
       <path
-        fill="#0A66C2"
+        fill="currentColor"
         d="M4.98 3.5a2.5 2.5 0 1 1-.02 5 2.5 2.5 0 0 1 .02-5ZM3 9h4v12H3V9Zm6.5 0h3.83v1.64h.05a4.2 4.2 0 0 1 3.78-2.08C20.6 8.56 22 10.6 22 14.1V21h-4v-6.1c0-1.53-.55-2.57-1.92-2.57-1.05 0-1.67.7-1.94 1.38-.1.25-.13.6-.13.94V21h-4V9Z"
       />
     </svg>
@@ -44,12 +44,11 @@ interface SocialAuthButtonsProps {
 
 export function SocialAuthButtons({ googleLabel, linkedinLabel }: SocialAuthButtonsProps) {
   const { isAr } = useLanguage();
-  const { signInWithGoogle, signInWithLinkedIn } = useAuth();
+  const { signInWithGoogle } = useAuth();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isLinkedInLoading, setIsLinkedInLoading] = useState(false);
 
   const handleGoogleClick = async () => {
-    if (isGoogleLoading || isLinkedInLoading) return;
+    if (isGoogleLoading) return;
     setIsGoogleLoading(true);
     try {
       const res = await signInWithGoogle();
@@ -63,31 +62,22 @@ export function SocialAuthButtons({ googleLabel, linkedinLabel }: SocialAuthButt
     }
   };
 
-  const handleLinkedInClick = async () => {
-    if (isGoogleLoading || isLinkedInLoading) return;
-    setIsLinkedInLoading(true);
-    try {
-      const res = await signInWithLinkedIn();
-      if (!res.success && res.error) {
-        toast.error(res.error);
-      }
-    } catch (err: any) {
-      toast.error(err?.message || (isAr ? 'فشل بدء تسجيل الدخول بواسطة LinkedIn' : 'Failed to sign in with LinkedIn'));
-    } finally {
-      setIsLinkedInLoading(false);
-    }
+  const handleLinkedInDisabledClick = () => {
+    toast.info(
+      isAr
+        ? 'تسجيل الدخول عبر LinkedIn تحت الصيانة حالياً لربط التطبيق الرسمي.'
+        : 'LinkedIn sign-in is currently under maintenance for official app integration.'
+    );
   };
-
-  const base =
-    'flex h-[48px] items-center justify-center gap-2.5 whitespace-nowrap rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0D1527] text-[13.5px] font-semibold text-[#1E293B] dark:text-white shadow-xs transition-all duration-150 ease-smooth hover:border-blue-300 dark:hover:border-blue-500/40 hover:bg-slate-50 dark:hover:bg-white/5 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed';
 
   return (
     <div className="grid grid-cols-2 gap-3">
+      {/* Active Google Button */}
       <button
         type="button"
         onClick={handleGoogleClick}
-        disabled={isGoogleLoading || isLinkedInLoading}
-        className={base}
+        disabled={isGoogleLoading}
+        className="flex h-[48px] items-center justify-center gap-2.5 whitespace-nowrap rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0D1527] text-[13.5px] font-semibold text-[#1E293B] dark:text-white shadow-xs transition-all duration-150 hover:border-blue-300 dark:hover:border-blue-500/40 hover:bg-slate-50 dark:hover:bg-white/5 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {isGoogleLoading ? (
           <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
@@ -97,19 +87,29 @@ export function SocialAuthButtons({ googleLabel, linkedinLabel }: SocialAuthButt
         <span>{isGoogleLoading ? (isAr ? 'جاري التحويل...' : 'Redirecting...') : googleLabel}</span>
       </button>
 
-      <button
-        type="button"
-        onClick={handleLinkedInClick}
-        disabled={isGoogleLoading || isLinkedInLoading}
-        className={base}
-      >
-        {isLinkedInLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
-        ) : (
-          <LinkedInMark />
-        )}
-        <span>{isLinkedInLoading ? (isAr ? 'جاري التحويل...' : 'Redirecting...') : linkedinLabel}</span>
-      </button>
+      {/* Disabled / Under Maintenance LinkedIn Button */}
+      <div className="relative group">
+        <button
+          type="button"
+          onClick={handleLinkedInDisabledClick}
+          disabled={true}
+          aria-disabled="true"
+          className="w-full flex h-[48px] items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-dashed border-slate-300 dark:border-white/10 bg-slate-100/80 dark:bg-slate-900/60 text-[12.5px] font-medium text-slate-400 dark:text-slate-500 grayscale opacity-75 cursor-not-allowed select-none transition-colors"
+        >
+          <div className="text-slate-400 dark:text-slate-500">
+            <LinkedInMark />
+          </div>
+          <span className="line-through decoration-slate-400/50">{linkedinLabel}</span>
+        </button>
+
+        {/* Maintenance Badge Pin */}
+        <div className="absolute -top-2.5 start-2 pointer-events-none z-10">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 shadow-xs backdrop-blur-xs">
+            <Wrench className="w-2.5 h-2.5" />
+            {isAr ? 'تحت الصيانة' : 'Maintenance'}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

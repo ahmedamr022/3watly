@@ -26,13 +26,15 @@ import {
   AlertTriangle,
   Trash2,
   Loader2,
-  Phone
+  Phone,
+  FileText
 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { extractNameFromFilename } from '@/utils/formatName';
+import { LegalModal, LegalModalType } from '@/components/legal/LegalModal';
 import { toast } from 'sonner';
 
 interface ProfileData {
@@ -83,6 +85,8 @@ export default function SettingsPage() {
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [twoFactorModalOpen, setTwoFactorModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [legalModalType, setLegalModalType] = useState<LegalModalType>('terms');
   
   // Password form states
   const [currentPassword, setCurrentPassword] = useState('');
@@ -620,6 +624,75 @@ export default function SettingsPage() {
                     </span>
                     <ChevronRight className={`w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-transform ${isAr ? 'rotate-180' : ''}`} />
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Legal & Privacy Card */}
+            <div className="rounded-[20px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0B1120] p-6 shadow-xs space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/10">
+                <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-[16px] font-bold text-[#0B132B] dark:text-white">
+                    {isAr ? "الشروط والسياسات" : "Legal & Policies"}
+                  </h2>
+                  <p className="text-[12.5px] text-slate-500">
+                    {isAr ? "مراجعة سياسة الخصوصية وشروط الاستخدام الخاصة بالمنصة." : "Review the platform's terms of service and privacy policy."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+                {/* Terms of Service */}
+                <div 
+                  onClick={() => {
+                    setLegalModalType('terms');
+                    setLegalModalOpen(true);
+                  }}
+                  className="flex items-center justify-between py-3.5 px-2 rounded-xl hover:bg-slate-50/70 dark:hover:bg-white/[0.02] cursor-pointer transition-colors group"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/60 group-hover:text-blue-600 transition-colors">
+                      <FileText className="w-4.5 h-4.5" />
+                    </div>
+                    <div>
+                      <h4 className="text-[14px] font-bold text-[#0B132B] dark:text-white leading-tight">
+                        {isAr ? "شروط الاستخدام" : "Terms of Service"}
+                      </h4>
+                      <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        {isAr ? "قواعد استخدام منصة عواطلي وحقوق الملكية الفكرية." : "Rules for using 3WATLY and intellectual property rights."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <ChevronRight className={`w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-transform ${isAr ? 'rotate-180' : ''}`} />
+                </div>
+
+                {/* Privacy Policy */}
+                <div 
+                  onClick={() => {
+                    setLegalModalType('privacy');
+                    setLegalModalOpen(true);
+                  }}
+                  className="flex items-center justify-between py-3.5 px-2 rounded-xl hover:bg-slate-50/70 dark:hover:bg-white/[0.02] cursor-pointer transition-colors group"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/60 group-hover:text-blue-600 transition-colors">
+                      <ShieldCheck className="w-4.5 h-4.5" />
+                    </div>
+                    <div>
+                      <h4 className="text-[14px] font-bold text-[#0B132B] dark:text-white leading-tight">
+                        {isAr ? "سياسة الخصوصية" : "Privacy Policy"}
+                      </h4>
+                      <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        {isAr ? "كيفية حماية وتشفير بياناتك وسيرتك الذاتية." : "How we protect and encrypt your data and resumes."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <ChevronRight className={`w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-transform ${isAr ? 'rotate-180' : ''}`} />
                 </div>
               </div>
             </div>
@@ -1210,6 +1283,13 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      {/* Legal Modal (Bilingual Interactive Modal) */}
+      <LegalModal
+        isOpen={legalModalOpen}
+        type={legalModalType}
+        onClose={() => setLegalModalOpen(false)}
+      />
 
     </AppShell>
   );

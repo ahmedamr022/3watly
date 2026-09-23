@@ -517,7 +517,7 @@ export default function AdminUsersPage() {
                                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer text-start"
                               >
                                 <Trash2 className="w-4 h-4 text-red-500" />
-                                {isAr ? 'حذف المستخدم نهائياً من قاعدة البيانات' : 'Delete User Permanently from Database'}
+                                {isAr ? 'حذف الحساب' : 'Delete Account'}
                               </button>
 
                               {/* Role changes — owner only (Point 11: opens Modal) */}

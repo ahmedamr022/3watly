@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
-import { LegalModal, LegalModalType } from '@/components/legal/LegalModal';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
@@ -12,16 +11,6 @@ export function Footer() {
   const { isAr, t } = useLanguage();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
-  
-  // Legal Modal State
-  const [legalModalOpen, setLegalModalOpen] = useState(false);
-  const [legalModalType, setLegalModalType] = useState<LegalModalType>('terms');
-
-  const openLegalModal = (type: LegalModalType, e: React.MouseEvent) => {
-    e.preventDefault();
-    setLegalModalType(type);
-    setLegalModalOpen(true);
-  };
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,14 +25,6 @@ export function Footer() {
 
   return (
     <footer className="w-full bg-white dark:bg-[#040816] border-t border-slate-100/90 dark:border-white/[0.06] pt-12 pb-8 px-6 sm:px-10 lg:px-16 text-slate-600 dark:text-slate-400 transition-colors duration-300">
-      
-      {/* Interactive Bilingual Legal Modal */}
-      <LegalModal
-        isOpen={legalModalOpen}
-        type={legalModalType}
-        onClose={() => setLegalModalOpen(false)}
-      />
-
       <div className="max-w-[1400px] mx-auto">
         
         {/* Main Footer Grid */}
@@ -95,29 +76,27 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* 3. Legal Column (Opens Modal) */}
+          {/* 3. Legal Column (Direct Links for LinkedIn App Verification & SEO) */}
           <div className="space-y-3">
             <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white">
               {isAr ? "الشروط والأمان" : "Legal & Privacy"}
             </h4>
             <ul className="space-y-2 text-[12.5px]">
               <li>
-                <button
-                  type="button"
-                  onClick={(e) => openLegalModal('terms', e)}
-                  className="inline-flex items-center text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:ltr:translate-x-1 hover:rtl:-translate-x-1 transition-all duration-200 cursor-pointer"
+                <Link
+                  href="/terms"
+                  className="inline-flex items-center text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:ltr:translate-x-1 hover:rtl:-translate-x-1 transition-all duration-200"
                 >
                   {isAr ? "شروط الاستخدام" : "Terms of Service"}
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={(e) => openLegalModal('privacy', e)}
-                  className="inline-flex items-center text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:ltr:translate-x-1 hover:rtl:-translate-x-1 transition-all duration-200 cursor-pointer"
+                <Link
+                  href="/privacy"
+                  className="inline-flex items-center text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:ltr:translate-x-1 hover:rtl:-translate-x-1 transition-all duration-200"
                 >
                   {isAr ? "سياسة الخصوصية" : "Privacy Policy"}
-                </button>
+                </Link>
               </li>
             </ul>
           </div>

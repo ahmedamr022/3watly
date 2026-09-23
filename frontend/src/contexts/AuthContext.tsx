@@ -433,43 +433,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // LinkedIn OAuth via Supabase Auth
+  // LinkedIn OAuth disabled temporarily for maintenance
   const signInWithLinkedIn = async () => {
-    try {
-      const supabase = createClient();
-      if (!supabase) {
-        return { success: false, error: 'Supabase credentials are not configured.' };
-      }
-
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'linkedin_oidc' as any,
-        options: {
-          redirectTo: `${origin}/auth/callback`
-        }
-      });
-
-      if (!error && data?.url) {
-        window.location.href = data.url;
-        return { success: true, redirected: true };
-      }
-
-      const retry = await supabase.auth.signInWithOAuth({
-        provider: 'linkedin' as any,
-        options: {
-          redirectTo: `${origin}/auth/callback`
-        }
-      });
-
-      if (!retry.error && retry.data?.url) {
-        window.location.href = retry.data.url;
-        return { success: true, redirected: true };
-      }
-
-      return { success: false, error: error?.message || retry.error?.message || 'LinkedIn provider authentication failed.' };
-    } catch (err: any) {
-      return { success: false, error: err?.message || 'Failed to initialize LinkedIn authentication.' };
-    }
+    return {
+      success: false,
+      error: 'خدمة تسجيل الدخول بواسطة LinkedIn تحت الصيانة حالياً لربط التطبيق الرسمي.'
+    };
   };
 
 

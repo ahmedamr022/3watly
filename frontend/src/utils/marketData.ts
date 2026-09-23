@@ -179,37 +179,157 @@ export function filterSummary(filters: Filters) {
   };
 }
 
-export function buildReportCsv(filters: Filters): string {
-  const stats = getStats(filters);
+export function buildReportCsv(
+  filters: Filters,
+  liveStats?: StatSet,
+  liveSkills?: SkillBar[],
+  isAr: boolean = false
+): string {
+  const stats = liveStats ?? getStats(filters);
   const summary = filterSummary(filters);
-  const rows: string[][] = [
-    ['3WATLY Tech Market Intelligence Report'],
-    ['Career Track', summary.track],
-    ['Work Model & Location', summary.workModel],
-    ['Experience Level', summary.experience],
+  const skills = (liveSkills && liveSkills.length > 0) ? liveSkills : getSkillRanking(filters);
+  const activeTrack = careerTracks.find((t) => t.id === filters.track) ?? careerTracks[0];
+
+  const currentDate = new Date().toISOString().split('T')[0];
+
+  const rows: (string | number)[][] = [
+    // Section 1: Official Header Banner
+    ['========================================================================================'],
+    [isAr ? 'منصة عواطلي - تقرير استخبارات وتحليل سوق التوظيف التقني المصري' : '3WATLY - Tech Market Intelligence & Skills Demand Report'],
+    ['========================================================================================'],
     [],
-    ['Key Metric', 'Value', 'Growth'],
-    ['Active analyzed jobs in Egypt', String(stats.jobs), `+${stats.jobsDelta}%`],
-    ['Hiring tech companies', String(stats.companies), `+${stats.companiesDelta}%`],
-    ['Remote / hybrid positions ratio', `${stats.remote}%`, `+${stats.remoteDelta}%`],
-    ['Top in-demand skill', stats.topSkill.name, `${stats.topSkill.share}% of open roles`],
+    // Section 2: Metadata Table
+    [isAr ? 'معلومات التقرير والفلاتر النشطة' : 'REPORT SPECIFICATIONS & APPLIED FILTERS', ''],
+    [isAr ? 'تاريخ استخراج التقرير' : 'Report Generated Date', currentDate],
+    [isAr ? 'المسار المهني / التخصص' : 'Career Track', isAr ? summary.trackAr : summary.track],
+    [isAr ? 'نمط ومقر العمل' : 'Work Model & Location', isAr ? summary.workModelAr : summary.workModel],
+    [isAr ? 'مستوى الخبرة المستهدف' : 'Target Experience Level', isAr ? summary.experienceAr : summary.experience],
+    [isAr ? 'نطاق التغطية الجغرافية' : 'Geographic Coverage', isAr ? 'جمهورية مصر العربية وسوق العمل الإقليمي' : 'Egypt & MENA Tech Market'],
+    [isAr ? 'مصدر البيانات وطريقة الجمع' : 'Data Methodology', isAr ? 'تحليل خوارزمي فوري لآلاف إعلانات التوظيف النشطة' : 'Algorithmic real-time parsing of verified active postings'],
     [],
-    ['Rank', 'Skill Name', 'Category', 'Share of Postings', 'Growth Momentum', 'Estimated Job Openings'],
-    ...getSkillRanking(filters).map((s, i) => [
-      String(i + 1),
-      s.name,
-      s.categoryLabel || 'Tech',
-      `${s.value}%`,
-      s.trend || '+15%',
-      String(s.jobCount || 1000),
-    ]),
+    // Section 3: Key Market Indicators (KPIs)
+    ['----------------------------------------------------------------------------------------'],
+    [isAr ? 'المؤشرات الإحصائية العامة لسوق العمل (Key Market Indicators)' : 'KEY MARKET METRICS & BENCHMARKS'],
+    ['----------------------------------------------------------------------------------------'],
+    [
+      isAr ? 'المؤشر الإحصائي' : 'Metric Indicator',
+      isAr ? 'القيمة الحالية' : 'Current Value',
+      isAr ? 'نسبة التغير (Momentum)' : 'Momentum / Growth',
+      isAr ? 'وصف المؤشر وتأثيره المهني' : 'Market Context & Interpretation'
+    ],
+    [
+      isAr ? 'إجمالي الوظائف التقنية النشطة' : 'Active Analyzed Jobs',
+      stats.jobs.toLocaleString(),
+      `+${stats.jobsDelta}%`,
+      isAr ? 'فرص عمل معلنة ومحللة عبر منصات التوظيف الرائدة' : 'Live opportunities tracked across major tech employers'
+    ],
+    [
+      isAr ? 'الشركات التقنية الموظفة' : 'Hiring Tech Companies',
+      stats.companies.toLocaleString(),
+      `+${stats.companiesDelta}%`,
+      isAr ? 'شركات محلية وعالمية ومقرات إقليمية نشطة في التعيين' : 'Active tech startups, enterprise scale-ups & regional hubs'
+    ],
+    [
+      isAr ? 'نسبة الوظائف عن بعد والهجينة' : 'Remote / Hybrid Share',
+      `${stats.remote}%`,
+      `+${stats.remoteDelta}%`,
+      isAr ? 'نسبة الوظائف التي توفر مرونة جغرافية تامة أو جزئية' : 'Postings offering fully remote or flexible hybrid setup'
+    ],
+    [
+      isAr ? 'المهارة التقنية الأعلى طلباً' : 'Top In-Demand Skill',
+      stats.topSkill.name,
+      `${stats.topSkill.share}% ${isAr ? 'من إعلانات الوظائف' : 'of open roles'}`,
+      isAr ? 'المهارة الأساسية لاجتياز الفرز الآلي (ATS) والمقابلات الفنية' : 'Primary required competence for ATS screening & technical passes'
+    ],
+    [],
+    // Section 4: Detailed Skills Taxonomy & Demand Matrix
+    ['----------------------------------------------------------------------------------------'],
+    [isAr ? 'جدول تحليل وتصنيف المهارات التقنية الأكثر طلباً (Top Skills Demand Matrix)' : 'DETAILED SKILLS DEMAND & GROWTH MATRIX'],
+    ['----------------------------------------------------------------------------------------'],
+    [
+      isAr ? 'الترتيب' : 'Rank',
+      isAr ? 'اسم المهارة التقنية' : 'Skill Name',
+      isAr ? 'التصنيف التقني' : 'Category',
+      isAr ? 'نسبة الطلب في السوق (%)' : 'Market Demand Share (%)',
+      isAr ? 'عدد الوظائف التقديرية' : 'Estimated Openings',
+      isAr ? 'معدل الصعود وزخم النمو' : 'Growth Momentum',
+      isAr ? 'مستوى الأهمية التنافسية' : 'Competitive Priority'
+    ],
+    ...skills.map((s, i) => {
+      const cat = isAr ? (s.categoryLabelAr || s.categoryLabel || 'تقنية') : (s.categoryLabel || 'Tech');
+      const priority = s.value >= 75 
+        ? (isAr ? 'أولوية قصوى (إلزامية)' : 'Critical / Mandatory')
+        : s.value >= 50
+        ? (isAr ? 'مرتفعة جداً (موصى بها)' : 'High Priority')
+        : (isAr ? 'متوسطة (ميزة إضافية)' : 'Moderate / Value-Add');
+
+      return [
+        String(i + 1),
+        s.name,
+        cat,
+        `${s.value}%`,
+        s.jobCount ? s.jobCount.toLocaleString() : 'N/A',
+        s.trend || '+15%',
+        priority
+      ];
+    }),
+    [],
+    // Section 5: Fastest Accelerating Skills / Trends
+    ['----------------------------------------------------------------------------------------'],
+    [isAr ? 'المهارات الأسرع تسارعاً ونمواً (Fastest Growing Skills Highlights)' : 'FASTEST GROWING SKILLS (90-DAY ACCELERATION)'],
+    ['----------------------------------------------------------------------------------------'],
+    [
+      isAr ? 'نوع المؤشر' : 'Trend Type',
+      isAr ? 'اسم التقنية / المهارة' : 'Technology / Skill',
+      isAr ? 'معدل زيادة الطلب (90 يوماً)' : '90-Day Demand Surge'
+    ],
+    [
+      isAr ? 'المهارة الصاعدة الأولى (Primary Momentum)' : 'Primary Velocity Driver',
+      activeTrack.trendingHighlights.primary.name,
+      activeTrack.trendingHighlights.primary.badge
+    ],
+    [
+      isAr ? 'المهارة الصاعدة الثانية (Secondary Momentum)' : 'Secondary Velocity Driver',
+      activeTrack.trendingHighlights.secondary.name,
+      activeTrack.trendingHighlights.secondary.badge
+    ],
+    [
+      isAr ? 'متوسط تسارع السوق العام' : 'Market Baseline Average',
+      activeTrack.trendingHighlights.average.name,
+      activeTrack.trendingHighlights.average.badge
+    ],
+    [],
+    // Section 6: Actionable Recommendations & Career Notes
+    ['----------------------------------------------------------------------------------------'],
+    [isAr ? 'توصيات مهنية ورؤى سوقية (Market Recommendations & Insights)' : 'MARKET INSIGHTS & STRATEGIC RECOMMENDATIONS'],
+    ['----------------------------------------------------------------------------------------'],
+    [isAr ? 'نمو التخصص' : 'Track Growth', isAr ? activeTrack.insights.ar.roleGrowth : activeTrack.insights.en.roleGrowth],
+    [isAr ? 'أبرز جهات التوظيف' : 'Key Employers', isAr ? activeTrack.insights.ar.topCompanies : activeTrack.insights.en.topCompanies],
+    [isAr ? 'اتجاهات الرواتب' : 'Compensation Trends', isAr ? activeTrack.insights.ar.salaryTrend : activeTrack.insights.en.salaryTrend],
+    [],
+    // Section 7: Legal & Attribution Footer
+    ['----------------------------------------------------------------------------------------'],
+    [isAr ? 'حقوق النشر والملكية الفكرية' : 'Copyright & Intellectual Property', '© 2026 3WATLY (منصة عواطلي). All rights reserved.'],
+    [isAr ? 'الموقع الإلكتروني' : 'Platform URL', 'https://3watly.com'],
+    [isAr ? 'ملاحظة الاستخدام' : 'Usage Notice', isAr ? 'هذا التقرير معد لمساعدة الكوادر التقنية في اتخاذ قرارات مهنية مدروسة وتطوير مساراتهم التعليمية.' : 'This report is prepared for career planning and skill optimization purposes.']
   ];
 
-  return rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
+  return rows
+    .map((row) =>
+      row
+        .map((cell) => {
+          const str = String(cell ?? '');
+          return `"${str.replace(/"/g, '""')}"`;
+        })
+        .join(',')
+    )
+    .join('\r\n');
 }
 
 export function downloadFile(filename: string, content: string, mime = 'text/csv;charset=utf-8') {
-  const blob = new Blob([content], { type: mime });
+  // Add UTF-8 BOM so Microsoft Excel correctly renders Arabic characters natively
+  const contentWithBom = content.startsWith('\uFEFF') ? content : '\uFEFF' + content;
+  const blob = new Blob([contentWithBom], { type: mime });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
