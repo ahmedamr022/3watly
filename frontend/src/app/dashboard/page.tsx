@@ -21,8 +21,7 @@ import {
   Calendar,
   FileText,
   UploadCloud,
-  Sparkles,
-  Send
+  Sparkles
 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -44,11 +43,10 @@ export default function DashboardPage() {
   const [liveJobs, setLiveJobs] = useState<any[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [marketStats, setMarketStats] = useState<any>(null);
-  const [copilotInput, setCopilotInput] = useState('');
 
   const handleAskCopilot = (e?: React.FormEvent, promptOverride?: string) => {
     if (e) e.preventDefault();
-    const query = (promptOverride || copilotInput).trim();
+    const query = (promptOverride || '').trim();
     if (!query) return;
     router.push(`/copilot?prompt=${encodeURIComponent(query)}`);
   };
@@ -724,106 +722,125 @@ export default function DashboardPage() {
 
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/40">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  {isAr ? "جاهز لتحليلك" : "Online"}
+                  {isAr ? "جاهز للتحليلات" : "Ready"}
                 </span>
               </div>
 
               {/* Dynamic Live Profile Insight */}
-              <div className="mt-4 rounded-2xl border border-blue-100 dark:border-blue-900/30 bg-gradient-to-br from-blue-50/70 to-indigo-50/40 dark:from-blue-950/30 dark:to-indigo-950/20 p-3.5">
-                <div className="flex items-start gap-2.5">
-                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-bold shadow-2xs">
-                    <Bot className="w-3.5 h-3.5" />
+              <div className="mt-4 rounded-2xl border border-blue-900/30 bg-gradient-to-br from-[#0e1a3a] to-[#111827] dark:from-[#0a1228] dark:to-[#0d1420] p-3.5">
+                <div className="flex items-start gap-3">
+                  {/* Skill Icon */}
+                  <div className="shrink-0 w-[52px] h-[52px] rounded-xl bg-gradient-to-br from-[#1B57E0]/80 to-indigo-700 flex items-center justify-center text-white shadow-md shadow-blue-900/40">
+                    <Code2 className="w-6 h-6" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold text-blue-900 dark:text-blue-300 uppercase tracking-wider">
-                      {isAr ? "رؤية ذكية لملفك المهني" : "Tailored Profile Insight"}
-                    </p>
-                    <p className="mt-1 text-[12px] text-slate-700 dark:text-slate-200 leading-relaxed">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <p className="text-[12px] font-bold text-white">
+                        {isAr ? "رؤية ذكية لملفات المهام" : "Intelligent Job Insights"}
+                      </p>
+                      <span className="shrink-0 text-[10px] font-bold text-purple-300 bg-purple-900/50 px-2 py-0.5 rounded-md border border-purple-700/50">
+                        {isAr ? "أداة ذكية" : "AI Tool"}
+                      </span>
+                    </div>
+                    <p className="text-[12px] text-slate-300 leading-relaxed">
                       {missingSkills.length > 0 ? (
                         isAr ? (
                           <>
-                            إضافة مهارات مثل <strong className="text-blue-600 dark:text-blue-400 font-bold">{missingSkills.join('، ')}</strong> ترفع جاهزيتك لفرص {candidateRole || 'السوق'} بنسبة تصل إلى <span className="font-bold text-emerald-600 dark:text-emerald-400">+25%</span>.
+                            إضافة مهارات مثل <strong className="text-blue-300 font-bold">{missingSkills.join('، ')}</strong> ترفع جاهزيتك لفرص المستهدف بنسبة تصل إلى <span className="font-bold text-emerald-400">+25%</span>.
                           </>
                         ) : (
                           <>
-                            Adding skills like <strong className="text-blue-600 dark:text-blue-400 font-bold">{missingSkills.join(', ')}</strong> can boost your readiness for {candidateRole || 'market'} roles by <span className="font-bold text-emerald-600 dark:text-emerald-400">+25%</span>.
+                            Adding <strong className="text-blue-300 font-bold">{missingSkills.join(', ')}</strong> boosts readiness for target roles by <span className="font-bold text-emerald-400">+25%</span>.
                           </>
                         )
                       ) : careerAlignment !== null ? (
-                        isAr ? (
-                          `توافق ملفك الحالي ${careerAlignment}%. اسأل المساعد عن نصائح مخصصة لتخطي المقابلات التقنية وصياغة إنجازاتك بالأرقام.`
-                        ) : (
-                          `Your profile alignment is ${careerAlignment}%. Ask Copilot how to craft quantified achievements and ace technical interviews.`
-                        )
+                        isAr
+                          ? `توافق ملفك الحالي ${careerAlignment}%. اسأل المساعد للحصول على نصائح مخصصة لتخطي المقابلات التقنية.`
+                          : `Your profile alignment is ${careerAlignment}%. Ask Copilot for tips to ace technical interviews.`
                       ) : (
-                        isAr ? (
-                          "ارفع سيرتك الذاتية ليتولى المساعد الذكي فحص كلمات ATS المفتاحية واقتراح مسار مخصص لوظائف أحلامك."
-                        ) : (
-                          "Upload your CV for automated ATS keyword diagnostics and a customized roadmap to your dream role."
-                        )
+                        isAr
+                          ? "ارفع سيرتك الذاتية ليتولى المساعد الذكي فحص كلمات ATS المفتاحية واقتراح مسار مخصص."
+                          : "Upload your CV for ATS keyword diagnostics and a personalized career roadmap."
                       )}
                     </p>
+                    <button
+                      type="button"
+                      onClick={() => handleAskCopilot(undefined, isAr ? "كيف أحسّن ملفي المهني وأرفع نسبة التوافق مع الوظائف؟" : "How can I improve my profile and increase job match rate?")}
+                      className="mt-2 flex items-center gap-1 text-[11.5px] font-bold text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                    >
+                      <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
+                      <span>{isAr ? "اسأل المساعد الذكي" : "Ask Copilot"}</span>
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* Quick High-Value Prompt Chips (1-click to copilot) */}
+              {/* Quick Prompt Chips */}
               <div className="mt-3.5">
-                <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
-                  {isAr ? "أسئلة سريعة بنقرة واحدة:" : "Quick 1-Click Questions:"}
+                <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  {isAr ? "أسئلة سريعة يقترحها لك" : "Quick Questions for You"}
                 </p>
                 <div className="space-y-1.5">
                   <button
                     type="button"
-                    onClick={() => handleAskCopilot(undefined, isAr ? "كيف أرفع نسبة قبولي في الوظائف المطابقة لـ 90%؟" : "How can I increase my match score for top tech roles?")}
-                    className="w-full text-left rtl:text-right flex items-center justify-between p-2 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/60 dark:bg-white/[0.02] hover:bg-blue-50/80 dark:hover:bg-blue-950/30 hover:border-blue-200 dark:hover:border-blue-800/50 transition-all text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 group/item cursor-pointer"
+                    onClick={() => handleAskCopilot(undefined, isAr ? "كيف أرفع نسبة قبولي لـ 90%؟" : "How can I increase my match score to 90%?")}
+                    className="w-full text-left rtl:text-right flex items-center justify-between p-2.5 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/60 dark:bg-white/[0.02] hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-200 dark:hover:border-blue-800/50 transition-all group/item cursor-pointer"
                   >
-                    <span className="truncate">
-                      {isAr ? "🎯 كيف أرفع نسبة قبولي لـ 90%؟" : "🎯 Boost my match score to 90%"}
-                    </span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="shrink-0 w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover/item:bg-blue-100 dark:group-hover/item:bg-blue-900/40 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 transition-colors">
+                        <Target className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 truncate">
+                        {isAr ? "كيف أرفع نسبة قبولي لـ 90%؟" : "How to boost my acceptance rate to 90%?"}
+                      </span>
+                    </div>
                     <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 shrink-0" />
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => handleAskCopilot(undefined, isAr ? "ما أهم المهارات الناقصة في ملفي والتي يطلبها السوق المصري الآن؟" : "What high-impact skills should I learn next for Egyptian market?")}
-                    className="w-full text-left rtl:text-right flex items-center justify-between p-2 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/60 dark:bg-white/[0.02] hover:bg-blue-50/80 dark:hover:bg-blue-950/30 hover:border-blue-200 dark:hover:border-blue-800/50 transition-all text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 group/item cursor-pointer"
+                    onClick={() => handleAskCopilot(undefined, isAr ? "ما أقوى مهارات مطلوبة لمستواي الآن؟" : "What are the top in-demand skills for my level now?")}
+                    className="w-full text-left rtl:text-right flex items-center justify-between p-2.5 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/60 dark:bg-white/[0.02] hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-200 dark:hover:border-blue-800/50 transition-all group/item cursor-pointer"
                   >
-                    <span className="truncate">
-                      {isAr ? "📈 ما أقوى مهارات مطلوبة لمساري الآن؟" : "📈 Top in-demand skills for my track"}
-                    </span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="shrink-0 w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover/item:bg-blue-100 dark:group-hover/item:bg-blue-900/40 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 transition-colors">
+                        <BookOpen className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 truncate">
+                        {isAr ? "ما أقوى مهارات مطلوبة لمستواي الآن؟" : "Top in-demand skills for my level?"}
+                      </span>
+                    </div>
+                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 shrink-0" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => router.push('/copilot')}
+                    className="w-full text-left rtl:text-right flex items-center justify-between p-2.5 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/60 dark:bg-white/[0.02] hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-200 dark:hover:border-blue-800/50 transition-all group/item cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="shrink-0 w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover/item:bg-blue-100 dark:group-hover/item:bg-blue-900/40 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 transition-colors">
+                        <Bot className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400 italic truncate">
+                        {isAr ? "اسأل المساعد أي سؤال مهني..." : "Ask Copilot any career question..."}
+                      </span>
+                    </div>
                     <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 shrink-0" />
                   </button>
                 </div>
               </div>
-
-              {/* Direct Mini-Ask Input */}
-              <form onSubmit={handleAskCopilot} className="mt-3 relative">
-                <input
-                  type="text"
-                  value={copilotInput}
-                  onChange={(e) => setCopilotInput(e.target.value)}
-                  placeholder={isAr ? "اسأل المساعد أي سؤال مهني..." : "Ask Copilot any career question..."}
-                  className="w-full ltr:pl-3 ltr:pr-10 rtl:pr-3 rtl:pl-10 py-2 text-[12px] rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-slate-900/60 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                />
-                <button
-                  type="submit"
-                  title={isAr ? "إرسال للمساعد الذكي" : "Send to Copilot"}
-                  className="absolute inset-y-1.5 ltr:right-1.5 rtl:left-1.5 px-2.5 flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer"
-                >
-                  <Send className={`w-3.5 h-3.5 ${isAr ? 'rotate-180' : ''}`} />
-                </button>
-              </form>
             </div>
 
             {/* Bottom Full Copilot Link */}
-            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5">
+            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 relative z-10">
               <Link
                 href="/copilot"
                 className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-[13px] shadow-sm shadow-blue-600/20 transition-all hover:-translate-y-0.5"
               >
                 <Bot className="w-4 h-4" />
-                <span>{isAr ? "فتح جلسة كاملة مع المساعد الذكي" : "Open Full AI Copilot"}</span>
+                <span>{isAr ? "افتح جلسة كاملة مع المساعد الذكي" : "Open Full AI Copilot"}</span>
                 <ArrowRight className={`w-3.5 h-3.5 ${isAr ? "rotate-180" : ""}`} />
               </Link>
             </div>

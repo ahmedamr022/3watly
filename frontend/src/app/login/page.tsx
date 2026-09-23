@@ -29,8 +29,7 @@ export default function LoginPage() {
   const [topError, setTopError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ email?: boolean; password?: boolean }>({});
 
-
-  // Restore remembered email on mount if available
+  // Restore remembered email on mount
   useEffect(() => {
     try {
       const savedEmail = localStorage.getItem('3watly_remember_email');
@@ -41,15 +40,47 @@ export default function LoginPage() {
     } catch {}
   }, []);
 
+  // If user already has a valid session → skip login and go straight to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard');
+    }
+  }, [user, loading, router]);
+
   // Auto-dismiss top error after 4 seconds
   useEffect(() => {
     if (topError) {
-      const timer = setTimeout(() => {
-        setTopError(null);
-      }, 4000);
+      const timer = setTimeout(() => setTopError(null), 4000);
       return () => clearTimeout(timer);
     }
   }, [topError]);
+
+  // Translate Supabase English error messages to Arabic when in Arabic mode
+  const translateAuthError = (msg: string): string => {
+    if (!isAr) return msg;
+    const lower = msg.toLowerCase();
+    if (
+      lower.includes('invalid login credentials') ||
+      lower.includes('invalid credentials') ||
+      lower.includes('wrong password') ||
+      lower.includes('email not confirmed')
+    ) {
+      return 'بيانات الدخول غير صحيحة. يرجى التحقق من البريد الإلكتروني وكلمة المرور.';
+    }
+    if (lower.includes('email already') || lower.includes('already registered')) {
+      return 'البريد الإلكتروني مسجل مسبقاً. يرجى تسجيل الدخول أو استعادة كلمة المرور.';
+    }
+    if (lower.includes('user not found') || lower.includes('no user found')) {
+      return 'لا يوجد حساب مسجل بهذا البريد الإلكتروني.';
+    }
+    if (lower.includes('too many requests') || lower.includes('rate limit')) {
+      return 'محاولات كثيرة جداً. يرجى الانتظار قليلاً ثم المحاولة مرة أخرى.';
+    }
+    if (lower.includes('network') || lower.includes('fetch')) {
+      return 'خطأ في الاتصال بالشبكة. يرجى التحقق من الإنترنت والمحاولة مرة أخرى.';
+    }
+    return 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.';
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -67,6 +98,7 @@ export default function LoginPage() {
     setErrors({});
     setTopError(null);
     setIsSubmitting(true);
+
     try {
       const res = await login(email.trim(), password, remember);
       if (res.success) {
@@ -77,8 +109,10 @@ export default function LoginPage() {
           router.push('/onboarding/career-path');
         }
       } else {
-        const msg = res.error || (isAr ? "بيانات الدخول غير صحيحة. يرجى التحقق من البريد وكلمة المرور." : "Invalid credentials. Please check your email and password.");
-        setTopError(msg);
+        const rawMsg = res.error || (isAr
+          ? "بيانات الدخول غير صحيحة. يرجى التحقق من البريد وكلمة المرور."
+          : "Invalid credentials. Please check your email and password.");
+        setTopError(translateAuthError(rawMsg));
         setErrors({ email: true, password: true });
       }
     } catch {
