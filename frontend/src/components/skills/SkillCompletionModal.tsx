@@ -1,16 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   CheckCircle2,
+  Check,
   X,
   ArrowUpRight,
   Loader2,
   Layers,
   Award,
   ChevronDown,
-  Database
+  Database,
+  PlusCircle,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { PlannedSkill } from '@/types/skills';
@@ -41,8 +44,23 @@ export function SkillCompletionModal({
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [customCategoryInput, setCustomCategoryInput] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Determine smart category on skill change
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isDropdownOpen]);
+
+  // Determine smart recommended category on skill change
   useEffect(() => {
     if (skill && skill.def) {
       const canon = normalizeSkillName(skill.def.name);
@@ -50,13 +68,80 @@ export function SkillCompletionModal({
       setSelectedCategory(meta.targetGroupLabel);
       setIsCustomCategory(false);
       setCustomCategoryInput('');
+      setIsDropdownOpen(false);
     }
   }, [skill, cv?.skills, isAr]);
 
   if (!open || !skill) return null;
 
   const skillName = normalizeSkillName(skill.def.name);
-  const existingGroups = (cv?.skills || []).map((g) => g.label).filter(Boolean);
+  const rawExistingGroups = (cv?.skills || []).map((g) => g.label).filter(Boolean);
+  
+  // Deduplicate existing groups
+  const existingGroups = Array.from(new Set(rawExistingGroups));
+
+  // Determine smart recommendation for badge
+  const canon = normalizeSkillName(skill.def.name);
+  const smartRecommendation = getSmartSkillCategory(canon, cv?.skills || [], isAr).targetGroupLabel;
+
+  // Build clean list of options:
+  // 1. Recommended group
+  // 2. Other existing groups from the user's CV
+  // 3. If user has no groups at all, fallback to a clean list in the active language
+  const buildCategoryOptions = (): string[] => {
+    const list: string[] = [];
+    
+    // Always put recommended at top
+    if (smartRecommendation) {
+      list.push(smartRecommendation);
+    }
+
+    // Add other existing groups
+    existingGroups.forEach(grp => {
+      if (!list.some(item => item.toLowerCase() === grp.toLowerCase())) {
+        list.push(grp);
+      }
+    });
+
+    // If user's CV has no sections at all, supply clean default tracks
+    if (existingGroups.length === 0) {
+      const defaults = isAr
+        ? [
+            'البرمجة وقواعد البيانات',
+            'هندسة البيانات والمعالجة',
+            'الذكاء الاصطناعي والتعلم الآلي',
+            'السحابة والتشغيل (DevOps)',
+            'أدوات التطوير والتقنيات'
+          ]
+        : [
+            'Programming & Databases',
+            'Data Engineering & Pipelines',
+            'Machine Learning & AI',
+            'Cloud & DevOps',
+            'Tools & Technologies'
+          ];
+      defaults.forEach(d => {
+        if (!list.some(item => item.toLowerCase() === d.toLowerCase())) {
+          list.push(d);
+        }
+      });
+    }
+
+    return list;
+  };
+
+  const categoryOptions = buildCategoryOptions();
+
+  const handleSelectOption = (cat: string) => {
+    setIsCustomCategory(false);
+    setSelectedCategory(cat);
+    setIsDropdownOpen(false);
+  };
+
+  const handleSelectCustom = () => {
+    setIsCustomCategory(true);
+    setIsDropdownOpen(false);
+  };
 
   const handleConfirm = async () => {
     if (isSubmitting) return;
@@ -155,7 +240,7 @@ export function SkillCompletionModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm"
+          className="fixed inset-0 bg-slate-950/75 backdrop-blur-md"
         />
 
         {/* Modal Container */}
@@ -164,7 +249,7 @@ export function SkillCompletionModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 8 }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-lg rounded-3xl border border-white/10 bg-[#0B1120] p-6 shadow-2xl shadow-black/60 overflow-hidden z-10"
+          className="relative w-full max-w-lg rounded-3xl border border-white/10 bg-[#0B1120] p-6 shadow-2xl shadow-black/80 overflow-visible z-10"
         >
           {/* Close button */}
           <button
@@ -203,7 +288,7 @@ export function SkillCompletionModal({
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[16px] font-bold text-white truncate">
+                    <span className="text-[16px] font-bold text-white truncate" dir="auto">
                       {skillName}
                     </span>
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -236,76 +321,130 @@ export function SkillCompletionModal({
                 <span>{isAr ? 'القسم المخصص في سيرتك الذاتية' : 'Target CV Category:'}</span>
               </label>
               <span className="text-[11px] font-bold text-purple-300 bg-purple-900/50 px-2 py-0.5 rounded-md border border-purple-700/50 flex items-center gap-1">
-                <span className="text-purple-400">✦</span>
+                <Sparkles className="w-3 h-3 text-purple-400" />
                 {isAr ? 'تصنيف ذكي للمهارة' : 'Smart Auto-Placed'}
               </span>
             </div>
 
-            {/* Dropdown */}
-            <div className="space-y-2">
-              <div className="relative">
-                <select
-                  value={isCustomCategory ? '__custom__' : selectedCategory}
-                  onChange={(e) => {
-                    if (e.target.value === '__custom__') {
-                      setIsCustomCategory(true);
-                    } else {
-                      setIsCustomCategory(false);
-                      setSelectedCategory(e.target.value);
-                    }
-                  }}
-                  className="w-full appearance-none rounded-xl border border-white/10 bg-[#070C18] py-2.5 px-3.5 text-[13px] font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all cursor-pointer"
-                >
-                  <option value={selectedCategory}>
-                    {selectedCategory} {isAr ? '(الموصى به بذكاء)' : '(Smart Recommendation)'}
-                  </option>
-
-                  {existingGroups
-                    .filter((g) => g.toLowerCase() !== selectedCategory.toLowerCase())
-                    .map((grp) => (
-                      <option key={grp} value={grp}>
-                        {grp}
-                      </option>
-                    ))}
-
-                  {[
-                    isAr ? 'السحابة والتشغيل (DevOps)' : 'Cloud & DevOps',
-                    isAr ? 'قواعد البيانات والتخزين' : 'Databases & Storage',
-                    isAr ? 'هندسة البيانات والمعالجة' : 'Data Engineering & Pipelines',
-                    isAr ? 'لغات البرمجة' : 'Programming Languages',
-                    isAr ? 'ذكاء الأعمال والتحليلات' : 'BI & Analytics',
-                    isAr ? 'أطر العمل والمكتبات' : 'Frameworks & Libraries'
-                  ]
-                    .filter((cat) =>
-                      cat.toLowerCase() !== selectedCategory.toLowerCase() &&
-                      !existingGroups.some(g => g.toLowerCase() === cat.toLowerCase())
-                    )
-                    .map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-
-                  <option value="__custom__">
-                    {isAr ? '+ إنشاء قسم مخصص جديد...' : '+ Create new custom category...'}
-                  </option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 ltr:right-3 rtl:left-3 flex items-center text-slate-400">
-                  <ChevronDown className="w-4 h-4" />
+            {/* Custom Modern Styled Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              {/* Trigger Button */}
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`w-full flex items-center justify-between rounded-xl border bg-[#070C18] py-2.5 px-3.5 text-[13px] font-semibold text-white transition-all cursor-pointer ${
+                  isDropdownOpen
+                    ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-lg shadow-blue-500/10'
+                    : 'border-white/10 hover:border-white/20'
+                }`}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="truncate text-white font-bold" dir="auto">
+                    {isCustomCategory
+                      ? (customCategoryInput.trim() || (isAr ? 'قسم مخصص جديد...' : 'New custom category...'))
+                      : selectedCategory}
+                  </span>
+                  {!isCustomCategory && selectedCategory.toLowerCase() === smartRecommendation.toLowerCase() && (
+                    <span className="shrink-0 text-[10.5px] font-bold text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded-md border border-blue-800/50">
+                      {isAr ? 'الموصى به بذكاء' : 'Recommended'}
+                    </span>
+                  )}
+                  {isCustomCategory && (
+                    <span className="shrink-0 text-[10.5px] font-bold text-purple-300 bg-purple-950/80 px-2 py-0.5 rounded-md border border-purple-800/50">
+                      {isAr ? 'قسم جديد' : 'Custom'}
+                    </span>
+                  )}
                 </div>
-              </div>
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                    isDropdownOpen ? 'rotate-180 text-blue-400' : ''
+                  }`}
+                />
+              </button>
 
+              {/* Animated Floating Dropdown Panel */}
+              <AnimatePresence>
+                {isDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 4, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute inset-x-0 top-full z-50 max-h-60 overflow-y-auto rounded-2xl border border-white/15 bg-[#0B1120] p-1.5 shadow-2xl shadow-black/90 backdrop-blur-xl scrollbar-thin scrollbar-thumb-slate-700"
+                  >
+                    <div className="space-y-1">
+                      {categoryOptions.map((cat) => {
+                        const isSelected = !isCustomCategory && selectedCategory.toLowerCase() === cat.toLowerCase();
+                        const isRec = cat.toLowerCase() === smartRecommendation.toLowerCase();
+
+                        return (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() => handleSelectOption(cat)}
+                            className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left rtl:text-right text-[12.5px] font-semibold transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#1B57E0]/20 text-white border border-[#1B57E0]/40'
+                                : 'text-slate-300 hover:bg-white/5 hover:text-white border border-transparent'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="truncate" dir="auto">{cat}</span>
+                              {isRec && (
+                                <span className="shrink-0 text-[10px] font-bold text-blue-400 bg-blue-950/80 px-1.5 py-0.5 rounded border border-blue-800/40">
+                                  {isAr ? 'الموصى به بذكاء' : 'Recommended'}
+                                </span>
+                              )}
+                            </div>
+                            {isSelected && (
+                              <Check className="w-4 h-4 text-blue-400 shrink-0" />
+                            )}
+                          </button>
+                        );
+                      })}
+
+                      {/* Divider */}
+                      <div className="my-1 border-t border-white/5" />
+
+                      {/* Custom Category Option */}
+                      <button
+                        type="button"
+                        onClick={handleSelectCustom}
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left rtl:text-right text-[12.5px] font-semibold transition-colors cursor-pointer ${
+                          isCustomCategory
+                            ? 'bg-purple-900/30 text-purple-200 border border-purple-700/40'
+                            : 'text-purple-400 hover:bg-purple-950/40 hover:text-purple-300 border border-transparent'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <PlusCircle className="w-4 h-4 shrink-0" />
+                          <span>{isAr ? '+ إنشاء قسم مخصص جديد...' : '+ Create new custom category...'}</span>
+                        </div>
+                        {isCustomCategory && (
+                          <Check className="w-4 h-4 text-purple-400 shrink-0" />
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Custom Input Field when Custom is selected */}
               {isCustomCategory && (
-                <div className="pt-1">
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="pt-2"
+                >
                   <input
                     type="text"
                     placeholder={isAr ? "اكتب اسم القسم الجديد (مثال: أطر العمل السحابية)" : "Enter custom category name"}
                     value={customCategoryInput}
                     onChange={(e) => setCustomCategoryInput(e.target.value)}
-                    className="w-full rounded-xl border border-blue-500/40 bg-[#070C18] py-2.5 px-3.5 text-[13px] font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                    className="w-full rounded-xl border border-purple-500/50 bg-[#070C18] py-2.5 px-3.5 text-[13px] font-semibold text-white focus:outline-none focus:ring-2 focus:ring-purple-500/30 shadow-inner"
                     autoFocus
                   />
-                </div>
+                </motion.div>
               )}
             </div>
 
