@@ -134,6 +134,14 @@ const SKILL_ALIASES: Record<string, string> = {
   'graphql': 'GraphQL',
   'nlp': 'NLP', 'ml': 'Machine Learning', 'dl': 'Deep Learning',
   'etl': 'ETL', 'dbt': 'dbt', 'airflow': 'Airflow',
+  'helpdesk': 'Help Desk', 'help desk': 'Help Desk', 'service desk': 'Service Desk',
+  'desktop support': 'Desktop Support', 'it support': 'IT Support', 'technical support': 'Technical Support',
+  'active directory': 'Active Directory', 'windows server': 'Windows Server',
+  'network administration': 'Network Administration', 'system administration': 'System Administration',
+  'firewall': 'Firewalls', 'firewalls': 'Firewalls',
+  'lan': 'LAN', 'wan': 'WAN', 'tcp/ip': 'TCP/IP',
+  'odoo': 'Odoo', 'erp': 'ERP',
+  'figma': 'Figma', 'ui/ux': 'UI/UX',
 };
 
 const SKILL_BLACKLIST = new Set([
@@ -255,6 +263,9 @@ const KNOWN_TECH_SKILLS = [
   'NLP', 'TensorFlow', 'PyTorch', 'Scikit-Learn', 'Statistics',
   'Selenium', 'Postman', 'Flutter', 'Dart', 'Firebase', 'DAX', 'Spark',
   'Ansible', 'Terraform', 'Prometheus', 'Grafana', 'Elasticsearch',
+  'Help Desk', 'Service Desk', 'Desktop Support', 'IT Support', 'Technical Support',
+  'Network Administration', 'System Administration', 'Firewalls', 'Active Directory',
+  'Windows Server', 'LAN', 'WAN', 'TCP/IP', 'Odoo', 'ERP', 'Figma', 'UI/UX',
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -536,7 +547,8 @@ function extractCompanyLogo($card: ReturnType<CheerioAPI>): string | null {
   const src = img.attr('src') || img.attr('data-src') || null;
   if (!src) return null;
   if (src.startsWith('data:') || /placeholder|default|avatar/i.test(src)) return null;
-  return src.startsWith('http') ? src : `${WUZZUF_BASE}${src}`;
+  const fullSrc = src.startsWith('http') ? src : `${WUZZUF_BASE}${src}`;
+  return fullSrc.replace('media.wuzzuf.net', 'images.wuzzuf-data.net');
 }
 
 function extractLocation($card: ReturnType<CheerioAPI>): string {

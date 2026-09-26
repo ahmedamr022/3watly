@@ -168,13 +168,14 @@ export function CompanyLogo({ company, logoUrl, size = 'md', className = '' }: C
     );
   }
 
-  // 2. Real Verified CDN Logo URL
-  if (logoUrl && !primaryError && (logoUrl.startsWith('http') || logoUrl.startsWith('/'))) {
+  // 2. Real Verified CDN Logo URL (Convert legacy media.wuzzuf.net to working images.wuzzuf-data.net CDN)
+  const safeLogoUrl = logoUrl ? logoUrl.replace('media.wuzzuf.net', 'images.wuzzuf-data.net') : null;
+  if (safeLogoUrl && !primaryError && (safeLogoUrl.startsWith('http') || safeLogoUrl.startsWith('/'))) {
     return (
       <div className={baseBox}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={logoUrl}
+          src={safeLogoUrl}
           alt={company}
           onError={() => setPrimaryError(true)}
           className="w-full h-full object-contain select-none"

@@ -169,9 +169,7 @@ export function TopSkillsCard({ skills, ranking, selected, onSelect, trackLabel 
 
       {/* Bottom Contextual Insight Banner */}
       <div className="mt-4 flex items-center gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50/50 dark:from-blue-950/40 dark:to-indigo-950/20 border border-blue-100 dark:border-blue-900/30 text-[12.5px] font-medium text-slate-700 dark:text-slate-300">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1B57E0] text-white shadow-2xs">
-          <Info className="h-4.5 w-4.5" />
-        </div>
+        <SkillIcon skillId={active?.name || 'SQL'} size="sm" className="!h-9 !w-9 shrink-0 !rounded-xl shadow-2xs" />
         <p className="leading-relaxed">
           {isAr ? (
             <>

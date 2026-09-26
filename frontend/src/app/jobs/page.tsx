@@ -119,17 +119,6 @@ function JobsPageContent() {
       const r = localStorage.getItem('3watly_role');
       if (r) setSavedRole(r);
     } catch {}
-    try {
-      const cached = sessionStorage.getItem('3watly_jobs_feed');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setJobs(parsed);
-          setTotalJobs(parsed.length);
-          setLoadingLive(false);
-        }
-      }
-    } catch {}
   }, []);
 
   // Live minute ticker to update relative job times dynamically
@@ -199,6 +188,8 @@ function JobsPageContent() {
   const [seniorityFilter, setSeniorityFilter] = useState<string>('all');
   const [workTypeFilter, setWorkTypeFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'match' | 'recent' | 'salary'>('match');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
 
   // Dropdown open states
   const [matchMenuOpen, setMatchMenuOpen] = useState(false);
@@ -222,6 +213,8 @@ function JobsPageContent() {
         (j.titleAr?.toLowerCase().includes(kw)) ||
         (j.company?.toLowerCase().includes(kw)) ||
         (j.companyAr?.toLowerCase().includes(kw)) ||
+        j.required_skills?.some((skill: string) => skill.toLowerCase().includes(kw)) ||
+        (j as any).skills?.some((skill: string) => skill.toLowerCase().includes(kw)) ||
         j.matchedSkills?.some(s => s.name.toLowerCase().includes(kw))
       );
     }
@@ -284,9 +277,14 @@ function JobsPageContent() {
     setLoadingLive(true);
     const params = new URLSearchParams();
     params.set('sortBy', sortBy);
-    params.set('limit', '1000');
+    params.set('limit', String(pageSize));
+    params.set('offset', String((currentPage - 1) * pageSize));
     if (userSkills.length > 0) params.set('skills', userSkills.join(','));
     if (targetRole) params.set('targetRole', targetRole);
+    if (keyword.trim()) params.set('keyword', keyword.trim());
+    if (locationQuery.trim()) params.set('location', locationQuery.trim());
+    if (seniorityFilter !== 'all') params.set('seniority', seniorityFilter);
+    if (workTypeFilter !== 'all') params.set('workType', workTypeFilter);
 
     fetch(`/api/jobs?${params.toString()}`)
       .then((res) => res.json())
@@ -294,10 +292,7 @@ function JobsPageContent() {
         const source: JobItem[] = (data && Array.isArray(data.jobs)) ? data.jobs : [];
         const filtered = applyAllFilters(source);
         setJobs(filtered);
-        setTotalJobs(filtered.length);
-        try {
-          sessionStorage.setItem('3watly_jobs_feed', JSON.stringify(filtered));
-        } catch {}
+        setTotalJobs(typeof data?.total === 'number' ? data.total : filtered.length);
       })
       .catch(() => {
         setJobs([]);
@@ -306,7 +301,7 @@ function JobsPageContent() {
       .finally(() => {
         setLoadingLive(false);
       });
-  }, [applyAllFilters, sortBy, userSkills, targetRole]);
+  }, [applyAllFilters, sortBy, userSkills, targetRole, currentPage, pageSize, keyword, locationQuery, seniorityFilter, workTypeFilter]);
 
   // Re-fetch when filters change (debounced for text inputs)
   useEffect(() => {
@@ -347,8 +342,6 @@ function JobsPageContent() {
   const [activeTab, setActiveTab] = useState<'all' | 'saved'>('all');
 
   // Pagination state
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 10;
   const listTopRef = useRef<HTMLDivElement>(null);
 
   // Scroll sync refs + spacer state (declared here, effects run after filteredJobs/paginatedJobs)
@@ -374,7 +367,7 @@ function JobsPageContent() {
     return 0;
   }, [filteredJobs, analysis?.score]);
 
-  const matchingJobsCount = filteredJobs.length;
+  const matchingJobsCount = activeTab === 'all' ? totalJobs : filteredJobs.length;
 
   const realAvgSalary = useMemo(() => {
     const salaries: number[] = [];
@@ -417,7 +410,7 @@ function JobsPageContent() {
     return (inDemandSkills || []).map((s: any) => s.name).slice(0, 4);
   }, [filteredJobs, inDemandSkills]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil((activeTab === 'all' ? totalJobs : filteredJobs.length) / pageSize));
 
   // Reset page when filters or active tab change
   useEffect(() => {
@@ -425,9 +418,12 @@ function JobsPageContent() {
   }, [keyword, locationQuery, seniorityFilter, workTypeFilter, matchScoreFilter, sortBy, activeTab]);
 
   const paginatedJobs = useMemo(() => {
+    // The all-jobs tab is already paged by the API. Re-slicing it here was the
+    // reason later pages appeared empty after the client had loaded a subset.
+    if (activeTab === 'all') return filteredJobs;
     const start = (currentPage - 1) * pageSize;
     return filteredJobs.slice(start, start + pageSize);
-  }, [filteredJobs, currentPage, pageSize]);
+  }, [filteredJobs, currentPage, pageSize, activeTab]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages || newPage === currentPage) return;
@@ -845,7 +841,7 @@ function JobsPageContent() {
                     </span>
                   ) : (
                     <>
-                      <span className="font-bold text-slate-900 dark:text-white">{filteredJobs.length}</span>{" "}
+                      <span className="font-bold text-slate-900 dark:text-white">{matchingJobsCount}</span>{" "}
                       {activeTab === 'saved'
                         ? (isAr ? "وظيفة محفوظة" : "saved jobs")
                         : (isAr ? "وظيفة متوافقة" : "matching jobs")}
@@ -1172,11 +1168,11 @@ function JobsPageContent() {
                 <div className="text-[13px] font-medium text-slate-500 dark:text-slate-400">
                   {isAr ? (
                     <>
-                      عرض <span className="font-bold text-slate-900 dark:text-white">{(currentPage - 1) * pageSize + 1}</span> - <span className="font-bold text-slate-900 dark:text-white">{Math.min(currentPage * pageSize, filteredJobs.length)}</span> من إجمالي <span className="font-bold text-blue-600 dark:text-blue-400">{filteredJobs.length}</span> وظيفة
+                      عرض <span className="font-bold text-slate-900 dark:text-white">{(currentPage - 1) * pageSize + 1}</span> - <span className="font-bold text-slate-900 dark:text-white">{Math.min(currentPage * pageSize, matchingJobsCount)}</span> من إجمالي <span className="font-bold text-blue-600 dark:text-blue-400">{matchingJobsCount}</span> وظيفة
                     </>
                   ) : (
                     <>
-                      Showing <span className="font-bold text-slate-900 dark:text-white">{(currentPage - 1) * pageSize + 1}</span>–<span className="font-bold text-slate-900 dark:text-white">{Math.min(currentPage * pageSize, filteredJobs.length)}</span> of <span className="font-bold text-blue-600 dark:text-blue-400">{filteredJobs.length}</span> jobs
+                      Showing <span className="font-bold text-slate-900 dark:text-white">{(currentPage - 1) * pageSize + 1}</span>–<span className="font-bold text-slate-900 dark:text-white">{Math.min(currentPage * pageSize, matchingJobsCount)}</span> of <span className="font-bold text-blue-600 dark:text-blue-400">{matchingJobsCount}</span> jobs
                     </>
                   )}
                 </div>

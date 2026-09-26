@@ -78,13 +78,6 @@ export default function DashboardPage() {
       }
     } catch {}
 
-    try {
-      const cachedStats = localStorage.getItem(`3watly_market_stats_${user?.id}`);
-      if (cachedStats) {
-        setMarketStats(JSON.parse(cachedStats));
-      }
-    } catch {}
-
     const handleCvChanged = () => {
       try {
         const savedCv = localStorage.getItem(`3watly_parsed_cv_${user?.id}`);
@@ -224,11 +217,9 @@ export default function DashboardPage() {
           remoteJobsPercentage: statsRes.stats.remoteJobsPercentage,
           topSkillName: statsRes.stats.topSkillName || '',
           topSkillPercentage: statsRes.stats.topSkillPercentage || 0,
+          updatedAt: statsRes.updatedAt || null,
         };
         setMarketStats(stats);
-        try {
-          localStorage.setItem(`3watly_market_stats_${user?.id}`, JSON.stringify(stats));
-        } catch {}
       }
     }).finally(() => {
       if (mounted) {
@@ -405,11 +396,10 @@ export default function DashboardPage() {
                     <span className="inline-block h-6 w-20 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
                   )}
                 </p>
-                <div className="mt-0.5 sm:mt-1 flex items-center gap-1 text-[11px] sm:text-[11.5px] xl:text-[12px] font-bold text-[#12B76A] truncate">
-                  <span className="shrink-0">↑ 8%</span>
-                  <span className="font-normal text-slate-400 dark:text-slate-500 text-[10.5px] sm:text-[11px] truncate">
-                    {isAr ? "مقارنة بآخر 30 يوم" : "vs last 30 days"}
-                  </span>
+                <div className="mt-0.5 sm:mt-1 text-[10.5px] sm:text-[11px] font-normal text-slate-400 dark:text-slate-500 truncate">
+                  {marketStats?.updatedAt
+                    ? (isAr ? `آخر تحديث: ${new Date(marketStats.updatedAt).toLocaleDateString('ar-EG')}` : `Updated: ${new Date(marketStats.updatedAt).toLocaleDateString('en-GB')}`)
+                    : (isAr ? 'من إعلانات WUZZUF' : 'From WUZZUF job posts')}
                 </div>
               </div>
             </div>
@@ -444,11 +434,8 @@ export default function DashboardPage() {
                     <span className="inline-block h-6 w-16 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
                   )}
                 </p>
-                <div className="mt-0.5 sm:mt-1 flex items-center gap-1 text-[11px] sm:text-[11.5px] xl:text-[12px] font-bold text-[#12B76A] truncate">
-                  <span className="shrink-0">↑ 6.3%</span>
-                  <span className="font-normal text-slate-400 dark:text-slate-500 text-[10.5px] sm:text-[11px] truncate">
-                    {isAr ? "مقارنة بآخر 30 يوم" : "vs last 30 days"}
-                  </span>
+                <div className="mt-0.5 sm:mt-1 text-[10.5px] sm:text-[11px] font-normal text-slate-400 dark:text-slate-500 truncate">
+                  {isAr ? 'شركات في الوظائف المعروضة' : 'Companies in current postings'}
                 </div>
               </div>
             </div>
@@ -483,11 +470,8 @@ export default function DashboardPage() {
                     <span className="inline-block h-6 w-14 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
                   )}
                 </p>
-                <div className="mt-0.5 sm:mt-1 flex items-center gap-1 text-[11px] sm:text-[11.5px] xl:text-[12px] font-bold text-[#12B76A] truncate">
-                  <span className="shrink-0">↑ 4.7%</span>
-                  <span className="font-normal text-slate-400 dark:text-slate-500 text-[10.5px] sm:text-[11px] truncate">
-                    {isAr ? "مقارنة بآخر 30 يوم" : "vs last 30 days"}
-                  </span>
+                <div className="mt-0.5 sm:mt-1 text-[10.5px] sm:text-[11px] font-normal text-slate-400 dark:text-slate-500 truncate">
+                  {isAr ? 'حسب نمط العمل في الإعلان' : 'Based on each job work model'}
                 </div>
               </div>
             </div>

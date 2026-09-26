@@ -43,6 +43,7 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 
 const WUZZUF_API = "https://wuzzuf.net/api/job";
 const WUZZUF_BASE = "https://wuzzuf.net";
+const WUZZUF_LOGO_CDN = "https://images.wuzzuf-data.net/files/company_logo";
 const API_HEADERS = {
   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
   "Accept": "application/vnd.api+json, application/json, text/xml, */*",
@@ -62,7 +63,10 @@ const TECH_SLUG_PATTERNS = [
   "information-security", "qa-engineer", "quality-assurance", "testing-engineer",
   "test-automation", "scrum-master", "product-manager", "product-owner",
   "technical-lead", "solution-architect", "database-administrator", "dba",
-  "power-bi", "tableau", "etl-developer", "odoo"
+  "power-bi", "tableau", "etl-developer", "odoo",
+  "service-desk", "help-desk", "helpdesk", "it-support", "desktop-support",
+  "technical-support", "network-administrator", "network-admin", "lan", "wan",
+  "windows-server", "it-specialist", "it-administrator"
 ];
 const PAGE_SIZE = 20;
 const DELAY_MS = 700;
@@ -77,6 +81,17 @@ const SKILL_ALIASES = {
   "restapi":"REST APIs","rest api":"REST APIs","ci/cd":"CI/CD","cicd":"CI/CD",
   "nlp":"NLP","etl":"ETL","android":"Android","ui/ux":"UI/UX",
   "pandas":"Pandas","numpy":"NumPy","excel":"Excel","ms excel":"Excel","microsoft excel":"Excel",
+  // Networking, IT Support, Systems & ERP
+  "network":"Networking","it help desk":"Help Desk","helpdesk":"Help Desk","help desk":"Help Desk",
+  "information technology (it)":"Information Technology","information technology":"Information Technology",
+  "tcp":"TCP/IP","tcp/ip":"TCP/IP","odoo erp":"Odoo","odoo development":"Odoo",
+  "firewall management":"Firewalls","firewall":"Firewalls","firewalls":"Firewalls",
+  "network administration":"Network Administration","system administration":"System Administration",
+  "backup solutions":"Backup Solutions","qnap storage":"QNAP Storage","qnap":"QNAP Storage",
+  "ubiquiti (unifi)":"Ubiquiti UniFi","ubiquiti":"Ubiquiti","unifi":"Ubiquiti UniFi",
+  "computer science":"Computer Science","it support":"IT Support","technical support":"Technical Support",
+  "service desk":"Service Desk","it service desk":"Service Desk","lan":"LAN","wan":"WAN","erp":"ERP",
+  "windows server":"Windows Server","active directory":"Active Directory","desktop support":"Desktop Support"
 };
 
 const KNOWN_TECH_SKILLS = new Set([
@@ -94,12 +109,13 @@ const KNOWN_TECH_SKILLS = new Set([
   "ASP.NET","Spring","Hibernate","Microservices","gRPC","Celery",
   "OpenCV","TensorFlow Lite","BERT","Transformers",".NET Core",
   // Networking & Sysadmin
-  "Networking","TCP/IP","DNS","DHCP","VPN","Firewalls","SIEM","Cisco","Routing","Switching",
-  "Active Directory","Windows Server","Windows","macOS","VMware","Hyper-V","Virtualization",
+  "Networking","TCP/IP","TCP","LAN","WAN","DNS","DHCP","VPN","Firewalls","Firewall Management","SIEM","Cisco","Routing","Switching",
+  "Network Administration","System Administration","Active Directory","Windows Server","Windows","macOS","VMware","Hyper-V","Virtualization",
   "Network Security","Penetration Testing","Wireshark","Nagios","SNMP","SSL/TLS",
+  "Ubiquiti","Ubiquiti UniFi","UniFi","QNAP","QNAP Storage","Backup Solutions",
   // IT Support & Help Desk
-  "Help Desk","ITIL","ServiceNow","Troubleshooting","Hardware","Technical Support",
-  "Remote Desktop","Ticketing Systems","SLA Management","IT Support",
+  "Help Desk","Service Desk","Desktop Support","ITIL","ServiceNow","Troubleshooting","Hardware","Technical Support",
+  "Remote Desktop","Ticketing Systems","SLA Management","IT Support","Computer Science","Information Technology",
   // BI & Reporting Tools
   "Power Query","M Language","SSRS","SSIS","SSAS","Crystal Reports","Looker","Metabase",
   "QlikView","Qlik Sense","MicroStrategy","SAP BI","OBIEE",
@@ -189,6 +205,17 @@ function normalizeSkill(raw) {
   return SKILL_ALIASES[s.toLowerCase().replace(/\s+/g," ")] || s;
 }
 
+function skillKey(raw) {
+  const normalized = normalizeSkill(raw);
+  if (!normalized) return null;
+  return normalized
+    .toLowerCase()
+    .replace(/\+/g, ' plus ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
 // Skills that should never appear in job skill tags
 const SCRAPER_SKILL_BLACKLIST = new Set([
   'experienced','experience','senior','junior','mid level','expert','manager',
@@ -202,7 +229,17 @@ const SCRAPER_SKILL_BLACKLIST = new Set([
   'customer service','support','retail','administration',
 ]);
 
-function dedupeSkills(skills) {
+// These are listing metadata, not skills. Unlike the broader blacklist above,
+// this list is deliberately small: WUZZUF's own "Skills and Tools" tags are
+// authoritative and must not lose role-relevant terms such as Engineering,
+// Computer Science, LAN, ERP, or Information Technology.
+const SOURCE_TAG_BLACKLIST = new Set([
+  'full time', 'part time', 'contract', 'freelance', 'remote', 'on-site',
+  'on site', 'hybrid', 'experienced', 'entry level', 'fresh graduate',
+  'males preferred', 'females preferred',
+]);
+
+function dedupeSkills(skills, { preserveSourceTags = false } = {}) {
   const seen = new Set();
   return skills.map(s => normalizeSkill(s)).filter(s => {
     if (!s) return false;
@@ -210,16 +247,100 @@ function dedupeSkills(skills) {
     if (s.length < 2 || s.length > 40) return false;
     if (/^\d+$/.test(s)) return false;
     if (s.split(/\s+/).length > 4) return false;
-    if (SCRAPER_SKILL_BLACKLIST.has(lo)) return false;
+    if ((preserveSourceTags ? SOURCE_TAG_BLACKLIST : SCRAPER_SKILL_BLACKLIST).has(lo)) return false;
     // Accept if it's in the known list OR in aliases OR came from Wuzzuf keywords (already tech-specific)
     const inKnown = KNOWN_TECH_SKILLS.has(s) || [...KNOWN_TECH_SKILLS].some(k => k.toLowerCase()===lo);
     const inAlias = Object.values(SKILL_ALIASES).some(v => v.toLowerCase()===lo);
     // Also allow short technical terms (2-15 chars) that look like tech acronyms/products
     const looksLikeTech = /^[A-Z][a-zA-Z0-9#+.\-]{1,14}$/.test(s) && !/^(The|For|With|And|But|From|This|That|Your|Our|Their|Have|Will|Can|Are|Was|Not|Any|All|Each|Its)$/i.test(s);
-    if (!inKnown && !inAlias && !looksLikeTech) return false;
+    if (!preserveSourceTags && !inKnown && !inAlias && !looksLikeTech) return false;
     if (seen.has(lo)) return false;
     seen.add(lo); return true;
   });
+}
+
+function mergeSkillLists(...lists) {
+  const seen = new Set();
+  const merged = [];
+  for (const skill of lists.flat()) {
+    const normalized = normalizeSkill(skill);
+    if (!normalized) continue;
+    const key = normalized.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      merged.push(normalized);
+    }
+  }
+  return merged;
+}
+
+function entityName(entity) {
+  if (typeof entity === "string") return entity;
+  if (!entity || typeof entity !== "object") return null;
+  const attributes = entity.attributes || {};
+  return entity.name || entity.displayedName || entity.title ||
+    attributes.name || attributes.displayedName || attributes.title ||
+    attributes.label || null;
+}
+
+function indexIncludedEntities(included = []) {
+  const byTypeAndId = new Map();
+  for (const entity of included) {
+    if (entity?.type && entity?.id) byTypeAndId.set(`${entity.type}:${entity.id}`, entity);
+  }
+  return byTypeAndId;
+}
+
+/**
+ * WUZZUF has returned keywords in multiple shapes over time: directly on
+ * attributes, or as a relationship whose records live in `included`.
+ * Collect every supported shape so a complete Skills & Tools list reaches DB.
+ */
+function extractSourceKeywordSkills(item, includedByTypeAndId) {
+  const attributes = item?.attributes || {};
+  const candidates = [
+    attributes.keywords,
+    attributes.skills,
+    attributes.skillTags,
+    attributes.tools,
+  ];
+  const relationshipNames = ["keywords", "skills", "skillTags", "tools"];
+  for (const relationshipName of relationshipNames) {
+    const relationship = item?.relationships?.[relationshipName]?.data;
+    const records = Array.isArray(relationship) ? relationship : relationship ? [relationship] : [];
+    for (const record of records) {
+      candidates.push(includedByTypeAndId.get(`${record.type}:${record.id}`) || record);
+    }
+  }
+
+  const names = [];
+  for (const candidate of candidates) {
+    for (const itemOrName of (Array.isArray(candidate) ? candidate : [candidate])) {
+      const name = entityName(itemOrName);
+      if (name) names.push(name);
+    }
+  }
+  return dedupeSkills(names, { preserveSourceTags: true });
+}
+
+function normalizeCompanyLogo(logo) {
+  const raw = typeof logo === "string"
+    ? logo
+    : logo?.url || logo?.src || logo?.path || logo?.fileName || logo?.filename || logo?.name || null;
+  if (!raw || typeof raw !== "string") return null;
+  const value = raw.trim();
+  if (!value || value.startsWith("data:") || /placeholder|default|avatar/i.test(value)) return null;
+
+  let url;
+  if (/^https?:\/\//i.test(value)) {
+    url = value.replace(/^https?:\/\/media\.wuzzuf\.net\//i, "https://images.wuzzuf-data.net/");
+  } else {
+    const filePath = value.replace(/^\/+/, "").replace(/^files\/company_logo\//i, "");
+    url = `${WUZZUF_LOGO_CDN}/${filePath}`;
+  }
+  return /[?&](?:height|width)=/i.test(url)
+    ? url
+    : `${url}${url.includes("?") ? "&" : "?"}height=120&width=120`;
 }
 
 function extractSkillsFromText(text) {
@@ -343,14 +464,26 @@ function translateLocation(loc) {
 }
 
 function parseSalary(salaryAttr, hideSalary) {
-  if (hideSalary || !salaryAttr) return "تحدد أثناء المقابلة";
-  const {min, max, currency} = salaryAttr;
-  if (!min && !max) return "تحدد أثناء المقابلة";
-  const curr = currency || "EGP";
-  if (min && max) return `${Number(min).toLocaleString()} - ${Number(max).toLocaleString()} ${curr}`;
-  if (max) return `Up to ${Number(max).toLocaleString()} ${curr}`;
-  if (min) return `From ${Number(min).toLocaleString()} ${curr}`;
-  return "تحدد أثناء المقابلة";
+  if (hideSalary || !salaryAttr) {
+    return { label: null, min: null, max: null, currency: 'EGP', period: null, disclosed: false, confidence: 'unknown' };
+  }
+  const raw = typeof salaryAttr === 'string' ? { text: salaryAttr } : salaryAttr;
+  let min = Number(raw.min ?? raw.minimum ?? 0) || null;
+  let max = Number(raw.max ?? raw.maximum ?? 0) || null;
+  const text = String(raw.text || raw.displayedName || raw.name || '');
+  const range = text.match(/(\d[\d,]*)\s*(?:-|–|to)\s*(\d[\d,]*)\s*(?:EGP|LE|ج\.?(?:م)?|USD|\$)?/i);
+  const oneValue = text.match(/(?:EGP|LE|ج\.?(?:م)?|USD|\$)\s*(\d[\d,]*)|(\d[\d,]*)\s*(?:EGP|LE|ج\.?(?:م)?|USD|\$)/i);
+  if (!min && range) min = Number(range[1].replace(/,/g, '')) || null;
+  if (!max && range) max = Number(range[2].replace(/,/g, '')) || null;
+  if (!min && !max && oneValue) min = max = Number((oneValue[1] || oneValue[2]).replace(/,/g, '')) || null;
+  if (!min && !max) {
+    return { label: null, min: null, max: null, currency: raw.currency || 'EGP', period: null, disclosed: false, confidence: 'unknown' };
+  }
+
+  const currency = /(?:USD|\$)/i.test(`${raw.currency || ''} ${text}`) ? 'USD' : (raw.currency || 'EGP');
+  const period = /annual|year|سنو/i.test(text) ? 'annual' : /hour|ساعة/i.test(text) ? 'hourly' : 'monthly';
+  const label = min && max ? `${min.toLocaleString()} - ${max.toLocaleString()} ${currency}` : min ? `From ${min.toLocaleString()} ${currency}` : `Up to ${max.toLocaleString()} ${currency}`;
+  return { label, min, max, currency, period, disclosed: true, confidence: min && max ? 'high' : 'medium' };
 }
 
 function parsePostedAt(dateStr) {
@@ -403,15 +536,16 @@ async function apiFetch(params) {
   return null;
 }
 
-function buildJob(item, companiesById) {
+function buildJob(item, includedByTypeAndId) {
   const a = item.attributes;
   const companyId = item.relationships?.company?.data?.id;
-  const companyData = companiesById.get(companyId);
+  const companyType = item.relationships?.company?.data?.type || "company";
+  const companyData = includedByTypeAndId.get(`${companyType}:${companyId}`);
   const company = companyData?.attributes?.name || null;
-  const logoFile = companyData?.attributes?.logo || a.logo || null;
-  const companyLogo = logoFile
-    ? (logoFile.startsWith("http") ? logoFile : `https://media.wuzzuf.net/files/company_logo/${logoFile}`)
-    : null;
+  const companyLogo = normalizeCompanyLogo(
+    companyData?.attributes?.logo || companyData?.attributes?.logoUrl ||
+    a.company_logo || a.companyLogo || a.logo
+  );
 
   const title = (a.title || "").trim();
   if (!title) return null;
@@ -426,16 +560,21 @@ function buildJob(item, companiesById) {
   const location = cityName || countryName || "Cairo, Egypt";
   const {workType, isRemote} = parseWorkType(a.workplaceArrangement);
   const postedAt = parsePostedAt(a.postedAt);
+  const salary = parseSalary(a.salary, a.hideSalary);
 
   const descText = (a.description || "") + " " + (a.requirements || "");
   const seniority = parseSeniority(a.careerLevel?.name, title, descText);
 
-  const keywordSkills = (a.keywords || []).map(k => k.name).filter(Boolean);
+  const keywordSkills = extractSourceKeywordSkills(item, includedByTypeAndId);
   const descSkills = extractSkillsFromText(descText);
   const titleSkills = extractSkillsFromText(title);
 
-  const verifiedSkills = dedupeSkills([...keywordSkills, ...descSkills, ...titleSkills]);
-  const allSkills = verifiedSkills.length >= 2 ? verifiedSkills : inferSkillsFromTitle(title);
+  const verifiedSkills = mergeSkillLists(
+    keywordSkills,
+    dedupeSkills([...descSkills, ...titleSkills])
+  );
+  // Never replace a real one-item source list with guessed title skills.
+  const allSkills = verifiedSkills.length > 0 ? verifiedSkills : inferSkillsFromTitle(title);
 
   const applyUrl = a.slug ? `${WUZZUF_BASE}/jobs/p/${a.slug}` : `${WUZZUF_BASE}${a.uri || ""}`;
 
@@ -443,24 +582,30 @@ function buildJob(item, companiesById) {
     id: genId(applyUrl),
     title,
     title_ar: translateTitle(title),
-    company: company || 'شركة رائدة',
-    company_ar: company || 'شركة رائدة',
+    company,
+    company_ar: company,
     company_logo: companyLogo,
     location,
     location_ar: translateLocation(location),
     work_type: workType,
     is_remote: isRemote,
     seniority,
-    salary_range: parseSalary(a.salary, a.hideSalary),
-    salary_min: a.salary?.min || null,
-    salary_max: a.salary?.max || null,
-    salary_currency: a.salary?.currency || 'EGP',
+    salary_range: salary.label,
+    salary_min: salary.min,
+    salary_max: salary.max,
+    salary_currency: salary.currency,
+    salary_period: salary.period,
+    salary_disclosed: salary.disclosed,
+    salary_source: salary.disclosed ? 'job_post' : null,
+    salary_confidence: salary.confidence,
     required_skills: allSkills,
     description: (a.description || `Exciting opportunity for ${title} at ${company || "a leading company"} in ${location}.`).slice(0, 3000),
     requirements: (a.requirements || allSkills.slice(0, 5).map(s => `• Experience with ${s}`).join("\n")).slice(0, 3000),
     apply_url: applyUrl,
     source: "wuzzuf",
     posted_at: postedAt,
+    is_tech_role: true,
+    scraped_at: new Date().toISOString(),
   };
 }
 
@@ -528,7 +673,7 @@ async function fetchBatchBySlugs(slugs) {
 
   for (let i = 0; i < slugs.length; i += CHUNK_SIZE) {
     const chunk = slugs.slice(i, i + CHUNK_SIZE);
-    const url = `${WUZZUF_API}?filter[slug]=${chunk.join(",")}&include=company`;
+    const url = `${WUZZUF_API}?filter[slug]=${chunk.join(",")}&include=company,keywords,skills`;
 
     for (let attempt = 0; attempt <= 2; attempt++) {
       try {
@@ -550,12 +695,10 @@ async function fetchBatchBySlugs(slugs) {
         }
 
         const json = await res.json();
-        const companiesById = new Map(
-          (json.included || []).filter(item => item.type === "company").map(c => [c.id, c])
-        );
+        const includedByTypeAndId = indexIncludedEntities(json.included || []);
 
         for (const item of (json.data || [])) {
-          const job = buildJob(item, companiesById);
+          const job = buildJob(item, includedByTypeAndId);
           if (job) jobs.push(job);
         }
         break;
@@ -581,14 +724,12 @@ async function fetchLatestActiveJobs(maxPages = 4) {
   const supplementalJobs = [];
 
   for (let page = 1; page <= maxPages; page++) {
-    const url = `${WUZZUF_API}?filter[status]=active&sort=-postedAt&include=company&page[number]=${page}&page[size]=50`;
+    const url = `${WUZZUF_API}?filter[status]=active&sort=-postedAt&include=company,keywords,skills&page[number]=${page}&page[size]=50`;
     try {
       const res = await fetch(url, { headers: API_HEADERS, signal: AbortSignal.timeout(15000) });
       if (!res.ok) break;
       const json = await res.json();
-      const companiesById = new Map(
-        (json.included || []).filter(item => item.type === "company").map(c => [c.id, c])
-      );
+      const includedByTypeAndId = indexIncludedEntities(json.included || []);
 
       for (const item of (json.data || [])) {
         const a = item.attributes;
@@ -604,7 +745,7 @@ async function fetchLatestActiveJobs(maxPages = 4) {
           continue;
         }
 
-        const job = buildJob(item, companiesById);
+        const job = buildJob(item, includedByTypeAndId);
         if (job) supplementalJobs.push(job);
       }
       await new Promise(r => setTimeout(r, 400));
@@ -613,6 +754,58 @@ async function fetchLatestActiveJobs(maxPages = 4) {
 
   console.log(`  ✅ Supplemental Phase: ${supplementalJobs.length} fresh active tech jobs.\n`);
   return supplementalJobs;
+}
+
+/** Keep searchable skill rows in sync with the authoritative job tags. */
+async function syncJobSkills(jobs) {
+  const jobIds = jobs.map(job => job.id);
+  if (jobIds.length === 0) return;
+
+  // The table is created by the data-quality migration. Its absence must never
+  // prevent the main job scrape from completing.
+  const { error: deleteError } = await supabase.from('job_skills').delete().in('job_id', jobIds);
+  if (deleteError) {
+    console.warn(`  ⚠️  job_skills sync skipped: ${deleteError.message}`);
+    return;
+  }
+
+  const rows = jobs.flatMap(job => (job.required_skills || [])
+    .map(displayName => ({
+      job_id: job.id,
+      skill_key: skillKey(displayName),
+      display_name: displayName,
+      source: 'job_tags',
+    }))
+    .filter(row => row.skill_key));
+  if (rows.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from('job_skills')
+    .upsert(rows, { onConflict: 'job_id,skill_key' });
+  if (insertError) console.warn(`  ⚠️  job_skills insert skipped: ${insertError.message}`);
+  else console.log(`  🔎 Indexed ${rows.length} source skill tags.`);
+}
+
+/**
+ * The new metadata columns are additive. Keep scheduled scraping operational
+ * during a rolling deployment where code may be released just before the SQL
+ * migration is applied.
+ */
+function legacyJobPayload(job) {
+  const {
+    salary_period,
+    salary_disclosed,
+    salary_source,
+    salary_confidence,
+    salary_estimate_min,
+    salary_estimate_max,
+    salary_estimate_sample_count,
+    salary_estimate_as_of,
+    is_tech_role,
+    scraped_at,
+    ...legacy
+  } = job;
+  return legacy;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -652,9 +845,17 @@ async function main() {
 
   for (let i = 0; i < jobsList.length; i += CHUNK) {
     const batch = jobsList.slice(i, i + CHUNK);
-    const { error } = await supabase
+    let { error } = await supabase
       .from("jobs")
       .upsert(batch, { onConflict: "id", ignoreDuplicates: false });
+
+    if (error && /column .* does not exist|schema cache/i.test(error.message || '')) {
+      console.warn('  ⚠️  Data-quality migration is not available yet; saving compatible job fields only.');
+      const legacyResult = await supabase
+        .from('jobs')
+        .upsert(batch.map(legacyJobPayload), { onConflict: 'id', ignoreDuplicates: false });
+      error = legacyResult.error;
+    }
 
     if (error) {
       console.error(`  ❌ Batch ${Math.floor(i / CHUNK) + 1} error: ${error.message}`);
@@ -664,6 +865,8 @@ async function main() {
       process.stdout.write(`  ✅ Saved ${upserted}/${jobsList.length} jobs to Supabase\r`);
     }
   }
+
+  await syncJobSkills(jobsList);
 
   // Step 6: Cleanup expired jobs (> 30 days)
   const cutoff = new Date();

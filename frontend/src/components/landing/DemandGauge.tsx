@@ -65,12 +65,12 @@ export function DemandGauge() {
             y1={CENTER}
             x2={needle.x}
             y2={needle.y}
-            stroke="#0F172A"
+            className="stroke-slate-900 dark:stroke-white"
             strokeWidth="3.5"
             strokeLinecap="round"
           />
         </motion.g>
-        <circle cx={CENTER} cy={CENTER} r="5" fill="#0F172A" />
+        <circle cx={CENTER} cy={CENTER} r="5" className="fill-slate-900 dark:fill-white" />
       </svg>
 
       <figcaption className="mt-1 text-[14px] font-medium text-slate-500">

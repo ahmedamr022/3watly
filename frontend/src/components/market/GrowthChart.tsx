@@ -85,9 +85,17 @@ export function GrowthChart({ filters }: { filters: Filters }) {
         </div>
 
         {/* Line Chart */}
-        <div className="mt-4 flex-1 min-h-[260px] sm:min-h-[300px] w-full">
+        <div className="mt-4 flex-1 min-h-[360px] sm:min-h-[420px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={model.points} margin={{ top: 15, right: 15, left: -20, bottom: 5 }}>
+            <LineChart
+              data={model.points}
+              margin={{
+                top: 15,
+                right: isAr ? 20 : 15,
+                left: isAr ? 10 : 0,
+                bottom: 5,
+              }}
+            >
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.12)" />
               <XAxis
                 dataKey="tick"
@@ -96,6 +104,7 @@ export function GrowthChart({ filters }: { filters: Filters }) {
                 tick={{ fill: '#94A3B8', fontSize: 11.5 }}
               />
               <YAxis
+                orientation={isAr ? 'right' : 'left'}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: '#94A3B8', fontSize: 11.5 }}

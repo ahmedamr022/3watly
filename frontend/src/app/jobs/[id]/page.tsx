@@ -1179,7 +1179,11 @@ export default function JobDetailsPage() {
                       className="rounded-[22px] border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0B1120] p-5 shadow-xs hover:border-blue-500/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
                       <div className="flex items-center gap-4 min-w-0">
-                        <CompanyLogo company={similarJob.company} size="md" />
+                        <CompanyLogo
+                          company={similarJob.company}
+                          logoUrl={similarJob.companyLogo || (similarJob as { company_logo?: string | null }).company_logo}
+                          size="md"
+                        />
                         <div>
                           <div className="flex items-center gap-2">
                             <Link href={`/jobs/${similarJob.id}`} className="text-[15px] font-bold text-[#0B132B] dark:text-white hover:text-blue-600">

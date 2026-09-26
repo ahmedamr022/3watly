@@ -97,7 +97,11 @@ export function ApplyModal({ job, isOpen, onClose, onSuccess }: ApplyModalProps)
               
               {/* Header */}
               <div className="flex items-center gap-3.5 pr-8 rtl:pr-0 rtl:pl-8">
-                <CompanyLogo company={job.company} size="md" />
+                <CompanyLogo
+                  company={job.company}
+                  logoUrl={job.companyLogo || (job as { company_logo?: string | null }).company_logo}
+                  size="md"
+                />
                 <div>
                   <h3 className="text-[17px] font-black text-[#0B132B] dark:text-white leading-tight">
                     {isAr ? "التقديم على الوظيفة" : "Apply for Role"}

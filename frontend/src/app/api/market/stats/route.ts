@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { careerTracks, CareerTrack } from '@/data/market';
+import { careerTracks } from '@/data/market';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -59,15 +59,17 @@ export async function GET(request: NextRequest) {
     };
 
     const activeTrackConfig = TRACK_KEYWORDS[track] || TRACK_KEYWORDS['all'];
-    const activeCareerTrack: CareerTrack = careerTracks.find((t) => t.id === track) || careerTracks[0];
+    const activeCareerTrack = careerTracks.find((t) => t.id === track) || careerTracks[0];
 
     const supabase = await createClient();
     let jobs: any[] = [];
-    let exactTotalCount = 0;
-
     if (supabase) {
       try {
-        let query = supabase.from('jobs').select('title, company, is_remote, work_type, location, required_skills, posted_at, created_at', { count: 'exact' });
+        let query = supabase
+          .from('jobs')
+          // Select all columns to remain compatible while the additive migration
+          // is being rolled out. The response still exposes only derived values.
+          .select('*');
 
         // Filter by location or workModel
         if (workModel === 'remote') {
@@ -78,12 +80,20 @@ export async function GET(request: NextRequest) {
           query = query.or('location.ilike.%cairo%,location.ilike.%giza%');
         } else if (workModel === 'alex-regions') {
           query = query.ilike('location', '%alex%');
+        } else if (workModel === 'cairo') {
+          query = query.ilike('location', '%cairo%');
+        } else if (workModel === 'giza') {
+          query = query.ilike('location', '%giza%');
+        } else if (workModel === 'alex') {
+          query = query.ilike('location', '%alex%');
         }
 
-        const { data, count, error } = await query.limit(1000);
+        const { data, error } = await query.limit(1000);
         if (!error && Array.isArray(data)) {
-          jobs = data;
-          exactTotalCount = count || data.length;
+          // The migration flags known bad rows with false. Older imported rows
+          // have no flag yet and must remain visible rather than becoming an
+          // arbitrary partial total such as 80 out of the real catalogue.
+          jobs = data.filter((job) => job.is_tech_role !== false);
         }
       } catch (e) {
         console.warn('Market stats Supabase query fallback:', e);
@@ -141,9 +151,7 @@ export async function GET(request: NextRequest) {
         const skillMatch = roleConfig.skills.some((kw) => skillsLo.some((s) => s.includes(kw)));
         return titleMatch || skillMatch;
       });
-      if (roleFiltered.length >= 3) {
-        trackJobs = roleFiltered;
-      }
+      trackJobs = roleFiltered;
     } else if (track !== 'all') {
       const filtered = jobs.filter((j) => {
         const titleLo = (j.title || '').toLowerCase();
@@ -152,17 +160,57 @@ export async function GET(request: NextRequest) {
         const skillMatch = activeTrackConfig.skills.some((kw) => skillsLo.some((s) => s.includes(kw)));
         return titleMatch || skillMatch;
       });
-      if (filtered.length > 5) {
-        trackJobs = filtered;
-      }
+      trackJobs = filtered;
     }
 
-    const totalJobs = trackJobs.length > 0 ? (track !== 'all' ? trackJobs.length : Math.max(exactTotalCount, trackJobs.length)) : activeCareerTrack.jobs;
+    if (experience !== 'all') {
+      const desired = experience === 'fresh' ? ['Fresh']
+        : experience === 'junior' ? ['Fresh', 'Junior']
+        : experience === 'mid' ? ['Mid']
+        : experience === 'senior' ? ['Senior']
+        : [];
+      if (desired.length) trackJobs = trackJobs.filter((job) => desired.includes(job.seniority));
+    }
+
+    const totalJobs = trackJobs.length;
     const companiesSet = new Set(trackJobs.map((j) => j.company).filter(Boolean));
-    const totalCompanies = companiesSet.size > 0 ? companiesSet.size : activeCareerTrack.companies;
+    const totalCompanies = companiesSet.size;
 
     const remoteCount = trackJobs.filter((j) => j.is_remote || (j.work_type && j.work_type.toLowerCase().includes('remote')) || (j.work_type && j.work_type.toLowerCase().includes('hybrid'))).length;
-    const remotePercentage = trackJobs.length > 0 ? Math.round((remoteCount / trackJobs.length) * 100) : activeCareerTrack.remote;
+    const remotePercentage = trackJobs.length > 0 ? Math.round((remoteCount / trackJobs.length) * 100) : 0;
+
+    // Filter out non-technical job classifications, HR, and generic soft skills
+    const NON_TECH_SKILLS = new Set([
+      'management',
+      'troubleshooting',
+      'it/software development',
+      'project management',
+      'microsoft office',
+      'project/program management',
+      'engineering - telecom/technology',
+      'quality',
+      'sales',
+      'marketing',
+      'accounting',
+      'human resources (hr)',
+      'communication skills',
+      'problem solving',
+      'customer service/support',
+      'operations',
+      'administration',
+      'information technology (it)',
+      'installation',
+      'maintenance',
+      'english',
+      'time management',
+      'teamwork',
+      'analytical skills',
+      'presentation skills',
+      'negotiation',
+      'leadership',
+      'finance',
+      'civil engineering'
+    ]);
 
     // Aggregate skills from real jobs matching track
     const skillFrequency: Record<string, number> = {};
@@ -177,56 +225,113 @@ export async function GET(request: NextRequest) {
         if (!s || typeof s !== 'string') return;
         const trimmed = s.trim();
         if (trimmed.length < 2 || trimmed.length > 35) return;
-        const key = trimmed;
-        skillFrequency[key] = (skillFrequency[key] || 0) + 1;
+        if (NON_TECH_SKILLS.has(trimmed.toLowerCase())) return;
+        skillFrequency[trimmed] = (skillFrequency[trimmed] || 0) + 1;
       });
     });
 
-    // Merge with predefined rich track skills to ensure high fidelity, rich categorization & trend velocity
-    const dynamicTopSkills = activeCareerTrack.skills
-      .map((curated) => {
-        const realCount = Object.entries(skillFrequency).find(
-          ([k]) => k.toLowerCase() === curated.name.toLowerCase()
-        )?.[1];
+    const categoryForSkill = (name: string) => {
+      const key = name.toLowerCase();
+      if (/sql|mongo|redis|oracle|database|dbt|snowflake|bigquery/.test(key)) return { en: 'Database', ar: 'قواعد بيانات' };
+      if (/python|java|script|typescript|javascript|php|c#|\.net|go\b|swift|kotlin|dart/.test(key)) return { en: 'Language', ar: 'لغة برمجة' };
+      if (/aws|azure|docker|kubernetes|cloud|terraform|linux|ansible|kafka/.test(key)) return { en: 'Cloud & DevOps', ar: 'سحابة وعمليات' };
+      if (/react|vue|angular|next|tailwind|figma|ui|ux/.test(key)) return { en: 'Frontend & UI', ar: 'واجهات أمامية' };
+      if (/help|desk|support|network|sysadmin|security|firewall/.test(key)) return { en: 'Infrastructure', ar: 'بنية تحتية ودعم' };
+      if (/ai|llm|genai|gpt|machine learning/.test(key)) return { en: 'AI & Data', ar: 'ذكاء اصطناعي' };
+      return { en: 'Technology', ar: 'تقنية' };
+    };
 
-        const computedPercentage = realCount && totalJobs > 0
-          ? Math.min(96, Math.max(25, Math.round((realCount / totalJobs) * 100)))
-          : curated.value;
+    const allKnownSkills = careerTracks.flatMap((t) => t.skills);
 
-        // Proportional job count based on totalJobs and percentage
-        const computedJobCount = Math.max(
-          120,
-          Math.round(totalJobs * (computedPercentage / 100))
-        );
+    const dynamicTopSkills = Object.entries(skillFrequency)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 8)
+      .map(([name, count], index) => {
+        const category = categoryForSkill(name);
+        const known = activeCareerTrack.skills.find((s) => s.name.toLowerCase() === name.toLowerCase())
+          || allKnownSkills.find((s) => s.name.toLowerCase() === name.toLowerCase());
+
+        const percentage = totalJobs > 0 ? Math.round((count / totalJobs) * 100) : 0;
+        const trend = known?.trend || `+${Math.max(10, 32 - index * 3)}%`;
+        const isHot = known?.isHot ?? (index < 3 && percentage >= 35);
+        const icon = known?.icon || `https://cdn.simpleicons.org/${name.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
 
         return {
-          name: curated.name,
-          value: computedPercentage,
-          icon: curated.icon,
-          category: curated.category,
-          categoryLabel: curated.categoryLabel,
-          categoryLabelAr: curated.categoryLabelAr,
-          trend: curated.trend,
-          isHot: curated.isHot,
-          jobCount: computedJobCount,
+          name,
+          value: percentage,
+          jobCount: count,
+          icon,
+          category: known?.category || category.en,
+          categoryLabel: known?.categoryLabel || category.en,
+          categoryLabelAr: known?.categoryLabelAr || category.ar,
+          trend,
+          isHot,
         };
+      });
+
+    const salarySamples = trackJobs
+      .filter((job) => {
+        const disclosed = typeof job.salary_disclosed === 'boolean'
+          ? job.salary_disclosed
+          : Boolean(job.salary_min || job.salary_max || job.salary_range);
+        return disclosed && (job.salary_currency || 'EGP') === 'EGP' && (job.salary_period || 'monthly') === 'monthly';
       })
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8);
+      .map((job) => {
+        const min = Number(job.salary_min || 0);
+        const max = Number(job.salary_max || 0);
+        return min && max ? (min + max) / 2 : min || max;
+      })
+      .filter((salary) => salary >= 3000 && salary <= 300000)
+      .sort((a, b) => a - b);
+    const percentile = (values: number[], fraction: number) => {
+      if (values.length === 0) return null;
+      const index = (values.length - 1) * fraction;
+      const lower = Math.floor(index);
+      const upper = Math.ceil(index);
+      return values[lower] + (values[upper] - values[lower]) * (index - lower);
+    };
+    const salarySampleCount = salarySamples.length;
+    const salaryEstimate = salarySampleCount >= 5
+      ? {
+          min: Math.round(percentile(salarySamples, 0.25) || 0),
+          median: Math.round(percentile(salarySamples, 0.5) || 0),
+          max: Math.round(percentile(salarySamples, 0.75) || 0),
+          sampleCount: salarySampleCount,
+          confidence: salarySampleCount >= 20 ? 'high' : salarySampleCount >= 10 ? 'medium' : 'low',
+        }
+      : null;
+
+    const updatedAt = trackJobs.reduce<string | null>((latest, job) => {
+      const candidate = job.scraped_at || job.posted_at;
+      return candidate && (!latest || new Date(candidate) > new Date(latest)) ? candidate : latest;
+    }, null);
+    const companyFrequency = trackJobs.reduce<Record<string, number>>((counts, job) => {
+      const company = String(job.company || '').trim();
+      if (company && !/confidential/i.test(company)) counts[company] = (counts[company] || 0) + 1;
+      return counts;
+    }, {});
+    const topCompanies = Object.entries(companyFrequency)
+      .sort(([, left], [, right]) => right - left)
+      .slice(0, 5)
+      .map(([name, jobCount]) => ({ name, jobCount }));
 
     const result = {
       stats: {
         totalJobs,
         totalCompanies,
-        remoteJobsPercentage: workModel === 'remote' ? 100 : workModel === 'cairo-giza' ? 22 : (remotePercentage || activeCareerTrack.remote),
-        topSkillName: dynamicTopSkills[0]?.name || activeCareerTrack.topSkill.name,
-        topSkillPercentage: dynamicTopSkills[0]?.value || activeCareerTrack.topSkill.share,
+        remoteJobsPercentage: workModel === 'remote' ? 100 : remotePercentage,
+        topSkillName: dynamicTopSkills[0]?.name || null,
+        topSkillPercentage: dynamicTopSkills[0]?.value || 0,
         trackLabel: activeCareerTrack.label,
         trackLabelAr: activeCareerTrack.labelAr,
       },
       topSkills: dynamicTopSkills,
       trendingHighlights: activeCareerTrack.trendingHighlights,
       insights: activeCareerTrack.insights,
+      salaryEstimate,
+      topCompanies,
+      updatedAt,
+      source: 'wuzzuf_job_posts',
       filters: { track, workModel, experience, role },
     };
 

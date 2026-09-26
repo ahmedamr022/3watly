@@ -32,12 +32,20 @@ const SKILL_ALIASES: Record<string, string> = {
   'tensorflow': 'TensorFlow', 'pytorch': 'PyTorch',
   'restapi': 'REST APIs', 'rest api': 'REST APIs', 'rest': 'REST APIs',
   'bi': 'Business Intelligence',
+  'network': 'Networking', 'tcp': 'TCP/IP',
+  'helpdesk': 'Help Desk', 'it help desk': 'Help Desk',
+  'it service desk': 'Service Desk', 'service desk': 'Service Desk',
+  'firewall': 'Firewalls', 'firewall management': 'Firewalls',
+  'ubiquiti': 'Ubiquiti', 'unifi': 'Ubiquiti UniFi', 'ubiquiti (unifi)': 'Ubiquiti UniFi',
+  'qnap': 'QNAP Storage', 'qnap storage': 'QNAP Storage',
+  'odoo development': 'Odoo', 'odoo erp': 'Odoo',
+  'it': 'Information Technology', 'information technology (it)': 'Information Technology',
 };
 
 const SKILL_BLACKLIST = new Set([
   'experienced', 'experience', 'senior', 'junior', 'mid level', 'expert', 'manager',
   'internship', 'intern', 'student', 'entry level', 'fresh graduate', 'fresher',
-  'it', 'information technology', 'software development', 'engineering',
+  'software development',
   'general', 'other', 'miscellaneous', 'research', 'ability', 'skills', 'knowledge',
   'strong', 'good', 'excellent', 'proficient', 'familiar', 'basic', 'advanced',
   'full time', 'part time', 'contract', 'freelance', 'remote',
@@ -45,8 +53,8 @@ const SKILL_BLACKLIST = new Set([
   'education/teaching', 'education / teaching', 'education', 'teaching',
   'training/instructor', 'training / instructor', 'training', 'instructor',
   'analyst/research', 'analyst / research', 'analysis', 'research',
-  'computer science', 'it/software development', 'engineering - telecom/technology',
-  'customer service/support', 'customer service', 'support',
+  'it/software development', 'engineering - telecom/technology',
+  'customer service/support', 'support',
   'retail',
   'communication', 'teamwork', 'leadership', 'problem solving', 'critical thinking',
 ]);
@@ -224,7 +232,11 @@ const KNOWN_TECH_SKILLS_LIST: string[] = [
   'OpenAI','LangChain','Hugging Face','Stable Diffusion','YOLO','OpenCV',
   'Matplotlib','Seaborn','Plotly','Power Query','M Language',
   'Bash','Shell Scripting','PowerShell','Nginx','Apache','RabbitMQ',
-  'Networking','TCP/IP','DNS','VPN','Firewalls','SIEM','Penetration Testing',
+  'Networking','Network Administration','System Administration','TCP/IP','TCP','LAN','WAN','DNS','DHCP','VPN','Firewalls','Firewall Management','SIEM','Penetration Testing',
+  'Ubiquiti','Ubiquiti UniFi','UniFi','QNAP','QNAP Storage','Backup Solutions',
+  'Windows Server','Active Directory','Windows','macOS','VMware','Hyper-V','Virtualization',
+  'Help Desk','Service Desk','Desktop Support','IT Support','Technical Support','Troubleshooting','Hardware','ITIL','ServiceNow','Ticketing Systems','SLA Management','Remote Desktop',
+  'Computer Science','Engineering','Information Technology','Customer Service',
   'Manual Testing','Test Automation','Cypress','Playwright','JUnit','Jest',
   'UX Research','Wireframing','Prototyping','Adobe XD','Sketch','InVision',
   'Kotlin','Swift','Xcode','Android Studio',
@@ -404,20 +416,21 @@ function calculateMatchScore(
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const keyword       = searchParams.get('keyword')?.trim().toLowerCase() || '';
+    const keyword       = (searchParams.get('keyword') || searchParams.get('q'))?.trim().toLowerCase() || '';
     const locationQuery = searchParams.get('location')?.trim().toLowerCase() || '';
     const seniority     = searchParams.get('seniority') || 'all';
     const workType      = searchParams.get('workType') || 'all';
     const sortBy        = searchParams.get('sortBy') || 'match';
     const rawLimit = searchParams.get('limit');
-    let limit = 1000;
+    let limit = 20;
     if (rawLimit !== null) {
       const parsed = parseInt(rawLimit, 10);
       if (isNaN(parsed) || parsed <= 0) {
         return NextResponse.json({ error: 'Invalid limit parameter' }, { status: 400 });
       }
-      limit = Math.min(parsed, 1000);
+      limit = Math.min(parsed, 50);
     }
+    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10) || 0);
     const userSkillsParam = searchParams.get('skills') || '';
     const targetRole    = searchParams.get('targetRole')?.trim().toLowerCase() || '';
     const postedAfter   = searchParams.get('postedAfter')?.trim() || ''; // ISO date string for filtering
@@ -429,19 +442,18 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let jobsFromDb: any[] = [];
+    let databaseTotal: number | null = null;
 
     if (supabase) {
       try {
-        let query = supabase.from('jobs').select('*').neq('source', 'seed');
+        let query = supabase
+          .from('jobs')
+          .select('*', { count: 'exact' })
+          .neq('source', 'seed');
 
-        if (keyword) {
-          const sanitizedKeyword = keyword.replace(/[,.():]/g, '').trim();
-          if (sanitizedKeyword) {
-            query = query.or(
-              `title.ilike.%${sanitizedKeyword}%,company.ilike.%${sanitizedKeyword}%,description.ilike.%${sanitizedKeyword}%`
-            );
-          }
-        }
+        // Skill filtering happens after the canonical skill rows and JSON data
+        // are merged below. PostgREST cannot safely perform an alias-aware
+        // partial match inside a JSON array with this query shape.
         if (locationQuery) {
           query = query.ilike('location', `%${locationQuery}%`);
         }
@@ -470,8 +482,13 @@ export async function GET(request: NextRequest) {
           query = query.gte('posted_at', postedAfter);
         }
 
-        const dbLimit = sortBy === 'match' ? 1000 : limit;
-        const { data, error } = await query
+        // Keyword filtering also checks the full required-skills array after
+        // normalization, so it needs the current candidate set rather than a
+        // single page of arbitrary recent rows.
+        const dbLimit = keyword || (sortBy === 'match' && userSkills.length > 0)
+          ? 1000
+          : Math.min(1000, offset + limit);
+        const { data, count, error } = await query
           .order('posted_at', { ascending: false, nullsFirst: false })
           .limit(dbLimit);
 
@@ -480,7 +497,11 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
         }
         if (Array.isArray(data)) {
-          jobsFromDb = data;
+          // `is_tech_role` is introduced by the data-quality migration. Legacy
+          // rows are deliberately included until that migration classifies them;
+          // only records explicitly marked false are hidden from the Tech feed.
+          jobsFromDb = data.filter((job) => job.is_tech_role !== false);
+          databaseTotal = count;
         }
       } catch (e) {
         console.warn('[/api/jobs] Supabase query error:', e);
@@ -497,15 +518,18 @@ export async function GET(request: NextRequest) {
       // ── Tier 1: DB verified required skills ──
       let reqSkills = cleanSkills(parseSkillsArray(row.required_skills));
 
-      // ── Tier 2: Extract from description+requirements text ──
-      if (reqSkills.length < 2) {
-        const fullText = `${row.description || ''} ${row.requirements || ''}`;
-        const textExtracted = extractSkillsFromText(fullText);
-        if (textExtracted.length > 0) {
-          // Merge with existing (DB skills take precedence)
-          const existing = new Set(reqSkills.map(s => s.toLowerCase()));
-          for (const s of textExtracted) {
-            if (!existing.has(s.toLowerCase())) reqSkills.push(s);
+      // ── Tier 2: Always merge skills mentioned in the employer's text. ──
+      // Older scraper rows may already hold two tags (e.g. SQL/SQL Server) but
+      // still omit the rest of an advert's Skills & Tools list.
+      const fullText = `${row.description || ''} ${row.requirements || ''}`;
+      const textExtracted = extractSkillsFromText(fullText);
+      if (textExtracted.length > 0) {
+        // DB tags remain first because they come directly from WUZZUF.
+        const existing = new Set(reqSkills.map(s => s.toLowerCase()));
+        for (const s of textExtracted) {
+          if (!existing.has(s.toLowerCase())) {
+            reqSkills.push(s);
+            existing.add(s.toLowerCase());
           }
         }
       }
@@ -598,6 +622,9 @@ export async function GET(request: NextRequest) {
       const expYears = extractExperienceYears(row);
       const expYearsEn = expYears.en;
       const expYearsAr = expYears.ar;
+      const salaryDisclosed = typeof row.salary_disclosed === 'boolean'
+        ? row.salary_disclosed
+        : Boolean(row.salary_min || row.salary_max || row.salary_range);
 
       const descLines = (row.description || '').split(/\n|•/).map((s: string) => s.trim()).filter(Boolean);
       const reqLines = (row.requirements || '').split(/\n|•/).map((s: string) => s.trim()).filter(Boolean);
@@ -608,8 +635,8 @@ export async function GET(request: NextRequest) {
         id: row.id,
         title: row.title,
         titleAr: row.title_ar || row.title,
-        company: row.company || 'Employer',
-        companyAr: row.company_ar || row.company || 'جهة العمل',
+        company: row.company || 'Confidential employer',
+        companyAr: row.company_ar || row.company || 'جهة عمل غير معلنة',
         logo: row.company_logo ||
           `https://ui-avatars.com/api/?name=${encodeURIComponent((row.company || 'CO').slice(0, 2))}&background=0D8ABC&color=fff&bold=true`,
         companyLogo: row.company_logo || null,
@@ -624,12 +651,18 @@ export async function GET(request: NextRequest) {
         employmentTypeAr: 'دوام كامل' as const,
         seniority: senior,
         seniorityAr: seniorityArMap[senior] || 'متوسط',
-        salaryRange: (row.salary_range && row.salary_range !== 'تحدد أثناء المقابلة' && !/competitive|confidential|غير معلن|تنافسي|32,000|50,000|14,000|20,000|\$1,800|\$2,800/i.test(row.salary_range))
+        salaryRange: salaryDisclosed && row.salary_range
           ? row.salary_range
-          : 'Disclosed upon interview',
-        salaryRangeAr: (row.salary_range && row.salary_range !== 'تحدد أثناء المقابلة' && !/competitive|confidential|غير معلن|تنافسي|32,000|50,000|14,000|20,000|\$1,800|\$2,800/i.test(row.salary_range))
+          : 'Salary not disclosed',
+        salaryRangeAr: salaryDisclosed && row.salary_range
           ? row.salary_range
-          : 'تحدد أثناء المقابلة',
+          : 'الراتب غير معلن',
+        salaryDisclosed,
+        salarySource: row.salary_source || null,
+        salaryConfidence: row.salary_confidence || 'unknown',
+        salaryEstimateMin: row.salary_estimate_min ?? null,
+        salaryEstimateMax: row.salary_estimate_max ?? null,
+        salaryEstimateSampleCount: row.salary_estimate_sample_count ?? 0,
         matchScore: effectiveMatchScore,
         postedAgo: posted.en,
         postedAgoAr: posted.ar,
@@ -666,6 +699,7 @@ export async function GET(request: NextRequest) {
         j.title.toLowerCase().includes(keyword) ||
         j.titleAr.includes(keyword) ||
         j.company.toLowerCase().includes(keyword) ||
+        (j.required_skills || []).some((skill: string) => skill.toLowerCase().includes(keyword)) ||
         j.matchedSkills.some(s => s.name.toLowerCase().includes(keyword))
       );
     }
@@ -698,7 +732,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Limit results to requested limit after full sort
-    const limited = results.slice(0, limit);
+    // With a normal paginated request PostgREST's exact count represents the
+    // entire result set; never report the 20 rows on the current page as the
+    // total catalogue. Skill keywords are normalized locally, so their count is
+    // calculated from the fully loaded candidate set instead.
+    const total = keyword ? results.length : (databaseTotal ?? results.length);
+    const limited = results.slice(offset, offset + limit);
 
     // Strip internal fields before sending to client, but keep postedAt for notification filtering
     const clientJobs = limited.map(({ _postedAt, _matchConfidence, ...job }) => ({
@@ -708,7 +747,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       jobs: clientJobs,
-      total: clientJobs.length,
+      total,
+      offset,
+      limit,
+      hasMore: offset + clientJobs.length < total,
       source: jobsFromDb.length > 0 ? 'supabase' : 'empty',
     });
   } catch (err: unknown) {

@@ -55,7 +55,7 @@ export function MarketSalaryChart() {
                 x2={WIDTH - 12}
                 y1={y}
                 y2={y}
-                stroke="#EDF2FB"
+                className="stroke-slate-100 dark:stroke-white/10"
                 strokeWidth="1"
               />
               <text
@@ -117,15 +117,14 @@ export function MarketSalaryChart() {
             width="86"
             height="38"
             rx="8"
-            fill="#FFFFFF"
-            stroke="#E9EEF6"
+            className="fill-white dark:fill-[#0B1120] stroke-slate-200 dark:stroke-white/10"
           />
           <text
             x={points[points.length - 1].x - 53}
             y={points[points.length - 1].y - 36}
             textAnchor="middle"
             fontSize="10"
-            fill="#64748B"
+            className="fill-slate-500 dark:fill-slate-400"
           >
             Jun &apos;24
           </text>
@@ -134,8 +133,7 @@ export function MarketSalaryChart() {
             y={points[points.length - 1].y - 23}
             textAnchor="middle"
             fontSize="11"
-            fontWeight="700"
-            fill="#0F172A"
+            className="fill-slate-900 dark:fill-white font-bold"
           >
             EGP 24,000
           </text>

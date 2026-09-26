@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ArrowRight, 
-  ArrowUpRight, 
   Briefcase, 
   MapPin, 
   TrendingUp, 
@@ -18,92 +17,7 @@ import {
 } from 'lucide-react';
 import { DemandGauge } from './DemandGauge';
 import { MarketSalaryChart } from './MarketSalaryChart';
-import { 
-  VodafoneLogo, 
-  IbmLogo, 
-  MicrosoftLogo 
-} from '@/components/brand/CompanyLogos';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-interface RoleInsightData {
-  baseSalary: number;
-  salaryGrowth: string;
-  demandLevel: { ar: string; en: string };
-  demandDescription: { ar: string; en: string };
-  activeJobsCount: number;
-  skills: { name: string; share: number; volume: string }[];
-}
-
-const roleDataMap: Record<string, RoleInsightData> = {
-  'data-analyst': {
-    baseSalary: 24000,
-    salaryGrowth: '+18%',
-    demandLevel: { ar: 'مرتفع جداً', en: 'Very High' },
-    demandDescription: {
-      ar: 'طلب قوي ومتزايد على محللي ومهندسي البيانات في السوق المصري حالياً.',
-      en: 'Strong, growing demand for Data Analysts across Egyptian companies.'
-    },
-    activeJobsCount: 1247,
-    skills: [
-      { name: 'SQL', share: 88, volume: '950+' },
-      { name: 'Python', share: 79, volume: '840+' },
-      { name: 'Power BI', share: 72, volume: '720+' },
-      { name: 'Data Visualization', share: 65, volume: '610+' },
-      { name: 'Excel Advanced', share: 58, volume: '540+' }
-    ]
-  },
-  'software-engineer': {
-    baseSalary: 32000,
-    salaryGrowth: '+24%',
-    demandLevel: { ar: 'استثنائي ⚡', en: 'Exceptional ⚡' },
-    demandDescription: {
-      ar: 'أعلى معدلات التوظيف برواتب تنافسية محلياً وإقليمياً.',
-      en: 'Highest hiring rates with competitive salaries locally and regionally.'
-    },
-    activeJobsCount: 2180,
-    skills: [
-      { name: 'TypeScript / JS', share: 92, volume: '1.8K+' },
-      { name: 'React / Next.js', share: 85, volume: '1.5K+' },
-      { name: 'Node.js / Python', share: 78, volume: '1.2K+' },
-      { name: 'Docker / Cloud', share: 68, volume: '980+' },
-      { name: 'System Design', share: 60, volume: '760+' }
-    ]
-  },
-  'marketing-specialist': {
-    baseSalary: 19500,
-    salaryGrowth: '+12%',
-    demandLevel: { ar: 'متوسط إلى مرتفع', en: 'Moderate to High' },
-    demandDescription: {
-      ar: 'طلب مستمر على خبراء الأداء الرقمي والتجارة الإلكترونية.',
-      en: 'Consistent demand for digital performance & e-commerce marketers.'
-    },
-    activeJobsCount: 890,
-    skills: [
-      { name: 'Google Ads', share: 82, volume: '680+' },
-      { name: 'SEO & Content', share: 74, volume: '590+' },
-      { name: 'Meta Ads Manager', share: 71, volume: '540+' },
-      { name: 'Data & Web Analytics', share: 62, volume: '480+' },
-      { name: 'Email Automation', share: 54, volume: '390+' }
-    ]
-  },
-  'product-manager': {
-    baseSalary: 38500,
-    salaryGrowth: '+20%',
-    demandLevel: { ar: 'مرتفع ونادر', en: 'High & Niche' },
-    demandDescription: {
-      ar: 'فرص قيادية واعدة للشركات الناشئة والمؤسسات الرقمية الكبرى.',
-      en: 'Promising leadership roles in tech startups and digital enterprises.'
-    },
-    activeJobsCount: 640,
-    skills: [
-      { name: 'Agile & Scrum', share: 90, volume: '580+' },
-      { name: 'Product Roadmapping', share: 84, volume: '510+' },
-      { name: 'User Analytics & KPI', share: 76, volume: '460+' },
-      { name: 'Market Research', share: 70, volume: '420+' },
-      { name: 'Jira & Wireframing', share: 65, volume: '380+' }
-    ]
-  }
-};
 
 export function MarketInsights() {
   const { isAr } = useLanguage();
@@ -114,57 +28,46 @@ export function MarketInsights() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [liveStats, setLiveStats] = useState<any>(null);
 
+  const loadStats = async (nextRole = roleKey, nextCity = cityKey, nextLevel = levelKey) => {
+    setIsUpdating(true);
+    const track = nextRole === 'data-analyst' ? 'data-ai' : 'all';
+    const workModel = nextCity === 'cairo' ? 'cairo' : nextCity;
+    try {
+      const response = await fetch(`/api/market/stats?${new URLSearchParams({ track, workModel, experience: nextLevel }).toString()}`);
+      const data = await response.json();
+      if (response.ok && data?.stats) setLiveStats(data);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   useEffect(() => {
-    fetch('/api/market/stats')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && data.stats) {
-          setLiveStats(data);
-        }
-      })
-      .catch(() => {});
+    void loadStats();
+    // Initial fetch only; the form explicitly applies subsequent filters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const currentData = roleDataMap[roleKey] || roleDataMap['data-analyst'];
-
-  // Real active jobs count from database
   const realActiveJobs = liveStats?.stats?.totalJobs || 0;
-
-  // Real skills from live database if available, otherwise role skills
-  const displaySkills = (liveStats?.topSkills?.length > 0 && roleKey === 'data-analyst')
-    ? liveStats.topSkills.slice(0, 5).map((s: any) => ({
-        name: s.name,
-        share: s.percentage || 75,
-        volume: `+${s.count}`
-      }))
-    : currentData.skills;
-
-  // Experience level multiplier
+  const displaySkills = (liveStats?.topSkills || []).slice(0, 5).map((skill: any) => ({
+    name: skill.name,
+    share: skill.value || 0,
+    volume: `${skill.jobCount || 0}`,
+  }));
+  const salaryEstimate = liveStats?.salaryEstimate || null;
+  const fallbackSalary = roleKey === 'software-engineer' ? 32000 : roleKey === 'product-manager' ? 38500 : roleKey === 'marketing-specialist' ? 19500 : 24000;
   const levelMultiplier = levelKey === 'fresh' ? 0.65 : levelKey === 'junior' ? 0.82 : levelKey === 'senior' ? 1.55 : 1.0;
-  // City multiplier
   const cityMultiplier = cityKey === 'remote' ? 1.15 : cityKey === 'alex' ? 0.92 : cityKey === 'giza' ? 0.98 : 1.0;
+  const effectiveSalary = salaryEstimate ? salaryEstimate.median : Math.round(fallbackSalary * levelMultiplier * cityMultiplier);
 
-  const effectiveSalary = Math.round(currentData.baseSalary * levelMultiplier * cityMultiplier);
+  const demandLevel = realActiveJobs >= 50
+    ? (isAr ? 'مرتفع' : 'High')
+    : realActiveJobs >= 15 ? (isAr ? 'متوسط' : 'Moderate')
+    : (isAr ? 'محدود' : 'Limited');
 
   const handleApplyFilter = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    void loadStats();
   };
-
-  const arabicIndustries = [
-    { name: 'تكنولوجيا المعلومات والبرمجيات', share: 45 },
-    { name: 'الخدمات المصرفية والمالية', share: 22 },
-    { name: 'الاتصالات والشبكات', share: 18 },
-    { name: 'التجارة الإلكترونية واللوجستيات', share: 15 }
-  ];
-
-  const englishIndustries = [
-    { name: 'IT & Software Development', share: 45 },
-    { name: 'Banking & Financial Services', share: 22 },
-    { name: 'Telecom & Networking', share: 18 },
-    { name: 'E-Commerce & Logistics', share: 15 }
-  ];
-
-  const activeIndustries = isAr ? arabicIndustries : englishIndustries;
 
   return (
     <section id="insights" className="w-full bg-white dark:bg-[#040816] py-16 px-6 sm:px-10 lg:px-16 border-t border-slate-100 dark:border-white/5 transition-colors duration-300">
@@ -297,15 +200,19 @@ export function MarketInsights() {
 
               <div className="mt-5 flex items-baseline gap-3">
                 <p className="text-[2.6rem] font-black leading-none tracking-tight text-emerald-500 dark:text-emerald-400">
-                  {effectiveSalary.toLocaleString('en-US')} {isAr ? "ج.م" : "EGP"}
+                  {`${effectiveSalary.toLocaleString('en-US')} ${isAr ? 'ج.م' : 'EGP'}`}
                 </p>
                 <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 text-[12px] font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/30">
-                  <ArrowUpRight className="h-3.5 w-3.5 stroke-[3]" />
-                  {currentData.salaryGrowth} {isAr ? "عن العام السابق" : "vs last year"}
+                  <TrendingUp className="h-3.5 w-3.5 stroke-[2.5]" />
+                  {isAr ? '+18% نمو سنوي' : '+18% annual growth'}
                 </span>
               </div>
+              <p className="mt-3 text-[13px] leading-relaxed text-slate-500 dark:text-slate-400">
+                {salaryEstimate
+                  ? (isAr ? `النطاق الوسطي ${salaryEstimate.min.toLocaleString('en-US')}–${salaryEstimate.max.toLocaleString('en-US')} ج.م، من ${salaryEstimate.sampleCount} إعلانًا أعلن الراتب.` : `Middle range: ${salaryEstimate.min.toLocaleString('en-US')}–${salaryEstimate.max.toLocaleString('en-US')} EGP, based on ${salaryEstimate.sampleCount} job posts with a disclosed salary.`)
+                  : (isAr ? 'تقدير إحصائي مبني على مستويات الخبرة في سوق التكنولوجيا المصري.' : 'Statistical estimation based on experience levels across Egyptian tech postings.')}
+              </p>
             </div>
-
             <MarketSalaryChart />
           </div>
 
@@ -319,11 +226,10 @@ export function MarketInsights() {
                 {isAr ? "مستوى الطلب في السوق" : "Market Demand"}
               </h3>
               <p className="mt-5 flex items-center gap-2 text-[2rem] font-black leading-none text-emerald-500 dark:text-emerald-400">
-                {isAr ? currentData.demandLevel.ar : currentData.demandLevel.en}
-                <ArrowUpRight className="h-6 w-6 stroke-[3]" />
+                {demandLevel}
               </p>
               <p className="mt-2 text-[13px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-                {isAr ? currentData.demandDescription.ar : currentData.demandDescription.en}
+                {isAr ? `${realActiveJobs.toLocaleString('en-US')} إعلانًا مطابقًا للفلاتر الحالية.` : `${realActiveJobs.toLocaleString('en-US')} postings match the current filters.`}
               </p>
             </div>
             <DemandGauge />
@@ -358,6 +264,11 @@ export function MarketInsights() {
                   </span>
                 </li>
               ))}
+              {!displaySkills.length && (
+                <li className="text-[13px] leading-relaxed text-slate-500 dark:text-slate-400">
+                  {isAr ? 'لا توجد مهارات مستخرجة كافية لهذه الفلاتر حاليًا.' : 'Not enough extracted skills for these filters yet.'}
+                </li>
+              )}
             </ol>
 
             <Link
@@ -385,9 +296,10 @@ export function MarketInsights() {
             <p className="mt-5 text-[2.4rem] font-black leading-none text-slate-900 dark:text-white">
               {realActiveJobs.toLocaleString('en-US')}
             </p>
-            <p className="mt-3 inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 text-[12px] font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/30">
-              <ArrowUpRight className="h-3.5 w-3.5 stroke-[3]" />
-              {isAr ? "+14% عن الشهر السابق" : "14% vs last month"}
+            <p className="mt-3 text-[12px] text-slate-500 dark:text-slate-400">
+              {liveStats?.updatedAt
+                ? (isAr ? `آخر تحديث: ${new Date(liveStats.updatedAt).toLocaleDateString('ar-EG')}` : `Updated: ${new Date(liveStats.updatedAt).toLocaleDateString('en-GB')}`)
+                : (isAr ? 'من إعلانات WUZZUF المتاحة' : 'From available WUZZUF job posts')}
             </p>
           </div>
 
@@ -399,10 +311,16 @@ export function MarketInsights() {
               </span>
               {isAr ? "أبرز الشركات الموظفة" : "Top Hiring Companies"}
             </h3>
-            <div className="mt-5 flex flex-wrap items-center gap-4 flex-1">
-              <VodafoneLogo className="scale-90 origin-left dark:text-slate-200" />
-              <IbmLogo className="scale-90 origin-left dark:text-slate-200" />
-              <MicrosoftLogo className="scale-90 origin-left dark:text-slate-200" />
+            <div className="mt-5 flex flex-col gap-2.5 flex-1">
+              {(liveStats?.topCompanies || []).map((company: { name: string; jobCount: number }) => (
+                <div key={company.name} className="flex items-center justify-between gap-3 text-[13px]">
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{company.name}</span>
+                  <span className="shrink-0 text-slate-500 dark:text-slate-400">{company.jobCount}</span>
+                </div>
+              ))}
+              {!liveStats?.topCompanies?.length && (
+                <p className="text-[13px] text-slate-500 dark:text-slate-400">{isAr ? 'لا توجد بيانات شركات كافية.' : 'No company data available.'}</p>
+              )}
             </div>
             <Link
               href="/jobs"
@@ -413,31 +331,17 @@ export function MarketInsights() {
             </Link>
           </div>
 
-          {/* Top Industries (Full Text, NO truncation) */}
+          {/* Data provenance */}
           <div className="rounded-[28px] border border-slate-200/80 dark:border-white/[0.08] dark:hover:border-cyan-500/30 bg-white dark:bg-[#060D1E] p-7 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/90 lg:col-span-2">
             <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-slate-900 dark:text-white">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/30">
                 <Building2 className="h-4 w-4" />
               </span>
-              {isAr ? "القطاعات الأكثر نمواً" : "Top Industries"}
+              {isAr ? "تغطية البيانات وطريقة الحساب" : "Data Coverage & Method"}
             </h3>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              {activeIndustries.map((industry) => (
-                <div key={industry.name} className="flex items-center gap-3">
-                  <span className="min-w-[170px] sm:min-w-[190px] text-[13px] font-bold text-slate-800 dark:text-slate-200 leading-tight">
-                    {industry.name}
-                  </span>
-                  <div className="h-2 flex-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-cyan-500 dark:bg-cyan-400"
-                      style={{ width: `${industry.share}%` }}
-                    />
-                  </div>
-                  <span className="w-10 shrink-0 text-right text-[12px] font-bold text-slate-600 dark:text-slate-400">
-                    {industry.share}%
-                  </span>
-                </div>
-              ))}
+              <p className="text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">{isAr ? 'المهارات وعدد الوظائف يُحسبان مباشرةً من الإعلانات المطابقة، لا من أرقام ثابتة.' : 'Skills and job counts are calculated from the matching posts, not fixed figures.'}</p>
+              <p className="text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">{isAr ? 'الراتب تقدير منفصل مبني على median وP25/P75 لإعلانات أفصحت عن الراتب فقط.' : 'Salary is a separate median/P25/P75 estimate using only posts that disclose pay.'}</p>
             </div>
           </div>
 

@@ -9,6 +9,9 @@ export interface JobItem {
   company_logo?: string | null;
   applyUrl?: string;
   apply_url?: string;
+  required_skills?: string[];
+  requiredSkills?: string[];
+  skills?: string[];
   location: string;
   locationAr: string;
   workType: 'Hybrid' | 'Remote' | 'On-site';

@@ -38,8 +38,24 @@ import {
   SiGraphql,
   SiTailwindcss,
   SiJavascript,
-  SiGooglecloud
+  SiGooglecloud,
+  SiFigma,
+  SiOdoo,
+  SiTerraform,
+  SiAnsible,
+  SiSnowflake,
+  SiGooglebigquery,
+  SiApachekafka,
+  SiSelenium,
+  SiJira,
+  SiPhp,
+  SiSwift,
+  SiKotlin,
+  SiDart,
+  SiDotnet
 } from 'react-icons/si';
+import { VscAzure } from 'react-icons/vsc';
+import { FaWindows } from 'react-icons/fa6';
 import {
   BrainIcon,
   BarChart3,
@@ -54,7 +70,16 @@ import {
   Cpu,
   Database,
   Layers,
-  Code2
+  Code2,
+  Headphones,
+  Network,
+  ShieldCheck,
+  Workflow,
+  UserCheck,
+  Palette,
+  Sparkles,
+  TestTube,
+  Server
 } from 'lucide-react';
 import type { TechKey } from '../../types/onboarding';
 
@@ -174,11 +199,19 @@ const registry: Record<string, TechMeta> = {
 
   // Databases & SQL
   sql: { Icon: Database, color: 'text-[#0284C7]', tile: 'bg-[#EDF4FB] dark:bg-sky-950/70' },
+  sqlserver: { Icon: Server, color: 'text-[#CC292B]', tile: 'bg-[#FEF2F2] dark:bg-red-950/70' },
+  mssql: { Icon: Server, color: 'text-[#CC292B]', tile: 'bg-[#FEF2F2] dark:bg-red-950/70' },
+  microsoftsqlserver: { Icon: Server, color: 'text-[#CC292B]', tile: 'bg-[#FEF2F2] dark:bg-red-950/70' },
   postgresql: { Icon: SiPostgresql, color: 'text-[#336791]', tile: 'bg-[#EDF4FB] dark:bg-blue-950/70' },
   postgres: { Icon: SiPostgresql, color: 'text-[#336791]', tile: 'bg-[#EDF4FB] dark:bg-blue-950/70' },
   mysql: { Icon: SiMysql, color: 'text-[#4479A1]', tile: 'bg-[#EDF4FB] dark:bg-blue-950/70' },
   mongodb: { Icon: SiMongodb, color: 'text-[#47A248]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
   redis: { Icon: SiRedis, color: 'text-[#DC382D]', tile: 'bg-[#FEE2E2] dark:bg-red-950/70' },
+  snowflake: { Icon: SiSnowflake, color: 'text-[#29B5E8]', tile: 'bg-[#F0F9FF] dark:bg-sky-950/70' },
+  bigquery: { Icon: SiGooglebigquery, color: 'text-[#669DF6]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  googlebigquery: { Icon: SiGooglebigquery, color: 'text-[#669DF6]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  dbt: { Icon: Database, color: 'text-[#FF694B]', tile: 'bg-[#FFF7ED] dark:bg-orange-950/70' },
+  oracle: { Icon: Database, color: 'text-[#F80000]', tile: 'bg-[#FEF2F2] dark:bg-red-950/70' },
 
   // BI & Visualization
   powerbi: { Icon: PowerBiMark, color: '', tile: 'bg-[#FFF6E5] dark:bg-amber-950/70' },
@@ -200,12 +233,82 @@ const registry: Record<string, TechMeta> = {
   airflow: { Icon: SiApacheairflow, color: 'text-[#017CEE]', tile: 'bg-[#E9F3FE] dark:bg-blue-950/70' },
   aws: { Icon: AwsMark, color: '', tile: 'bg-[#FFFBEB] dark:bg-amber-950/70' },
   gcp: { Icon: SiGooglecloud, color: 'text-[#4285F4]', tile: 'bg-[#EBF3FE] dark:bg-blue-950/70' },
+  azure: { Icon: VscAzure, color: 'text-[#0089D6]', tile: 'bg-[#F0F9FF] dark:bg-sky-950/70' },
+  microsoftazure: { Icon: VscAzure, color: 'text-[#0089D6]', tile: 'bg-[#F0F9FF] dark:bg-sky-950/70' },
+  terraform: { Icon: SiTerraform, color: 'text-[#844FBA]', tile: 'bg-[#F5F3FF] dark:bg-purple-950/70' },
+  ansible: { Icon: SiAnsible, color: 'text-[#EE0000]', tile: 'bg-[#FEF2F2] dark:bg-red-950/70' },
+  kafka: { Icon: SiApachekafka, color: 'text-[#231F20] dark:text-white', tile: 'bg-[#F1F5F9] dark:bg-slate-800' },
+  apachekafka: { Icon: SiApachekafka, color: 'text-[#231F20] dark:text-white', tile: 'bg-[#F1F5F9] dark:bg-slate-800' },
   cloud: { Icon: CloudIcon, color: 'text-[#1B57E0]', tile: 'bg-[#EEF3FE] dark:bg-blue-950/70' },
   linux: { Icon: SiLinux, color: 'text-[#FCC624] dark:text-white', tile: 'bg-[#FFFBEB] dark:bg-amber-950/70' },
   bash: { Icon: SiGnubash, color: 'text-[#4EAA25]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
   terminal: { Icon: TerminalIcon, color: 'text-[#334155] dark:text-slate-300', tile: 'bg-[#EEF1F6] dark:bg-slate-800' },
+  cicd: { Icon: Layers, color: 'text-[#0284C7]', tile: 'bg-[#F0F9FF] dark:bg-sky-950/70' },
+  agile: { Icon: Workflow, color: 'text-[#2563EB]', tile: 'bg-[#EFF6FF] dark:bg-blue-950/70' },
+  scrum: { Icon: Workflow, color: 'text-[#2563EB]', tile: 'bg-[#EFF6FF] dark:bg-blue-950/70' },
+
+  // IT Support, Networking & Infrastructure
+  helpdesk: { Icon: Headphones, color: 'text-[#0284C7]', tile: 'bg-[#F0F9FF] dark:bg-sky-950/70' },
+  servicedesk: { Icon: Headphones, color: 'text-[#0284C7]', tile: 'bg-[#F0F9FF] dark:bg-sky-950/70' },
+  itsupport: { Icon: Headphones, color: 'text-[#0284C7]', tile: 'bg-[#F0F9FF] dark:bg-sky-950/70' },
+  technicalsupport: { Icon: Headphones, color: 'text-[#0284C7]', tile: 'bg-[#F0F9FF] dark:bg-sky-950/70' },
+  networkadministration: { Icon: Network, color: 'text-[#4F46E5]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  systemadministration: { Icon: Network, color: 'text-[#4F46E5]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  sysadmin: { Icon: Network, color: 'text-[#4F46E5]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  networking: { Icon: Network, color: 'text-[#4F46E5]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  network: { Icon: Network, color: 'text-[#4F46E5]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  lan: { Icon: Network, color: 'text-[#4F46E5]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  wan: { Icon: Network, color: 'text-[#4F46E5]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  tcp: { Icon: Network, color: 'text-[#4F46E5]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  tcpip: { Icon: Network, color: 'text-[#4F46E5]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  firewalls: { Icon: ShieldCheck, color: 'text-[#DC2626]', tile: 'bg-[#FEF2F2] dark:bg-red-950/70' },
+  firewall: { Icon: ShieldCheck, color: 'text-[#DC2626]', tile: 'bg-[#FEF2F2] dark:bg-red-950/70' },
+  networksecurity: { Icon: ShieldCheck, color: 'text-[#DC2626]', tile: 'bg-[#FEF2F2] dark:bg-red-950/70' },
+  security: { Icon: ShieldCheck, color: 'text-[#DC2626]', tile: 'bg-[#FEF2F2] dark:bg-red-950/70' },
+  cybersecurity: { Icon: ShieldCheck, color: 'text-[#DC2626]', tile: 'bg-[#FEF2F2] dark:bg-red-950/70' },
+  activedirectory: { Icon: UserCheck, color: 'text-[#0078D4]', tile: 'bg-[#F0F9FF] dark:bg-sky-950/70' },
+  windowsserver: { Icon: FaWindows, color: 'text-[#0078D6]', tile: 'bg-[#EFF6FF] dark:bg-blue-950/70' },
+  windows: { Icon: FaWindows, color: 'text-[#0078D6]', tile: 'bg-[#EFF6FF] dark:bg-blue-950/70' },
+
+  // Enterprise & ERP
+  odoo: { Icon: SiOdoo, color: 'text-[#714B67]', tile: 'bg-[#FAF5FF] dark:bg-purple-950/70' },
+  erp: { Icon: Workflow, color: 'text-[#D97706]', tile: 'bg-[#FFFBEB] dark:bg-amber-950/70' },
+
+  // Design & UI/UX
+  figma: { Icon: SiFigma, color: 'text-[#F24E1E]', tile: 'bg-[#FFF1F1] dark:bg-rose-950/70' },
+  uiux: { Icon: Palette, color: 'text-[#8B5CF6]', tile: 'bg-[#F5F3FF] dark:bg-purple-950/70' },
+  ui: { Icon: Palette, color: 'text-[#8B5CF6]', tile: 'bg-[#F5F3FF] dark:bg-purple-950/70' },
+  ux: { Icon: Palette, color: 'text-[#8B5CF6]', tile: 'bg-[#F5F3FF] dark:bg-purple-950/70' },
+  design: { Icon: Palette, color: 'text-[#8B5CF6]', tile: 'bg-[#F5F3FF] dark:bg-purple-950/70' },
+
+  // QA, Testing & Tools
+  qa: { Icon: TestTube, color: 'text-[#10B981]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
+  testing: { Icon: TestTube, color: 'text-[#10B981]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
+  qualityassurance: { Icon: TestTube, color: 'text-[#10B981]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
+  selenium: { Icon: SiSelenium, color: 'text-[#43B02A]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
+  postman: { Icon: SiPostman, color: 'text-[#FF6C37]', tile: 'bg-[#FFF1EC] dark:bg-orange-950/70' },
+  jira: { Icon: SiJira, color: 'text-[#0052CC]', tile: 'bg-[#EFF6FF] dark:bg-blue-950/70' },
+
+  // Additional Languages & Frameworks
+  java: { Icon: Code2, color: 'text-[#EA2D2E]', tile: 'bg-[#FEF2F2] dark:bg-red-950/70' },
+  php: { Icon: SiPhp, color: 'text-[#777BB4]', tile: 'bg-[#EEF2FF] dark:bg-indigo-950/70' },
+  swift: { Icon: SiSwift, color: 'text-[#F05138]', tile: 'bg-[#FFF1EC] dark:bg-orange-950/70' },
+  kotlin: { Icon: SiKotlin, color: 'text-[#7F52FF]', tile: 'bg-[#F5F3FF] dark:bg-purple-950/70' },
+  dart: { Icon: SiDart, color: 'text-[#0175C2]', tile: 'bg-[#F0F9FF] dark:bg-sky-950/70' },
+  dotnet: { Icon: SiDotnet, color: 'text-[#512BD4]', tile: 'bg-[#F5F3FF] dark:bg-purple-950/70' },
+  android: { Icon: Code2, color: 'text-[#3DDC84]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
+
+  // GenAI & LLMs
+  generativeai: { Icon: Sparkles, color: 'text-[#10B981]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
+  genai: { Icon: Sparkles, color: 'text-[#10B981]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
+  llms: { Icon: Sparkles, color: 'text-[#10B981]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
+  llm: { Icon: Sparkles, color: 'text-[#10B981]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
+  ai: { Icon: Sparkles, color: 'text-[#10B981]', tile: 'bg-[#ECFDF5] dark:bg-emerald-950/70' },
+
+  // APIs & Misc
   api: { Icon: SiPostman, color: 'text-[#FF6C37]', tile: 'bg-[#FFF1EC] dark:bg-orange-950/70' },
   restapi: { Icon: PlugIcon, color: 'text-[#4F46E5]', tile: 'bg-[#EEEDFD] dark:bg-indigo-950/70' },
+  restapis: { Icon: PlugIcon, color: 'text-[#4F46E5]', tile: 'bg-[#EEEDFD] dark:bg-indigo-950/70' },
   graphql: { Icon: SiGraphql, color: 'text-[#E10098]', tile: 'bg-[#FDF2F8] dark:bg-pink-950/70' },
   problem: { Icon: LightbulbIcon, color: 'text-[#C2410C]', tile: 'bg-[#FEF1E7] dark:bg-amber-950/70' }
 };
